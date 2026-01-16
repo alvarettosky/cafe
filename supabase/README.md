@@ -2,20 +2,40 @@
 
 Este directorio contiene todas las migraciones SQL necesarias para configurar la base de datos de Supabase.
 
-## Aplicar Migraciones a Supabase (Primera Vez)
+## Aplicar Migraciones a Supabase
 
-Si tu base de datos de Supabase está vacía o acabas de crear el proyecto, sigue estos pasos:
+### Paso 0: Diagnóstico (Ejecuta esto primero)
 
-### Opción 1: Usar el archivo consolidado (Recomendado)
+Antes de aplicar migraciones, verifica el estado actual de tu base de datos:
 
 1. Abre tu proyecto en [Supabase Dashboard](https://supabase.com/dashboard)
 2. Ve a **SQL Editor** en el menú lateral
-3. Abre el archivo `migrations/consolidated_migration.sql` de este repositorio
-4. Copia TODO el contenido del archivo
-5. Pégalo en el SQL Editor de Supabase
-6. Haz clic en **Run** (o presiona Ctrl/Cmd + Enter)
-7. Espera a que todas las queries se ejecuten (puede tomar 10-20 segundos)
-8. Verifica que no haya errores en la consola de resultados
+3. Copia el contenido de `migrations/diagnose_database.sql`
+4. Pégalo en el SQL Editor y haz clic en **Run**
+5. Revisa los resultados para ver qué falta
+
+### Opción 1: Fix rápido para producción (Recomendado si ya tienes algunas tablas)
+
+Si ves el error "policy already exists" o algunas tablas ya existen:
+
+1. Abre el archivo `migrations/fix_production_data.sql`
+2. Copia TODO el contenido
+3. Pégalo en el SQL Editor de Supabase
+4. Haz clic en **Run**
+5. Verifica que veas "SUCCESS: Inventory data loaded" en los resultados
+
+Este script es **idempotente** (puedes ejecutarlo múltiples veces sin problemas).
+
+### Opción 2: Base de datos nueva desde cero
+
+Si tu base de datos está completamente vacía:
+
+1. Abre el archivo `migrations/consolidated_migration.sql`
+2. Copia TODO el contenido del archivo
+3. Pégalo en el SQL Editor de Supabase
+4. Haz clic en **Run** (o presiona Ctrl/Cmd + Enter)
+5. Espera a que todas las queries se ejecuten (puede tomar 10-20 segundos)
+6. Si ves errores de "already exists", ignóralos (significa que ya estaban creados)
 
 ### Opción 2: Ejecutar migraciones una por una
 
