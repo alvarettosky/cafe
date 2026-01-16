@@ -50,15 +50,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } else {
                 setRole(null);
                 setIsLoading(false);
-                // Redirect to login if signed out
-                if (window.location.pathname !== '/login') {
+                // Redirect to login if signed out (only on client)
+                if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
                     router.push('/login');
                 }
             }
         });
 
         return () => subscription.unsubscribe();
-    }, [router]);
+    }, []);
 
     async function fetchUserRole(userId: string) {
         try {
