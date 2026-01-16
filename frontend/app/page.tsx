@@ -73,19 +73,19 @@ export default function Dashboard() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <KpiCard
             title="Total en Inventario"
-            value={stats ? `${stats.total_inventory_grams.toLocaleString()} g` : "..."}
+            value={stats?.total_inventory_grams != null ? `${stats.total_inventory_grams.toLocaleString()} g` : "..."}
             icon={Package}
             description="Stock actual disponible"
           />
           <KpiCard
             title="Ventas Hoy"
-            value={stats ? `$ ${stats.sales_today}` : "..."}
+            value={stats?.sales_today != null ? `$ ${stats.sales_today.toLocaleString()}` : "..."}
             icon={TrendingUp}
             trend={stats && stats.sales_today > 0 ? "Activo" : "Sin ventas"}
           />
           <KpiCard
             title="Café Tostado"
-            value={stats ? `${stats.roasted_coffee_lbs.toFixed(1)} lbs` : "..."}
+            value={stats?.roasted_coffee_lbs != null ? `${Number(stats.roasted_coffee_lbs).toFixed(1)} lbs` : "..."}
             icon={Coffee}
           />
           <KpiCard
