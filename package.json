@@ -1,0 +1,24 @@
+{
+    "name": "cafe-palestina-crm",
+    "version": "1.0.0",
+    "description": "CRM for Cafe Palestina with Inventory Management",
+    "main": "dist/index.js",
+    "scripts": {
+        "test": "npm run test:root && npm run test:frontend",
+        "test:root": "vitest run",
+        "test:frontend": "npm test --prefix frontend",
+        "test:coverage": "npm run test:coverage --prefix frontend",
+        "build": "tsc"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "typescript": "^5.0.0",
+        "vitest": "^1.0.0",
+        "@vitest/coverage-v8": "^1.0.0"
+    },
+    "dependencies": {
+        "decimal.js": "^10.4.3"
+    }
+}
