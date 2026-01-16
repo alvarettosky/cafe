@@ -7,7 +7,7 @@ import { AuthProvider } from '@/components/auth-provider'
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
 
 export const metadata: Metadata = {
-  title: 'Café Palestina CRM',
+  title: 'Mirador Montañero - Café Selecto',
   description: 'Sistema de Gestión de Inventario y Ventas',
 }
 

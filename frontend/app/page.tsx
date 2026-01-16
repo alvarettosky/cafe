@@ -54,7 +54,10 @@ export default function Dashboard() {
       <div className="relative z-10 max-w-7xl mx-auto space-y-8">
         <header className="flex justify-between items-center">
           <div>
-            <h1 className="text-4xl font-bold tracking-tight text-primary">Café Palestina</h1>
+            <h1 className="text-4xl font-bold tracking-tight text-primary">
+              Mirador Montañero
+              <span className="block text-3xl mt-1">Café Selecto</span>
+            </h1>
             <p className="text-muted-foreground mt-2">Panel de Control & Inventario</p>
           </div>
           <div className="flex gap-2">
