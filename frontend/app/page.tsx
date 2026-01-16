@@ -12,6 +12,7 @@ import { InventoryList } from "@/components/inventory-list";
 import { useAuth } from "@/components/auth-provider";
 import { Loader2 } from "lucide-react";
 import { DashboardStats } from "@/types";
+import { Diagnostics } from "@/components/diagnostics";
 
 export default function Dashboard() {
   const { user, isLoading } = useAuth();
@@ -133,6 +134,7 @@ export default function Dashboard() {
           </Card>
         </div>
       </div>
+      <Diagnostics />
     </main>
   );
 }
