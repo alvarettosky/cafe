@@ -171,13 +171,13 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
                     <div className="flex flex-col space-y-2">
                         <label className="text-sm font-medium">Producto</label>
                         <select
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
                             onChange={(e) => setProductId(e.target.value)}
                             value={productId}
                         >
-                            <option value="">Seleccionar Café...</option>
+                            <option value="" className="text-black dark:text-white bg-white dark:bg-zinc-900">Seleccionar Café...</option>
                             {products.map((p) => (
-                                <option key={p.product_id} value={p.product_id}>
+                                <option key={p.product_id} value={p.product_id} className="text-black dark:text-white bg-white dark:bg-zinc-900">
                                     {p.product_name}
                                 </option>
                             ))}
