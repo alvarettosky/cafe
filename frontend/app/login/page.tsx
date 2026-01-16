@@ -55,8 +55,9 @@ export default function LoginPage() {
                     <div className="rounded-full bg-emerald-500/10 p-3 mb-4">
                         <Lock className="h-8 w-8 text-emerald-500" />
                     </div>
-                    <h2 className="text-3xl font-bold tracking-tight text-white">
-                        Café Palestino
+                    <h2 className="text-3xl font-bold tracking-tight text-white text-center">
+                        Mirador Montañero
+                        <span className="block text-xl text-emerald-400 font-normal mt-1">Café Selecto</span>
                     </h2>
                     <p className="mt-2 text-sm text-zinc-400">
                         {isSignUp ? 'Crear cuenta de vendedor' : 'Iniciar sesión en el CRM'}
