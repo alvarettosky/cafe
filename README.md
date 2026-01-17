@@ -103,4 +103,3 @@ Ver documentación completa en `/docs/testing/`
 - `/tests`: Suite completa de tests (load, database).
 - `/e2e`: Tests end-to-end con Playwright.
 - `/docs`: Documentación del proyecto.
-- `/frontend`: **[DEPRECADO]** Directorio antiguo mantenido para referencia.
