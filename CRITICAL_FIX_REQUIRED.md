@@ -23,33 +23,43 @@ Esto está **bloqueando TODO**:
 
 ## 🔧 SOLUCIÓN (EJECUTA ESTO PRIMERO)
 
-### Opción 1: Instalar npm en Manjaro/Arch
+### ⭐ RECOMENDADO: Instalar npm SIN SUDO (Entorno Virtual)
+
+Ya que estamos en un entorno virtual, usa el script automático:
 
 ```bash
-sudo pacman -S npm
+./install-npm-no-sudo.sh
 ```
 
-### Opción 2: Reinstalar Node.js con npm
+Este script:
+- ✅ Instala nvm (Node Version Manager) sin permisos sudo
+- ✅ Instala Node.js v25 con npm/npx incluidos
+- ✅ Configura todo automáticamente
+- ✅ Funciona en cualquier entorno (no requiere permisos de administrador)
+
+**Después de ejecutar el script:**
+1. Cierra y abre tu terminal
+2. Verifica: `npm --version && npx --version`
+3. Continúa con los siguientes pasos
+
+### Opción Manual: Instalar nvm manualmente
+
+Si prefieres hacerlo manual:
 
 ```bash
-# Desinstalar Node actual
-sudo pacman -R nodejs
+# 1. Instalar nvm
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
 
-# Reinstalar con npm incluido
-sudo pacman -S nodejs npm
-```
+# 2. Reiniciar terminal o cargar nvm:
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-### Opción 3: Usar nvm (Node Version Manager)
-
-```bash
-# Instalar nvm
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-
-# Reiniciar terminal, luego:
+# 3. Instalar Node.js v25
 nvm install 25
 nvm use 25
+nvm alias default 25
 
-# Verificar
+# 4. Verificar
 node --version  # Debe mostrar v25.x.x
 npm --version   # Debe mostrar versión de npm
 npx --version   # Debe mostrar versión de npx
@@ -152,11 +162,13 @@ Según `verify-all-fixes.sh`:
 
 ## 🎯 PRÓXIMOS PASOS
 
-### Paso 1: Instalar npm (CRÍTICO)
+### Paso 1: Instalar npm (CRÍTICO - SIN SUDO)
 
 ```bash
-sudo pacman -S npm
+./install-npm-no-sudo.sh
 ```
+
+Luego **cierra y abre tu terminal** para que nvm se cargue automáticamente.
 
 ### Paso 2: Verificar
 
