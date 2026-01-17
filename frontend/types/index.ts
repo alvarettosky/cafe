@@ -1,5 +1,7 @@
 import { LucideIcon } from "lucide-react";
 
+export * from './analytics';
+
 export interface DashboardMetric {
     label: string;
     value: string;
