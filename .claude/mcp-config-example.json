@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-supabase"],
+      "env": {
+        "SUPABASE_URL": "https://inszvqzpxfqibkjsptsm.supabase.co",
+        "SUPABASE_SERVICE_ROLE_KEY": "REEMPLAZA_CON_TU_SERVICE_ROLE_KEY"
+      }
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@context-labs/context7-mcp"]
+    }
+  }
+}
