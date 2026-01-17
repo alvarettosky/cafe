@@ -14,6 +14,9 @@
     "test:coverage:watch": "vitest --coverage --watch",
     "test:ci": "vitest run --coverage --reporter=verbose --reporter=json --reporter=html",
     "test:mutation": "stryker run",
+    "test:load": "k6 run ../tests/load/api-stress-test.js",
+    "test:spike": "k6 run ../tests/load/spike-test.js",
+    "test:soak": "k6 run ../tests/load/soak-test.js",
     "prepare": "cd .. && husky install frontend/.husky",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
