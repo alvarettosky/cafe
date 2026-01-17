@@ -16,3 +16,13 @@ frontend/scripts/run-migration-015.js
 .env.test
 playwright-report/
 test-results/
+
+# Next.js
+.next/
+out/
+
+# Environment
+.env*.local
+
+# Vercel
+.vercel
