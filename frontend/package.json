@@ -9,7 +9,10 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage:watch": "vitest --coverage --watch",
+    "test:ci": "vitest run --coverage --reporter=verbose --reporter=json --reporter=html"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

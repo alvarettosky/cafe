@@ -14,5 +14,32 @@ export default defineConfig({
         alias: {
             '@': path.resolve(__dirname, './'),
         },
+        coverage: {
+            provider: 'v8',
+            reporter: ['text', 'json', 'html', 'lcov'],
+            all: true,
+            include: ['src/**/*.{ts,tsx}', 'app/**/*.{ts,tsx}', 'lib/**/*.{ts,tsx}'],
+            exclude: [
+                'node_modules/**',
+                '.next/**',
+                'out/**',
+                'public/**',
+                '**/*.config.{ts,mts,js,mjs}',
+                '**/*.d.ts',
+                '**/types/**',
+                '**/__tests__/**',
+                '**/*.test.{ts,tsx}',
+                '**/*.spec.{ts,tsx}',
+                '**/middleware.ts',
+            ],
+            thresholds: {
+                lines: 80,
+                functions: 80,
+                branches: 80,
+                statements: 80,
+            },
+        },
+        testTimeout: 10000,
+        pool: 'threads',
     },
 })
