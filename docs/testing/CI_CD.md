@@ -32,6 +32,8 @@ Runs end-to-end tests across multiple browsers.
 - Pull requests to `main`
 - Daily schedule at 2 AM UTC
 
+**Production URL:** https://cafe-pi-steel.vercel.app
+
 ### 3. Coverage Report (`.github/workflows/coverage-report.yml`)
 
 Generates and uploads coverage reports.

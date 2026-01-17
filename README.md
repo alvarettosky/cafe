@@ -1,11 +1,18 @@
 # Café Mirador CRM
 
-[![CI](https://github.com/YOUR_USERNAME/cafe-mirador/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/cafe-mirador/actions/workflows/ci.yml)
-[![E2E Tests](https://github.com/YOUR_USERNAME/cafe-mirador/actions/workflows/e2e.yml/badge.svg)](https://github.com/YOUR_USERNAME/cafe-mirador/actions/workflows/e2e.yml)
-[![codecov](https://codecov.io/gh/YOUR_USERNAME/cafe-mirador/branch/main/graph/badge.svg)](https://codecov.io/gh/YOUR_USERNAME/cafe-mirador)
+[![CI](https://github.com/alvarettosky/cafe/actions/workflows/ci.yml/badge.svg)](https://github.com/alvarettosky/cafe/actions/workflows/ci.yml)
+[![E2E Tests](https://github.com/alvarettosky/cafe/actions/workflows/e2e.yml/badge.svg)](https://github.com/alvarettosky/cafe/actions/workflows/e2e.yml)
+[![codecov](https://codecov.io/gh/alvarettosky/cafe/branch/main/graph/badge.svg)](https://codecov.io/gh/alvarettosky/cafe)
+[![Deploy](https://img.shields.io/badge/deploy-vercel-black)](https://cafe-pi-steel.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Sistema de gestión de inventario, punto de venta (POS) y administración de clientes para Café Mirador.
+
+## 🚀 Demo en Vivo
+
+**URL de Producción:** https://cafe-pi-steel.vercel.app
+
+La aplicación está desplegada en Vercel con actualizaciones automáticas en cada push a la rama `main`.
 
 ## Tecnologías
 - **Frontend**: Next.js 16, TailwindCSS 4, Framer Motion.
@@ -92,6 +99,16 @@ Este proyecto está optimizado para **Vercel**.
 - **Nightly**: Mutation and load tests
 
 Ver documentación completa en `/docs/testing/`
+
+## 📚 Documentación
+
+- **[DEPLOYMENT_SUMMARY.md](DEPLOYMENT_SUMMARY.md)** - Resumen completo del deployment
+- **[VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md)** - Guía de deployment en Vercel
+- **[MIGRATION_NOTES.md](MIGRATION_NOTES.md)** - Notas de migración frontend→root
+- **[docs/testing/](docs/testing/)** - Documentación completa de testing
+  - [TESTING_GUIDE.md](docs/testing/TESTING_GUIDE.md) - Guía de testing
+  - [CI_CD.md](docs/testing/CI_CD.md) - Pipeline CI/CD
+  - [WRITING_TESTS.md](docs/testing/WRITING_TESTS.md) - Cómo escribir tests
 
 ## Estructura del Proyecto
 - `/app`: Páginas y rutas de Next.js (App Router).
