@@ -114,19 +114,19 @@ const mockProductPerformance: ProductMetric[] = [
 
 const mockInventoryItems: InventoryItem[] = [
   {
-    id: '1',
+    product_id: '1',
     product_name: 'Café Especial',
     total_grams_available: 5000,
     last_updated: '2024-01-15T10:00:00Z',
   },
   {
-    id: '2',
+    product_id: '2',
     product_name: 'Café Premium',
     total_grams_available: 3000,
     last_updated: '2024-01-15T10:00:00Z',
   },
   {
-    id: '3',
+    product_id: '3',
     product_name: 'Café Orgánico',
     total_grams_available: 2000,
     last_updated: '2024-01-15T10:00:00Z',
@@ -219,7 +219,7 @@ export const handlers = [
     return HttpResponse.json([
       {
         ...newItem,
-        id: Math.random().toString(36).substring(7),
+        product_id: Math.random().toString(36).substring(7),
         last_updated: new Date().toISOString(),
       },
     ])

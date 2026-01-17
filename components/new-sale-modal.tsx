@@ -16,6 +16,7 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
     const [unit, setUnit] = useState<"libra" | "media_libra">("libra");
     const [productId, setProductId] = useState("");
     const [products, setProducts] = useState<any[]>([]);
+    const [pricePerUnit, setPricePerUnit] = useState(10.00);
 
     // Customer State
     const [customers, setCustomers] = useState<any[]>([]);
@@ -35,6 +36,12 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
         "DaviPlata",
         "Pago a crédito o pendiente"
     ];
+
+    // Update suggested price when unit changes
+    useEffect(() => {
+        const suggestedPrice = unit === 'libra' ? 10.00 : 5.00;
+        setPricePerUnit(suggestedPrice);
+    }, [unit]);
 
     useEffect(() => {
         if (isOpen) {
@@ -64,13 +71,17 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
             return;
         }
 
+        if (pricePerUnit <= 0) {
+            setError("El precio debe ser mayor a $0");
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
 
         try {
-            // Hardcoded Price for demo ($10 for LB, $5 for Media)
-            // In production, price should come from DB or calculated logic
-            const price = unit === 'libra' ? 10.00 : 5.00;
+            // Use the price from state (user can edit it)
+            const price = pricePerUnit;
 
             // Handle Customer (Existing or New)
             let finalCustomerId = selectedCustomerId;
@@ -170,8 +181,9 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
 
                     {/* Dynamic Product Selection */}
                     <div className="flex flex-col space-y-2">
-                        <label className="text-sm font-medium">Producto</label>
+                        <label htmlFor="product-select" className="text-sm font-medium">Producto</label>
                         <select
+                            id="product-select"
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
                             onChange={(e) => setProductId(e.target.value)}
                             value={productId}
@@ -187,8 +199,9 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="flex flex-col space-y-2">
-                            <label className="text-sm font-medium">Cantidad</label>
+                            <label htmlFor="quantity-input" className="text-sm font-medium">Cantidad</label>
                             <input
+                                id="quantity-input"
                                 type="number"
                                 min="1"
                                 value={quantity}
@@ -197,8 +210,9 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
                             />
                         </div>
                         <div className="flex flex-col space-y-2">
-                            <label className="text-sm font-medium">Unidad</label>
+                            <label htmlFor="unit-select" className="text-sm font-medium">Unidad</label>
                             <select
+                                id="unit-select"
                                 value={unit}
                                 onChange={(e) => setUnit(e.target.value as any)}
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
@@ -206,6 +220,26 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
                                 <option value="libra">Libra (500g)</option>
                                 <option value="media_libra">Media Libra (250g)</option>
                             </select>
+                        </div>
+                    </div>
+
+                    {/* Price Section */}
+                    <div className="flex flex-col space-y-2">
+                        <label htmlFor="price-input" className="text-sm font-medium">Precio por Unidad ($)</label>
+                        <input
+                            id="price-input"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={pricePerUnit}
+                            onChange={(e) => setPricePerUnit(parseFloat(e.target.value) || 0)}
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        />
+                        <div className="flex justify-between items-center p-3 bg-primary/5 rounded-md border border-primary/20">
+                            <span className="text-sm font-medium text-muted-foreground">Total:</span>
+                            <span className="text-lg font-bold text-primary">
+                                ${(quantity * pricePerUnit).toFixed(2)}
+                            </span>
                         </div>
                     </div>
 
