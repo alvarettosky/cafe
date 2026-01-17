@@ -12,8 +12,7 @@ type DateRange = {
 type DateRangePreset = "hoy" | "esta-semana" | "este-mes" | "este-trimestre" | "este-año";
 
 interface DateRangeSelectorProps {
-  onRangeChange: (range: DateRange) => void;
-  onPresetChange?: (preset: DateRangePreset) => void;
+  onPresetChange: (preset: DateRangePreset) => void;
   activePreset?: DateRangePreset;
 }
 
@@ -64,7 +63,6 @@ const getDateRange = (preset: DateRangePreset): DateRange => {
 };
 
 export const DateRangeSelector = ({
-  onRangeChange,
   onPresetChange,
   activePreset = "este-mes",
 }: DateRangeSelectorProps) => {
@@ -77,9 +75,7 @@ export const DateRangeSelector = ({
   ];
 
   const handlePresetClick = (preset: DateRangePreset) => {
-    const range = getDateRange(preset);
-    onRangeChange(range);
-    onPresetChange?.(preset);
+    onPresetChange(preset);
   };
 
   return (

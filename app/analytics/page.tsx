@@ -194,11 +194,6 @@ export default function AnalyticsPage() {
     fetchPendingCredits();
   }, [user]);
 
-  // Handle date range change
-  const handleDateRangeChange = (range: { start: Date; end: Date }) => {
-    setDateRange(range);
-  };
-
   // Handle preset change
   const handlePresetChange = (preset: string) => {
     setActivePreset(preset);
@@ -267,7 +262,6 @@ export default function AnalyticsPage() {
             className="flex justify-start"
           >
             <DateRangeSelector
-              onRangeChange={handleDateRangeChange}
               onPresetChange={handlePresetChange}
               activePreset={activePreset as any}
             />
