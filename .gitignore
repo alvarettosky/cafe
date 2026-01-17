@@ -27,3 +27,6 @@ out/
 # Vercel
 .vercel
 VERCEL_FIX.html
+
+# Git worktrees
+.worktrees/
