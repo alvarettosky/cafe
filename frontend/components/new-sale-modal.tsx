@@ -32,7 +32,8 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
         "Transf. Bancolombia",
         "Nequi Alvaretto",
         "Nequi La Negra",
-        "DaviPlata"
+        "DaviPlata",
+        "Pago a crédito o pendiente"
     ];
 
     useEffect(() => {
