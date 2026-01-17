@@ -17,6 +17,8 @@
     "test:load": "k6 run ../tests/load/api-stress-test.js",
     "test:spike": "k6 run ../tests/load/spike-test.js",
     "test:soak": "k6 run ../tests/load/soak-test.js",
+    "test:db": "vitest run ../tests/database/",
+    "test:db:watch": "vitest ../tests/database/",
     "prepare": "cd .. && husky install frontend/.husky",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
