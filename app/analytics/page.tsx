@@ -171,6 +171,13 @@ export default function AnalyticsPage() {
     setDateRange(range);
   };
 
+  // Handle preset change
+  const handlePresetChange = (preset: string) => {
+    setActivePreset(preset);
+    const range = getDateRange(preset);
+    setDateRange(range);
+  };
+
   // Show loading spinner while authenticating
   if (authLoading) {
     return (
@@ -233,6 +240,7 @@ export default function AnalyticsPage() {
           >
             <DateRangeSelector
               onRangeChange={handleDateRangeChange}
+              onPresetChange={handlePresetChange}
               activePreset={activePreset as any}
             />
           </motion.div>
