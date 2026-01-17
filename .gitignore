@@ -7,3 +7,6 @@ coverage/
 .next/
 dist/
 .git/
+execute-migrations.sh
+frontend/scripts/run-migration-015.js
+.claude/mcp.json
