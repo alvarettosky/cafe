@@ -9,7 +9,7 @@ interface RevenueChartProps {
   title?: string;
 }
 
-export function RevenueChart({ data, title = "Revenue & Profit Trend" }: RevenueChartProps) {
+export function RevenueChart({ data, title = "Tendencia de Ingresos y Ganancias" }: RevenueChartProps) {
   const formatCurrency = (value: number) => `$${value.toFixed(0)}`;
 
   const formatDate = (dateStr: string) => {
@@ -50,21 +50,21 @@ export function RevenueChart({ data, title = "Revenue & Profit Trend" }: Revenue
               dataKey="revenue"
               stroke="#f97316"
               strokeWidth={2}
-              name="Revenue"
+              name="Ingresos"
             />
             <Line
               type="monotone"
               dataKey="profit"
               stroke="#22c55e"
               strokeWidth={2}
-              name="Profit"
+              name="Ganancia"
             />
             <Line
               type="monotone"
               dataKey="cost"
               stroke="#ef4444"
               strokeWidth={2}
-              name="Cost"
+              name="Costo"
             />
           </LineChart>
         </ResponsiveContainer>

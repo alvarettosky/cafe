@@ -26,6 +26,14 @@ import type {
   ProductMetric,
 } from '@/types/analytics';
 
+type PendingCredit = {
+  sale_id: string;
+  customer_name: string;
+  sale_date: string;
+  amount_due: number;
+  days_pending: number;
+};
+
 // Helper function to get date range
 const getDateRange = (preset: string = 'este-mes') => {
   const now = new Date();
@@ -86,6 +94,7 @@ export default function AnalyticsPage() {
   const [productPerformance, setProductPerformance] = useState<ProductMetric[]>(
     []
   );
+  const [pendingCredits, setPendingCredits] = useState<PendingCredit[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -166,6 +175,25 @@ export default function AnalyticsPage() {
     fetchProductPerformance();
   }, [user, dateRange]);
 
+  // Fetch pending credits
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchPendingCredits = async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_pending_credits');
+
+        if (error) throw error;
+        setPendingCredits(data || []);
+      } catch (err) {
+        console.error('Error fetching pending credits:', err);
+        // Don't set error state, it's not critical
+      }
+    };
+
+    fetchPendingCredits();
+  }, [user]);
+
   // Handle date range change
   const handleDateRangeChange = (range: { start: Date; end: Date }) => {
     setDateRange(range);
@@ -226,7 +254,7 @@ export default function AnalyticsPage() {
                 <ArrowLeft className="h-4 w-4 text-white" />
               </Button>
               <h1 className="text-4xl font-bold text-white">
-                Advanced Analytics
+                Analíticas Avanzadas
               </h1>
             </div>
           </motion.div>
@@ -272,30 +300,30 @@ export default function AnalyticsPage() {
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
             >
               <AdvancedKPICard
-                title="Total Revenue"
+                title="Ingresos Totales"
                 value={formatCurrency(metrics.total_revenue)}
-                subtitle={`${metrics.sales_count} sales`}
+                subtitle={`${metrics.sales_count} ventas`}
                 icon={DollarSign}
               />
 
               <AdvancedKPICard
-                title="Total Profit"
+                title="Ganancia Total"
                 value={formatCurrency(metrics.total_profit)}
-                subtitle={`${formatPercentage(metrics.avg_profit_margin)} margin`}
+                subtitle={`${formatPercentage(metrics.avg_profit_margin)} margen`}
                 icon={TrendingUp}
               />
 
               <AdvancedKPICard
-                title="Average Ticket"
+                title="Ticket Promedio"
                 value={formatCurrency(metrics.avg_ticket)}
-                subtitle={`${metrics.sales_count} transactions`}
+                subtitle={`${metrics.sales_count} transacciones`}
                 icon={ShoppingCart}
               />
 
               <AdvancedKPICard
-                title="Inventory Value"
+                title="Valor de Inventario"
                 value={formatCurrency(metrics.inventory_value)}
-                subtitle={`${metrics.low_stock_items} low stock items`}
+                subtitle={`${metrics.low_stock_items} productos con poco stock`}
                 icon={Package}
               />
             </motion.div>
@@ -322,6 +350,78 @@ export default function AnalyticsPage() {
             <ProductChart data={productPerformance} />
           </motion.div>
 
+          {/* Pending Credits Table */}
+          {pendingCredits.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 p-6"
+            >
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                <AlertTriangle className="h-6 w-6 text-yellow-300" />
+                Pagos Pendientes
+              </h2>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-white/20">
+                      <th className="text-left py-3 px-4 text-white font-semibold">Cliente</th>
+                      <th className="text-left py-3 px-4 text-white font-semibold">Fecha de Compra</th>
+                      <th className="text-right py-3 px-4 text-white font-semibold">Monto Adeudado</th>
+                      <th className="text-right py-3 px-4 text-white font-semibold">Días Pendiente</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pendingCredits.map((credit) => (
+                      <tr
+                        key={credit.sale_id}
+                        className="border-b border-white/10 hover:bg-white/5 transition-colors"
+                      >
+                        <td className="py-3 px-4 text-white">{credit.customer_name}</td>
+                        <td className="py-3 px-4 text-white/80">
+                          {new Date(credit.sale_date).toLocaleDateString('es-CO', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })}
+                        </td>
+                        <td className="py-3 px-4 text-right font-semibold text-yellow-300">
+                          {formatCurrency(credit.amount_due)}
+                        </td>
+                        <td className={`py-3 px-4 text-right font-semibold ${
+                          credit.days_pending > 30
+                            ? 'text-red-400'
+                            : credit.days_pending > 15
+                            ? 'text-yellow-400'
+                            : 'text-green-400'
+                        }`}>
+                          {credit.days_pending} días
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t-2 border-white/30">
+                      <td colSpan={2} className="py-3 px-4 text-right font-bold text-white">
+                        Total:
+                      </td>
+                      <td className="py-3 px-4 text-right font-bold text-yellow-300 text-lg">
+                        {formatCurrency(
+                          pendingCredits.reduce((sum, credit) => sum + credit.amount_due, 0)
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-right text-white/60 text-sm">
+                        {pendingCredits.length} {pendingCredits.length === 1 ? 'pago' : 'pagos'}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </motion.div>
+          )}
+
           {/* Pending Credits Warning */}
           {metrics && metrics.pending_credits > 0 && (
             <motion.div
@@ -333,11 +433,11 @@ export default function AnalyticsPage() {
               <AlertTriangle className="h-5 w-5 text-yellow-300 flex-shrink-0 mt-0.5" />
               <div>
                 <h3 className="font-semibold text-yellow-200">
-                  Pending Credits
+                  Pagos Pendientes
                 </h3>
                 <p className="text-yellow-100/80">
-                  There are {formatCurrency(metrics.pending_credits)} in pending
-                  credit sales that need to be collected.
+                  Hay {formatCurrency(metrics.pending_credits)} en ventas a crédito
+                  pendientes de cobro.
                 </p>
               </div>
             </motion.div>

@@ -9,7 +9,7 @@ interface ProductChartProps {
   title?: string;
 }
 
-export function ProductChart({ data, title = "Product Performance" }: ProductChartProps) {
+export function ProductChart({ data, title = "Rendimiento de Productos" }: ProductChartProps) {
   const formatCurrency = (value: number) => `$${value.toFixed(0)}`;
 
   return (
@@ -44,12 +44,12 @@ export function ProductChart({ data, title = "Product Performance" }: ProductCha
             <Bar
               dataKey="revenue"
               fill="#f97316"
-              name="Revenue"
+              name="Ingresos"
             />
             <Bar
               dataKey="profit"
               fill="#22c55e"
-              name="Profit"
+              name="Ganancia"
             />
           </BarChart>
         </ResponsiveContainer>

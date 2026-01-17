@@ -11,7 +11,7 @@ interface PaymentChartProps {
 
 const COLORS = ['#f97316', '#22c55e', '#3b82f6', '#a855f7', '#eab308', '#ec4899', '#14b8a6'];
 
-export function PaymentChart({ data, title = "Payment Methods" }: PaymentChartProps) {
+export function PaymentChart({ data, title = "Métodos de Pago" }: PaymentChartProps) {
   const chartData = Object.entries(data || {}).map(([method, values]) => ({
     name: method,
     value: values.total,
