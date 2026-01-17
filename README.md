@@ -1,11 +1,16 @@
 # Café Mirador CRM
 
+[![CI](https://github.com/YOUR_USERNAME/cafe-mirador/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/cafe-mirador/actions/workflows/ci.yml)
+[![E2E Tests](https://github.com/YOUR_USERNAME/cafe-mirador/actions/workflows/e2e.yml/badge.svg)](https://github.com/YOUR_USERNAME/cafe-mirador/actions/workflows/e2e.yml)
+[![codecov](https://codecov.io/gh/YOUR_USERNAME/cafe-mirador/branch/main/graph/badge.svg)](https://codecov.io/gh/YOUR_USERNAME/cafe-mirador)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Sistema de gestión de inventario, punto de venta (POS) y administración de clientes para Café Mirador.
 
 ## Tecnologías
 - **Frontend**: Next.js 16, TailwindCSS 4, Framer Motion.
 - **Backend**: Supabase (PostgreSQL, Auth, RLS, RPCs).
-- **Testing**: Vitest (Unit & Integration).
+- **Testing**: Vitest, Playwright, Stryker, k6 (Unit, Integration, E2E, Mutation, Load).
 
 ## Requisitos previos
 1. **Node.js**: v20+ (o usar `./setup_env.sh`).
@@ -38,10 +43,21 @@ Sistema de gestión de inventario, punto de venta (POS) y administración de cli
    Abre [http://localhost:3000](http://localhost:3000).
 
 6. **Ejecutar Pruebas**:
-   Puedes ejecutar suite completa de pruebas (Frontend + Backend) desde la raíz:
    ```bash
-   npm test               # Ejecutar todos los tests
-   npm run test:coverage  # Ver reporte de cobertura
+   # Unit & Integration Tests
+   npm test                    # Ejecutar todos los tests
+   npm run test:coverage       # Ver reporte de cobertura
+   npm run test:watch          # Modo watch
+   npm run test:ui             # Interfaz UI
+
+   # E2E Tests
+   npx playwright test         # Tests E2E en todos los navegadores
+   npx playwright test --ui    # Modo UI interactivo
+
+   # Advanced Testing
+   npm run test:mutation       # Mutation testing (Stryker)
+   npm run test:db             # Database integration tests
+   npm run test:load           # Load testing (k6)
    ```
 
 ## Cómo desplegar en Producción (Vercel)
@@ -54,7 +70,33 @@ Este proyecto está optimizado para **Vercel**.
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 4. Despliega.
 
+## Testing
+
+### Coverage Goals
+- **Lines**: 80%+
+- **Functions**: 80%+
+- **Branches**: 80%+
+- **Statements**: 80%+
+
+### Testing Strategy
+- **Unit Tests**: Component and utility function testing (Vitest + Testing Library)
+- **Integration Tests**: Multi-component interactions with API mocking (MSW)
+- **E2E Tests**: Full user flows - sales, analytics, inventory (Playwright)
+- **Load Tests**: Performance under stress (k6)
+- **Mutation Tests**: Test quality verification (Stryker)
+- **Database Tests**: RPC functions and data integrity (Vitest + Supabase)
+
+### CI/CD Pipeline
+- **Pre-commit**: Lint, format, type-check, related tests (Husky + lint-staged)
+- **On Push**: Full CI pipeline (lint, tests, type-check, build)
+- **On PR**: Coverage reports and comments
+- **Nightly**: Mutation and load tests
+
+Ver documentación completa en `/docs/testing/`
+
 ## Estructura del Proyecto
 - `/frontend`: Código fuente de la aplicación web.
 - `/supabase`: Migraciones SQL y semillas de datos.
-- `/src/__tests__`: Pruebas de integración del backend.
+- `/tests`: Suite completa de tests (load, database).
+- `/e2e`: Tests end-to-end con Playwright.
+- `/docs`: Documentación del proyecto.
