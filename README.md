@@ -26,11 +26,10 @@ Sistema de gestión de inventario, punto de venta (POS) y administración de cli
    ```
 
 2. **Configurar variables**:
-   Asegúrate de tener el archivo `.env.local` en la carpeta `frontend` con tus credenciales de Supabase.
-   
+   Asegúrate de tener el archivo `.env.local` en la raíz del proyecto con tus credenciales de Supabase.
+
 3. **Instalar dependencias**:
    ```bash
-   cd frontend
    npm install
    ```
 
@@ -95,8 +94,13 @@ Este proyecto está optimizado para **Vercel**.
 Ver documentación completa en `/docs/testing/`
 
 ## Estructura del Proyecto
-- `/frontend`: Código fuente de la aplicación web.
+- `/app`: Páginas y rutas de Next.js (App Router).
+- `/components`: Componentes reutilizables de React.
+- `/lib`: Utilidades y configuraciones (Supabase, validaciones).
+- `/types`: Definiciones de TypeScript.
+- `/public`: Archivos estáticos.
 - `/supabase`: Migraciones SQL y semillas de datos.
 - `/tests`: Suite completa de tests (load, database).
 - `/e2e`: Tests end-to-end con Playwright.
 - `/docs`: Documentación del proyecto.
+- `/frontend`: **[DEPRECADO]** Directorio antiguo mantenido para referencia.
