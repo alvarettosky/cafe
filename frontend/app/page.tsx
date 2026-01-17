@@ -4,10 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NewSaleModal } from "@/components/new-sale-modal";
 import { NewCustomerModal } from "@/components/new-customer-modal";
-import { Coffee, Package, TrendingUp, AlertTriangle, RefreshCcw } from "lucide-react";
+import { Coffee, Package, TrendingUp, AlertTriangle, RefreshCcw, BarChart3 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 import { InventoryList } from "@/components/inventory-list";
 import { useAuth } from "@/components/auth-provider";
 import { Loader2 } from "lucide-react";
@@ -16,6 +17,7 @@ import { Diagnostics } from "@/components/diagnostics";
 
 export default function Dashboard() {
   const { user, isLoading } = useAuth();
+  const router = useRouter();
   const [refreshKey, setRefreshKey] = useState(0);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentSales, setRecentSales] = useState<any[]>([]);
@@ -64,6 +66,10 @@ export default function Dashboard() {
           <div className="flex gap-2">
             <Button variant="outline" size="icon" onClick={handleRefresh}>
               <RefreshCcw className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" onClick={() => router.push('/analytics')}>
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Analytics
             </Button>
             <NewCustomerModal />
             <NewSaleModal onSaleComplete={handleRefresh} />
