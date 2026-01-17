@@ -20,6 +20,7 @@
     "next": "16.1.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "recharts": "^2.15.0",
     "tailwind-merge": "^3.4.0",
     "zod": "^4.3.5"
   },
@@ -31,6 +32,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/recharts": "^3.0.0",
     "@vitejs/plugin-react": "^5.1.2",
     "@vitest/coverage-v8": "^4.0.17",
     "dotenv": "^17.2.3",
