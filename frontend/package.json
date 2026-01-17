@@ -13,6 +13,7 @@
     "test:ui": "vitest --ui",
     "test:coverage:watch": "vitest --coverage --watch",
     "test:ci": "vitest run --coverage --reporter=verbose --reporter=json --reporter=html",
+    "test:mutation": "stryker run",
     "prepare": "cd .. && husky install frontend/.husky",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
@@ -33,6 +34,8 @@
   "devDependencies": {
     "@mswjs/data": "^0.16.1",
     "@playwright/test": "^1.48.2",
+    "@stryker-mutator/core": "^8.0.0",
+    "@stryker-mutator/vitest-runner": "^8.0.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
