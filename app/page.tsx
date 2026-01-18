@@ -2,7 +2,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { NewSaleModal } from "@/components/new-sale-modal";
 import { NewCustomerModal } from "@/components/new-customer-modal";
 import { Coffee, Package, TrendingUp, AlertTriangle, RefreshCcw, BarChart3 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -14,6 +13,7 @@ import { useAuth } from "@/components/auth-provider";
 import { Loader2 } from "lucide-react";
 import { DashboardStats } from "@/types";
 import { Diagnostics } from "@/components/diagnostics";
+import Link from "next/link";
 
 export default function Dashboard() {
   const { user, isLoading } = useAuth();
@@ -81,7 +81,11 @@ export default function Dashboard() {
               Analytics
             </Button>
             <NewCustomerModal />
-            <NewSaleModal onSaleComplete={handleRefresh} />
+            <Link href="/ventas/nueva">
+              <Button variant="default" size="lg" className="shadow-lg shadow-primary/20">
+                <Coffee className="mr-2 h-5 w-5" /> Nueva Venta
+              </Button>
+            </Link>
           </div>
         </header>
 
