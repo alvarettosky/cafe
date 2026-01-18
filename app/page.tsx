@@ -24,13 +24,9 @@ export default function Dashboard() {
 
   const handleRefresh = () => setRefreshKey(prev => prev + 1);
 
-  if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-zinc-950"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
-  }
-
-  if (!user) return null; // AuthProvider handles redirect
-
   useEffect(() => {
+    if (!user || isLoading) return;
+
     const fetchData = async () => {
       // Fetch Stats
       const { data: statsData } = await supabase.rpc('get_dashboard_stats');
@@ -47,7 +43,13 @@ export default function Dashboard() {
     };
 
     fetchData();
-  }, [refreshKey]);
+  }, [refreshKey, user, isLoading]);
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center bg-zinc-950"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  }
+
+  if (!user) return null; // AuthProvider handles redirect
 
   return (
     <main className="min-h-screen p-8 bg-[url('/coffee-bg-dark.jpg')] bg-cover bg-center bg-fixed bg-no-repeat relative">

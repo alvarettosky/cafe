@@ -1,0 +1,383 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Phone, Mail, Calendar, AlertTriangle, Clock, CheckCircle, Users, Filter } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { supabase } from '@/lib/supabase';
+import type { CustomerToContact } from '@/types/customer-recurrence';
+
+export default function ContactosPage() {
+  const [contacts, setContacts] = useState<CustomerToContact[]>([]);
+  const [filteredContacts, setFilteredContacts] = useState<CustomerToContact[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [urgencyFilter, setUrgencyFilter] = useState<string>('all');
+  const [daysThreshold, setDaysThreshold] = useState(7);
+
+  useEffect(() => {
+    fetchContacts();
+  }, [daysThreshold]);
+
+  useEffect(() => {
+    filterContacts();
+  }, [urgencyFilter, contacts]);
+
+  const fetchContacts = async () => {
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.rpc('get_customers_to_contact', {
+        p_days_threshold: daysThreshold,
+      });
+
+      if (error) throw error;
+
+      setContacts(data || []);
+    } catch (error) {
+      console.error('Error fetching contacts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterContacts = () => {
+    if (urgencyFilter === 'all') {
+      setFilteredContacts(contacts);
+      return;
+    }
+
+    const filtered = contacts.filter((contact) => contact.urgency === urgencyFilter);
+    setFilteredContacts(filtered);
+  };
+
+  const getUrgencyConfig = (urgency: string) => {
+    switch (urgency) {
+      case 'high':
+        return {
+          color: 'bg-red-100 border-red-300 text-red-800',
+          iconColor: 'text-red-600',
+          icon: AlertTriangle,
+          label: 'Urgente',
+          badge: 'bg-red-500 text-white',
+        };
+      case 'medium':
+        return {
+          color: 'bg-orange-100 border-orange-300 text-orange-800',
+          iconColor: 'text-orange-600',
+          icon: Clock,
+          label: 'Pronto',
+          badge: 'bg-orange-500 text-white',
+        };
+      case 'low':
+        return {
+          color: 'bg-yellow-100 border-yellow-300 text-yellow-800',
+          iconColor: 'text-yellow-600',
+          icon: Calendar,
+          label: 'Planificado',
+          badge: 'bg-yellow-500 text-white',
+        };
+      default:
+        return {
+          color: 'bg-gray-100 border-gray-300 text-gray-800',
+          iconColor: 'text-gray-600',
+          icon: Users,
+          label: 'Sin datos',
+          badge: 'bg-gray-500 text-white',
+        };
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-CO', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  const getContactMessage = (contact: CustomerToContact) => {
+    const baseMessage = `Hola ${contact.full_name}! ☕ Esperamos que estés muy bien.`;
+
+    if (contact.days_until_expected !== null && contact.days_until_expected < 0) {
+      const daysLate = Math.abs(contact.days_until_expected);
+      return `${baseMessage} Hace ${daysLate} días que no te vemos. ¿Necesitas café? Tenemos disponible nuestros mejores granos recién tostados.`;
+    }
+
+    return `${baseMessage} ¿Cómo va tu café? Tenemos disponible nuestros mejores granos recién tostados.`;
+  };
+
+  const handleWhatsAppContact = (contact: CustomerToContact) => {
+    if (!contact.phone) return;
+
+    const message = getContactMessage(contact);
+    const phoneNumber = contact.phone.replace(/\D/g, '');
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const handlePhoneCall = (contact: CustomerToContact) => {
+    if (!contact.phone) return;
+    window.location.href = `tel:${contact.phone}`;
+  };
+
+  const stats = {
+    total: contacts.length,
+    high: contacts.filter((c) => c.urgency === 'high').length,
+    medium: contacts.filter((c) => c.urgency === 'medium').length,
+    low: contacts.filter((c) => c.urgency === 'low').length,
+    unknown: contacts.filter((c) => c.urgency === 'unknown').length,
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+            <Phone className="h-10 w-10 text-purple-600" />
+            Lista de Contacto
+          </h1>
+          <p className="text-gray-600">
+            Clientes que necesitan ser contactados según su recurrencia de compra
+          </p>
+        </motion.div>
+
+        {/* Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6"
+        >
+          <div
+            className={`rounded-lg p-4 shadow-sm border-2 cursor-pointer transition-all ${
+              urgencyFilter === 'all'
+                ? 'border-purple-500 bg-purple-50'
+                : 'border-gray-200 bg-white hover:border-purple-300'
+            }`}
+            onClick={() => setUrgencyFilter('all')}
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Users className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Total</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className={`rounded-lg p-4 shadow-sm border-2 cursor-pointer transition-all ${
+              urgencyFilter === 'high'
+                ? 'border-red-500 bg-red-50'
+                : 'border-gray-200 bg-white hover:border-red-300'
+            }`}
+            onClick={() => setUrgencyFilter('high')}
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Urgente</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.high}</p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className={`rounded-lg p-4 shadow-sm border-2 cursor-pointer transition-all ${
+              urgencyFilter === 'medium'
+                ? 'border-orange-500 bg-orange-50'
+                : 'border-gray-200 bg-white hover:border-orange-300'
+            }`}
+            onClick={() => setUrgencyFilter('medium')}
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Clock className="h-5 w-5 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Pronto</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.medium}</p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className={`rounded-lg p-4 shadow-sm border-2 cursor-pointer transition-all ${
+              urgencyFilter === 'low'
+                ? 'border-yellow-500 bg-yellow-50'
+                : 'border-gray-200 bg-white hover:border-yellow-300'
+            }`}
+            onClick={() => setUrgencyFilter('low')}
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <Calendar className="h-5 w-5 text-yellow-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Planificado</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.low}</p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className={`rounded-lg p-4 shadow-sm border-2 cursor-pointer transition-all ${
+              urgencyFilter === 'unknown'
+                ? 'border-gray-500 bg-gray-50'
+                : 'border-gray-200 bg-white hover:border-gray-300'
+            }`}
+            onClick={() => setUrgencyFilter('unknown')}
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <Users className="h-5 w-5 text-gray-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Sin datos</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.unknown}</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Filters */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-6 bg-white rounded-lg p-4 shadow-sm border border-gray-200"
+        >
+          <div className="flex items-center gap-4">
+            <Filter className="h-5 w-5 text-gray-500" />
+            <label className="text-sm font-medium text-gray-700">
+              Umbral de urgencia (días tarde):
+            </label>
+            <select
+              value={daysThreshold}
+              onChange={(e) => setDaysThreshold(parseInt(e.target.value))}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value={3}>3 días</option>
+              <option value={7}>7 días</option>
+              <option value={14}>14 días</option>
+              <option value={30}>30 días</option>
+            </select>
+          </div>
+        </motion.div>
+
+        {/* Contact List */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          {loading ? (
+            <div className="py-12 text-center text-gray-500">
+              Cargando lista de contactos...
+            </div>
+          ) : filteredContacts.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 py-12 text-center">
+              <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+              <p className="text-lg font-medium text-gray-900 mb-2">
+                ¡Todo al día!
+              </p>
+              <p className="text-gray-600">
+                {urgencyFilter === 'all'
+                  ? 'No hay clientes que necesiten contacto en este momento'
+                  : `No hay clientes con urgencia "${urgencyFilter}"`}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredContacts.map((contact) => {
+                const config = getUrgencyConfig(contact.urgency);
+                const Icon = config.icon;
+
+                return (
+                  <motion.div
+                    key={contact.customer_id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className={`rounded-lg p-5 shadow-sm border-2 ${config.color}`}
+                  >
+                    {/* Header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-full ${config.badge}`}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-lg">{contact.full_name}</h3>
+                          <span className={`text-xs font-medium px-2 py-1 rounded ${config.badge}`}>
+                            {config.label}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Info */}
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Calendar className="h-4 w-4" />
+                        <span>Última compra: {formatDate(contact.last_purchase_date)}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Clock className="h-4 w-4" />
+                        <span>{contact.days_since_last_purchase} días sin comprar</span>
+                      </div>
+                      {contact.typical_recurrence_days && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Users className="h-4 w-4" />
+                          <span>Compra cada {contact.typical_recurrence_days} días</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-2">
+                      {contact.phone && (
+                        <>
+                          <button
+                            onClick={() => handleWhatsAppContact(contact)}
+                            className="flex-1 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                          >
+                            <Phone className="h-4 w-4" />
+                            WhatsApp
+                          </button>
+                          <button
+                            onClick={() => handlePhoneCall(contact)}
+                            className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                          >
+                            <Phone className="h-4 w-4" />
+                          </button>
+                        </>
+                      )}
+                      {contact.email && (
+                        <a
+                          href={`mailto:${contact.email}`}
+                          className="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                        >
+                          <Mail className="h-4 w-4" />
+                        </a>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+        </motion.div>
+      </div>
+    </div>
+  );
+}

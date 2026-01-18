@@ -1,0 +1,302 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { X, User, Phone, Mail, Calendar, Save, TrendingUp } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { RecurrenceInput } from './recurrence-input';
+import { supabase } from '@/lib/supabase';
+import type { CustomerWithRecurrence } from '@/types/customer-recurrence';
+
+interface CustomerModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  customerId: string | null;
+  onCustomerUpdated?: () => void;
+}
+
+export function CustomerModal({
+  isOpen,
+  onClose,
+  customerId,
+  onCustomerUpdated,
+}: CustomerModalProps) {
+  const [customer, setCustomer] = useState<CustomerWithRecurrence | null>(null);
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [lastPurchaseDate, setLastPurchaseDate] = useState('');
+  const [recurrenceDays, setRecurrenceDays] = useState<number | null>(null);
+  const [suggestedRecurrence, setSuggestedRecurrence] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen && customerId) {
+      fetchCustomerData();
+      fetchSuggestedRecurrence();
+    }
+  }, [isOpen, customerId]);
+
+  const fetchCustomerData = async () => {
+    if (!customerId) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('id', customerId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      setCustomer(data);
+      setFullName(data.full_name || '');
+      setPhone(data.phone || '');
+      setEmail(data.email || '');
+      setLastPurchaseDate(data.last_purchase_date || '');
+      setRecurrenceDays(data.typical_recurrence_days);
+    } catch (err) {
+      console.error('Error fetching customer:', err);
+      setError('Error al cargar datos del cliente');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchSuggestedRecurrence = async () => {
+    if (!customerId) return;
+
+    try {
+      const { data, error: rpcError } = await supabase.rpc(
+        'calculate_customer_recurrence',
+        { p_customer_id: customerId }
+      );
+
+      if (rpcError) throw rpcError;
+
+      setSuggestedRecurrence(data);
+    } catch (err) {
+      console.error('Error calculating suggested recurrence:', err);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!customerId) return;
+
+    if (!fullName.trim()) {
+      setError('El nombre es requerido');
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      // Update customer data
+      const { error: updateError } = await supabase
+        .from('customers')
+        .update({
+          full_name: fullName.trim(),
+          phone: phone.trim() || null,
+          email: email.trim() || null,
+          last_purchase_date: lastPurchaseDate || null,
+          typical_recurrence_days: recurrenceDays,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', customerId);
+
+      if (updateError) throw updateError;
+
+      onCustomerUpdated?.();
+      onClose();
+    } catch (err) {
+      console.error('Error updating customer:', err);
+      setError('Error al guardar cambios');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Sin compras';
+    return new Date(dateString).toLocaleDateString('es-CO', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  if (!customerId) {
+    return null;
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Información del Cliente
+          </DialogTitle>
+          <DialogDescription>
+            Gestiona la información y recurrencia de compra del cliente
+          </DialogDescription>
+          <DialogClose />
+        </DialogHeader>
+
+        {loading ? (
+          <div className="py-8 text-center text-gray-500">
+            Cargando información del cliente...
+          </div>
+        ) : error ? (
+          <div className="py-4 text-center text-red-600">{error}</div>
+        ) : customer ? (
+          <div className="space-y-6">
+            {/* Customer Info */}
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Nombre completo *
+                  </div>
+                </label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Nombre del cliente"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      Teléfono
+                    </div>
+                  </label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="3001234567"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Email
+                    </div>
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="cliente@ejemplo.com"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Fecha de última compra
+                  </div>
+                </label>
+                <input
+                  type="datetime-local"
+                  value={lastPurchaseDate ? new Date(lastPurchaseDate).toISOString().slice(0, 16) : ''}
+                  onChange={(e) => setLastPurchaseDate(e.target.value ? new Date(e.target.value).toISOString() : '')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Normalmente se actualiza automáticamente con las ventas
+                </p>
+              </div>
+            </div>
+
+            {/* Recurrence Input */}
+            <div className="border-t pt-6">
+              <RecurrenceInput
+                value={recurrenceDays}
+                onChange={setRecurrenceDays}
+                suggestedValue={suggestedRecurrence}
+                showSuggestion={suggestedRecurrence !== null}
+                helperText="Configura cada cuántos días este cliente suele hacer compras"
+              />
+            </div>
+
+            {/* Purchase History Info */}
+            {customer.last_purchase_date && recurrenceDays && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <TrendingUp className="h-5 w-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-blue-900">
+                      Próxima compra esperada
+                    </p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      Aproximadamente{' '}
+                      {formatDate(
+                        new Date(
+                          new Date(customer.last_purchase_date).getTime() +
+                            recurrenceDays * 24 * 60 * 60 * 1000
+                        ).toISOString()
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                disabled={saving}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {saving ? (
+                  <>Guardando...</>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    Guardar cambios
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </DialogContent>
+    </Dialog>
+  );
+}

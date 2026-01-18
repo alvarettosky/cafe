@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { Coffee, Loader2 } from "lucide-react";
+import { RecurrenceInput } from "./recurrence-input";
 
 export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -24,8 +25,14 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
     const [isNewCustomerMode, setIsNewCustomerMode] = useState(false);
     const [newCustomerName, setNewCustomerName] = useState("");
     const [newCustomerPhone, setNewCustomerPhone] = useState("");
+    const [newCustomerRecurrence, setNewCustomerRecurrence] = useState<number | null>(null);
     const [saleDate, setSaleDate] = useState(""); // Empty means now
     const [paymentMethod, setPaymentMethod] = useState("Efectivo");
+
+    // Recurrence State
+    const [customerRecurrence, setCustomerRecurrence] = useState<number | null>(null);
+    const [suggestedRecurrence, setSuggestedRecurrence] = useState<number | null>(null);
+    const [showRecurrenceInput, setShowRecurrenceInput] = useState(false);
 
     const paymentMethods = [
         "Efectivo",
@@ -57,13 +64,53 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
                 }
             };
             const fetchCustomers = async () => {
-                const { data } = await supabase.from('customers').select('id, full_name');
+                const { data } = await supabase.from('customers').select('id, full_name, typical_recurrence_days');
                 if (data) setCustomers(data);
             };
             fetchProducts();
             fetchCustomers();
         }
     }, [isOpen]);
+
+    // Fetch suggested recurrence when customer is selected
+    useEffect(() => {
+        if (selectedCustomerId && selectedCustomerId !== '00000000-0000-0000-0000-000000000000') {
+            fetchCustomerRecurrence();
+        } else {
+            setCustomerRecurrence(null);
+            setSuggestedRecurrence(null);
+            setShowRecurrenceInput(false);
+        }
+    }, [selectedCustomerId]);
+
+    const fetchCustomerRecurrence = async () => {
+        if (!selectedCustomerId) return;
+
+        try {
+            // Get customer's existing recurrence
+            const customer = customers.find(c => c.id === selectedCustomerId);
+            if (customer?.typical_recurrence_days) {
+                setCustomerRecurrence(customer.typical_recurrence_days);
+                setShowRecurrenceInput(false);
+            } else {
+                // Customer doesn't have recurrence set, show input
+                setCustomerRecurrence(null);
+                setShowRecurrenceInput(true);
+
+                // Try to get suggested recurrence
+                const { data, error } = await supabase.rpc(
+                    'calculate_customer_recurrence',
+                    { p_customer_id: selectedCustomerId }
+                );
+
+                if (!error && data) {
+                    setSuggestedRecurrence(data);
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching recurrence:', err);
+        }
+    };
 
     const handleSale = async () => {
         if (!productId) {
@@ -85,24 +132,38 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
 
             // Handle Customer (Existing or New)
             let finalCustomerId = selectedCustomerId;
+            let recurrenceToSave = customerRecurrence;
 
             if (isNewCustomerMode) {
                 if (!newCustomerName) throw new Error("Nombre del cliente requerido");
 
+                // Create new customer with recurrence
                 const { data: newCust, error: custError } = await supabase
                     .from('customers')
-                    .insert([{ full_name: newCustomerName, phone: newCustomerPhone }])
+                    .insert([{
+                        full_name: newCustomerName,
+                        phone: newCustomerPhone,
+                        typical_recurrence_days: newCustomerRecurrence
+                    }])
                     .select()
                     .single();
 
                 if (custError) throw custError;
                 finalCustomerId = newCust.id;
+                recurrenceToSave = newCustomerRecurrence;
             } else if (!finalCustomerId) {
-                // Default to Guest if nothing selected (assuming '0000...' exists from seed)
+                // Default to Guest if nothing selected
                 finalCustomerId = '00000000-0000-0000-0000-000000000000';
+                recurrenceToSave = null;
+            } else if (showRecurrenceInput && customerRecurrence) {
+                // Update customer's recurrence if it was set during this sale
+                await supabase.rpc('update_customer_recurrence', {
+                    p_customer_id: finalCustomerId,
+                    p_recurrence_days: customerRecurrence
+                });
             }
 
-            // Call RPC
+            // Call RPC with recurrence
             const { error } = await supabase.rpc('process_coffee_sale', {
                 p_customer_id: finalCustomerId,
                 p_items: [{
@@ -112,12 +173,23 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
                     price
                 }],
                 p_created_at: saleDate ? new Date(saleDate).toISOString() : undefined,
-                p_payment_method: paymentMethod
+                p_payment_method: paymentMethod,
+                p_customer_recurrence_days: recurrenceToSave
             });
 
             if (error) throw error;
 
+            // Reset form
             setIsOpen(false);
+            setSelectedCustomerId("");
+            setIsNewCustomerMode(false);
+            setNewCustomerName("");
+            setNewCustomerPhone("");
+            setNewCustomerRecurrence(null);
+            setCustomerRecurrence(null);
+            setSuggestedRecurrence(null);
+            setShowRecurrenceInput(false);
+
             onSaleComplete();
         } catch (err: any) {
             setError(err.message || "Error processing sale");
@@ -133,7 +205,7 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
                     <Coffee className="mr-2 h-5 w-5" /> Nueva Venta
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] bg-card glass border-white/10">
+            <DialogContent className="sm:max-w-[500px] bg-card glass border-white/10 max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Registrar Venta de Café</DialogTitle>
                 </DialogHeader>
@@ -158,7 +230,7 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
                                 </Button>
                             </div>
                         ) : (
-                            <div className="space-y-2 p-3 bg-muted/20 rounded-md border border-dashed">
+                            <div className="space-y-3 p-3 bg-muted/20 rounded-md border border-dashed">
                                 <p className="text-xs font-semibold text-primary">Registrar Nuevo Cliente</p>
                                 <input
                                     placeholder="Nombre Completo"
@@ -172,12 +244,32 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
                                     value={newCustomerPhone}
                                     onChange={(e) => setNewCustomerPhone(e.target.value)}
                                 />
+                                <RecurrenceInput
+                                    value={newCustomerRecurrence}
+                                    onChange={setNewCustomerRecurrence}
+                                    label="Recurrencia típica (opcional)"
+                                    helperText="¿Cada cuántos días suele comprar?"
+                                    showSuggestion={false}
+                                />
                                 <Button variant="ghost" size="sm" onClick={() => setIsNewCustomerMode(false)} className="text-xs h-6 w-full mt-2">
                                     Cancelar / Seleccionar Existente
                                 </Button>
                             </div>
                         )}
                     </div>
+
+                    {/* Recurrence Input for existing customer without recurrence */}
+                    {showRecurrenceInput && !isNewCustomerMode && (
+                        <div className="border-b pb-4 mb-2">
+                            <RecurrenceInput
+                                value={customerRecurrence}
+                                onChange={setCustomerRecurrence}
+                                suggestedValue={suggestedRecurrence}
+                                showSuggestion={suggestedRecurrence !== null}
+                                helperText="Este cliente no tiene recurrencia configurada. ¿Cada cuántos días suele comprar?"
+                            />
+                        </div>
+                    )}
 
                     {/* Dynamic Product Selection */}
                     <div className="flex flex-col space-y-2">
