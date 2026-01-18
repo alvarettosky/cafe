@@ -32,10 +32,17 @@ export default function Dashboard() {
       const { data: statsData } = await supabase.rpc('get_dashboard_stats');
       if (statsData) setStats(statsData);
 
-      // Fetch Recent Sales
+      // Fetch Recent Sales with customer info
       const { data: salesData } = await supabase
         .from('sales')
-        .select('*')
+        .select(`
+          *,
+          customers (
+            full_name,
+            address,
+            phone
+          )
+        `)
         .order('created_at', { ascending: false })
         .limit(5);
 
@@ -121,19 +128,20 @@ export default function Dashboard() {
                 ) : (
                   recentSales.map((sale) => (
                     <div key={sale.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-primary/20 rounded-full">
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        <div className="p-2 bg-primary/20 rounded-full flex-shrink-0">
                           <Coffee className="w-4 h-4 text-primary" />
                         </div>
-                        <div>
-                          <p className="text-sm font-medium">Venta ...{sale.id.slice(-4)}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {/* Note: In real app, install date-fns for nice formatting */}
-                            {new Date(sale.created_at).toLocaleTimeString()}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {sale.customers?.full_name || 'Cliente General'}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {sale.customers?.address || new Date(sale.created_at).toLocaleTimeString()}
                           </p>
                         </div>
                       </div>
-                      <span className="font-bold text-sm">$ {Number(sale.total_amount).toFixed(2)}</span>
+                      <span className="font-bold text-sm flex-shrink-0 ml-2">$ {Number(sale.total_amount).toFixed(2)}</span>
                     </div>
                   ))
                 )}

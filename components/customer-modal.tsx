@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, User, Phone, Mail, Calendar, Save, TrendingUp } from 'lucide-react';
+import { X, User, Phone, Mail, Calendar, Save, TrendingUp, MapPin } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -31,6 +31,7 @@ export function CustomerModal({
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [address, setAddress] = useState('');
   const [lastPurchaseDate, setLastPurchaseDate] = useState('');
   const [recurrenceDays, setRecurrenceDays] = useState<number | null>(null);
   const [suggestedRecurrence, setSuggestedRecurrence] = useState<number | null>(null);
@@ -64,6 +65,7 @@ export function CustomerModal({
       setFullName(data.full_name || '');
       setPhone(data.phone || '');
       setEmail(data.email || '');
+      setAddress(data.address || '');
       setLastPurchaseDate(data.last_purchase_date || '');
       setRecurrenceDays(data.typical_recurrence_days);
     } catch (err) {
@@ -119,6 +121,7 @@ export function CustomerModal({
         full_name: fullName.trim(),
         phone: phone.trim() || null,
         email: email.trim() || null,
+        address: address.trim() || null,
         last_purchase_date: formattedDate,
         typical_recurrence_days: recurrenceDays,
       };
@@ -234,6 +237,22 @@ export function CustomerModal({
                     placeholder="cliente@ejemplo.com"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    Dirección
+                  </div>
+                </label>
+                <input
+                  type="text"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Dirección del cliente"
+                />
               </div>
 
               <div>

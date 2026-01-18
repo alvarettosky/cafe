@@ -25,6 +25,7 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
     const [isNewCustomerMode, setIsNewCustomerMode] = useState(false);
     const [newCustomerName, setNewCustomerName] = useState("");
     const [newCustomerPhone, setNewCustomerPhone] = useState("");
+    const [newCustomerAddress, setNewCustomerAddress] = useState("");
     const [newCustomerRecurrence, setNewCustomerRecurrence] = useState<number | null>(null);
     const [saleDate, setSaleDate] = useState(""); // Empty means now
     const [paymentMethod, setPaymentMethod] = useState("Efectivo");
@@ -143,6 +144,7 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
                     .insert([{
                         full_name: newCustomerName,
                         phone: newCustomerPhone,
+                        address: newCustomerAddress || null,
                         typical_recurrence_days: newCustomerRecurrence
                     }])
                     .select()
@@ -185,6 +187,7 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
             setIsNewCustomerMode(false);
             setNewCustomerName("");
             setNewCustomerPhone("");
+            setNewCustomerAddress("");
             setNewCustomerRecurrence(null);
             setCustomerRecurrence(null);
             setSuggestedRecurrence(null);
@@ -205,18 +208,18 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
                     <Coffee className="mr-2 h-5 w-5" /> Nueva Venta
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] bg-card glass border-white/10 max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
+            <DialogContent className="sm:max-w-[500px] bg-card glass border-white/10 max-h-[85vh] flex flex-col">
+                <DialogHeader className="flex-shrink-0">
                     <DialogTitle>Registrar Venta de Café</DialogTitle>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
+                <div className="grid gap-3 py-3 overflow-y-auto flex-1 pr-2">
                     {/* Customer Selection Section */}
-                    <div className="flex flex-col space-y-2 border-b pb-4 mb-2">
+                    <div className="flex flex-col space-y-2 border-b pb-3 mb-2">
                         <label className="text-sm font-medium">Cliente</label>
                         {!isNewCustomerMode ? (
                             <div className="flex gap-2">
                                 <select
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm"
                                     value={selectedCustomerId}
                                     onChange={(e) => setSelectedCustomerId(e.target.value)}
                                 >
@@ -230,7 +233,7 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
                                 </Button>
                             </div>
                         ) : (
-                            <div className="space-y-3 p-3 bg-muted/20 rounded-md border border-dashed">
+                            <div className="space-y-2 p-2.5 bg-muted/20 rounded-md border border-dashed">
                                 <p className="text-xs font-semibold text-primary">Registrar Nuevo Cliente</p>
                                 <input
                                     placeholder="Nombre Completo"
@@ -243,6 +246,12 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
                                     className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
                                     value={newCustomerPhone}
                                     onChange={(e) => setNewCustomerPhone(e.target.value)}
+                                />
+                                <input
+                                    placeholder="Dirección (Opcional)"
+                                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                                    value={newCustomerAddress}
+                                    onChange={(e) => setNewCustomerAddress(e.target.value)}
                                 />
                                 <RecurrenceInput
                                     value={newCustomerRecurrence}
@@ -260,7 +269,7 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
 
                     {/* Recurrence Input for existing customer without recurrence */}
                     {showRecurrenceInput && !isNewCustomerMode && (
-                        <div className="border-b pb-4 mb-2">
+                        <div className="border-b pb-3 mb-2">
                             <RecurrenceInput
                                 value={customerRecurrence}
                                 onChange={setCustomerRecurrence}
@@ -276,7 +285,7 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
                         <label htmlFor="product-select" className="text-sm font-medium">Producto</label>
                         <select
                             id="product-select"
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
+                            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
                             onChange={(e) => setProductId(e.target.value)}
                             value={productId}
                         >
@@ -298,7 +307,7 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
                                 min="1"
                                 value={quantity}
                                 onChange={(e) => setQuantity(parseInt(e.target.value))}
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm"
                             />
                         </div>
                         <div className="flex flex-col space-y-2">
@@ -307,7 +316,7 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
                                 id="unit-select"
                                 value={unit}
                                 onChange={(e) => setUnit(e.target.value as any)}
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm"
                             >
                                 <option value="libra">Libra (500g)</option>
                                 <option value="media_libra">Media Libra (250g)</option>
@@ -325,9 +334,9 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
                             step="0.01"
                             value={pricePerUnit}
                             onChange={(e) => setPricePerUnit(parseFloat(e.target.value) || 0)}
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm"
                         />
-                        <div className="flex justify-between items-center p-3 bg-primary/5 rounded-md border border-primary/20">
+                        <div className="flex justify-between items-center p-2.5 bg-primary/5 rounded-md border border-primary/20">
                             <span className="text-sm font-medium text-muted-foreground">Total:</span>
                             <span className="text-lg font-bold text-primary">
                                 ${(quantity * pricePerUnit).toFixed(2)}
@@ -339,7 +348,7 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
                     <div className="flex flex-col space-y-2">
                         <label className="text-sm font-medium">Medio de Pago</label>
                         <select
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm"
                             value={paymentMethod}
                             onChange={(e) => setPaymentMethod(e.target.value)}
                         >
@@ -354,7 +363,7 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
                         <label className="text-sm font-medium">Fecha de Venta (Opcional)</label>
                         <input
                             type="datetime-local"
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-black dark:text-white"
+                            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm text-black dark:text-white"
                             value={saleDate}
                             onChange={(e) => setSaleDate(e.target.value)}
                         />
@@ -362,12 +371,12 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
                     </div>
 
                     {error && (
-                        <div className="p-3 text-sm text-red-500 bg-red-500/10 rounded-md">
+                        <div className="p-2.5 text-sm text-red-500 bg-red-500/10 rounded-md">
                             {error}
                         </div>
                     )}
                 </div>
-                <div className="flex justify-end">
+                <div className="flex justify-end pt-3 border-t flex-shrink-0">
                     <Button onClick={handleSale} disabled={isLoading}>
                         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Confirmar Venta

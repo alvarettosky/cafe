@@ -15,6 +15,7 @@ export interface CustomerWithRecurrence {
   full_name: string;
   phone: string | null;
   email: string | null;
+  address: string | null;
   typical_recurrence_days: number | null;
   last_purchase_date: string | null;
   created_at: string;
