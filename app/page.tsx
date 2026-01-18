@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NewCustomerModal } from "@/components/new-customer-modal";
-import { Coffee, Package, TrendingUp, AlertTriangle, RefreshCcw, BarChart3 } from "lucide-react";
+import { Coffee, Package, TrendingUp, AlertTriangle, RefreshCcw, BarChart3, Users, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
@@ -79,6 +79,14 @@ export default function Dashboard() {
             <Button variant="outline" onClick={() => router.push('/analytics')}>
               <BarChart3 className="w-4 h-4 mr-2" />
               Analytics
+            </Button>
+            <Button variant="outline" onClick={() => router.push('/clientes')}>
+              <Users className="w-4 h-4 mr-2" />
+              Clientes
+            </Button>
+            <Button variant="outline" onClick={() => router.push('/contactos')}>
+              <Phone className="w-4 h-4 mr-2" />
+              Contactos
             </Button>
             <NewCustomerModal />
             <Link href="/ventas/nueva">
