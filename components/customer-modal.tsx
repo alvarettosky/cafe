@@ -103,26 +103,47 @@ export function CustomerModal({
     setError(null);
 
     try {
-      // Update customer data
-      const { error: updateError } = await supabase
-        .from('customers')
-        .update({
-          full_name: fullName.trim(),
-          phone: phone.trim() || null,
-          email: email.trim() || null,
-          last_purchase_date: lastPurchaseDate || null,
-          typical_recurrence_days: recurrenceDays,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', customerId);
+      // Format last purchase date properly for PostgreSQL
+      let formattedDate = null;
+      if (lastPurchaseDate) {
+        try {
+          formattedDate = new Date(lastPurchaseDate).toISOString();
+        } catch (dateError) {
+          console.error('Error formatting date:', dateError);
+          formattedDate = null;
+        }
+      }
 
-      if (updateError) throw updateError;
+      // Prepare update data
+      const updateData = {
+        full_name: fullName.trim(),
+        phone: phone.trim() || null,
+        email: email.trim() || null,
+        last_purchase_date: formattedDate,
+        typical_recurrence_days: recurrenceDays,
+      };
+
+      // Update customer data
+      const { data: updatedData, error: updateError } = await supabase
+        .from('customers')
+        .update(updateData)
+        .eq('id', customerId)
+        .select();
+
+      if (updateError) {
+        console.error('Supabase update error:', updateError);
+        throw updateError;
+      }
+
+      if (!updatedData || updatedData.length === 0) {
+        throw new Error('No se pudo actualizar el cliente. Verifica los permisos.');
+      }
 
       onCustomerUpdated?.();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error updating customer:', err);
-      setError('Error al guardar cambios');
+      setError(err.message || 'Error al guardar cambios');
     } finally {
       setSaving(false);
     }
