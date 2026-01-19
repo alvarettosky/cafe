@@ -83,6 +83,14 @@ Pre-commit automático (Husky + lint-staged):
 /analytics      → Dashboard analítico (gráficos de ventas, métricas)
 /clientes       → Gestión de clientes con recurrencia
 /contactos      → Lista de contactos por recurrencia + Prospectos (integración WhatsApp)
+
+# Portal de Cliente (Fase 2)
+/portal             → Dashboard del cliente (último pedido, próximo pedido, acciones rápidas)
+/portal/auth        → Validación de magic links (autenticación sin contraseña)
+/portal/nuevo-pedido → Formulario para crear nuevo pedido
+/portal/pedidos     → Historial completo de pedidos del cliente
+/portal/perfil      → Edición de datos de contacto (teléfono, email, dirección)
+/portal/suscripcion → Gestión de suscripción automática de café
 ```
 
 ### Base de Datos (Supabase)
@@ -90,12 +98,15 @@ Pre-commit automático (Husky + lint-staged):
 **Tablas Principales:**
 
 - `inventory` - Productos, stock (kg/units), precios, costos
-- `sales` - Ventas con customer_id, payment_method, totales, profit
+- `sales` - Ventas con customer_id, payment_method, totales, profit, status, notes
 - `sale_items` - Items de cada venta (producto, cantidad, precio, profit)
 - `customers` - Clientes con recurrencia típica, última compra, dirección
 - `customer_contacts` - Historial de contactos con clientes
 - `profiles` - Roles de usuario (admin/seller) para RLS
 - `whatsapp_templates` - Templates de mensajes WhatsApp para contacto automático
+- `customer_auth` - Autenticación de clientes (magic links, sesiones)
+- `customer_subscriptions` - Suscripciones automáticas de café
+- `subscription_items` - Items de cada suscripción
 
 **Vistas:**
 
@@ -117,6 +128,24 @@ Pre-commit automático (Husky + lint-staged):
 - `get_customer_whatsapp_template(customer_id)` - Determina template automático según estado del cliente
 - `get_customer_segment_stats()` - Estadísticas de segmentación de clientes
 - `get_customers_by_segment(segment)` - Lista clientes por segmento
+
+**Portal de Cliente (Fase 2):**
+
+- `generate_customer_magic_link(p_customer_id)` - Genera enlace mágico con URL de WhatsApp
+- `validate_customer_magic_link(p_token)` - Valida token y crea sesión
+- `validate_customer_session(p_session_token)` - Verifica validez de sesión
+- `invalidate_customer_session(p_session_token)` - Cierra sesión del cliente
+- `get_customer_portal_dashboard(p_customer_id)` - Dashboard completo del cliente
+- `get_customer_order_history(p_customer_id, p_limit, p_offset)` - Historial de pedidos
+- `get_products_for_customer_order()` - Lista productos disponibles
+- `create_customer_order(p_customer_id, p_items, p_notes)` - Crea pedido pendiente
+- `update_customer_profile(p_customer_id, p_phone, p_email, p_address)` - Actualiza perfil
+- `get_pending_customer_orders()` - Lista pedidos pendientes (staff)
+- `confirm_customer_order(p_sale_id, p_items_with_prices)` - Confirma pedido con precios
+- `reject_customer_order(p_sale_id, p_reason)` - Rechaza pedido
+- `get_customer_subscription(p_customer_id)` - Obtiene suscripción activa
+- `upsert_customer_subscription(p_customer_id, p_frequency_days, p_items)` - Crea/actualiza suscripción
+- `toggle_subscription_status(p_customer_id, p_action)` - Pausa/reanuda/omite/cancela
 
 **Row Level Security (RLS):**
 
@@ -213,8 +242,41 @@ Directorio `supabase/migrations/` contiene migración secuencial:
 - `migrations/phase1_migration_clean.sql` - Recurrencia y edición de ventas
 - `migrations/update_process_coffee_sale_with_recurrence.sql` - Actualiza RPC con parámetro recurrencia
 - `migrations/021_fase1_recurrencia.sql` - Fase 1: Repetir pedido, WhatsApp inteligente, segmentación RFM
+- `migrations/022_fase2_portal_cliente.sql` - Fase 2: Portal de cliente, magic links, suscripciones
 
 Ver `SUPABASE_SETUP.md` para orden completo de ejecución.
+
+### Portal de Cliente (Fase 2)
+
+Sistema self-service para clientes. Autenticación sin contraseña mediante magic links enviados por WhatsApp.
+
+**Flujo de acceso:**
+
+1. Staff genera enlace desde `/clientes` (botón con icono de llave)
+2. RPC `generate_customer_magic_link` crea token de 24h y URL de WhatsApp
+3. Cliente recibe enlace y accede a `/portal/auth?token=xxx`
+4. Token se valida y se crea sesión de 30 días
+5. Cliente accede al portal con funcionalidades completas
+
+**Contexto de autenticación:**
+
+- `context/customer-portal-context.tsx` - Provider con `useCustomerPortal()` hook
+- Almacena `session_token` en localStorage
+- Valida sesión automáticamente al cargar
+
+**Funcionalidades del portal:**
+
+- **Dashboard** (`/portal`): Último pedido, próximo pedido estimado, acciones rápidas
+- **Nuevo pedido** (`/portal/nuevo-pedido`): Selección de productos, notas, envío
+- **Historial** (`/portal/pedidos`): Todos los pedidos con detalles expandibles
+- **Perfil** (`/portal/perfil`): Editar teléfono, email, dirección
+- **Suscripción** (`/portal/suscripcion`): Crear/gestionar pedido automático
+
+**Sistema de suscripciones:**
+
+- Cliente configura productos y frecuencia (7-45 días)
+- Puede pausar, omitir próxima entrega, o cancelar
+- Staff recibe pedidos automáticos para confirmar y entregar
 
 ### Autenticación
 
@@ -261,12 +323,17 @@ Ver `SUPABASE_SETUP.md` para orden completo de ejecución.
 - `RecurrenceInput` - Input con sugerencia AI para recurrencia
 - `DateRangeSelector` - Selector de rango con presets para analytics
 
-**Fase 1 - Maximizar Recurrencia** (Nuevos):
+**Fase 1 - Maximizar Recurrencia**:
 
 - `RepeatSaleButton` - Botón para repetir última compra de un cliente. Usa RPC `get_last_sale_for_repeat`.
 - `SmartWhatsAppButton` - Botón WhatsApp con mensaje contextual automático según estado del cliente.
 - `CustomerSegmentBadge` - Badge que muestra segmento RFM del cliente (champion, loyal, at_risk, etc.)
 - `CustomerSegmentStats` - Card con estadísticas de segmentación de clientes.
+
+**Fase 2 - Portal de Cliente**:
+
+- `GeneratePortalAccessButton` - Botón para generar magic link de acceso al portal. Muestra diálogo con enlace y opciones de copiar/enviar por WhatsApp.
+- `context/customer-portal-context.tsx` - Provider de autenticación para el portal de clientes.
 
 **UI Base**:
 

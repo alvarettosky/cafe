@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { CustomerModal } from '@/components/customer-modal';
 import { Button } from '@/components/ui/button';
 import { RepeatSaleButton } from '@/components/repeat-sale-button';
+import { GeneratePortalAccessButton } from '@/components/generate-portal-access-button';
 import { CustomerSegmentBadge, CustomerSegmentStats, CustomerSegment } from '@/components/customer-segment-badge';
 import type { CustomerWithRecurrence } from '@/types/customer-recurrence';
 
@@ -368,6 +369,13 @@ export default function CustomersPage() {
                                 showLabel={false}
                               />
                             )}
+                            <GeneratePortalAccessButton
+                              customerId={customer.id}
+                              customerName={customer.full_name}
+                              customerPhone={customer.phone}
+                              size="sm"
+                              showLabel={false}
+                            />
                             <button
                               onClick={() => handleEditCustomer(customer.id)}
                               className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
