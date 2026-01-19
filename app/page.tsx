@@ -13,14 +13,17 @@ import { useAuth } from "@/components/auth-provider";
 import { Loader2 } from "lucide-react";
 import { DashboardStats } from "@/types";
 import { Diagnostics } from "@/components/diagnostics";
+import { PendingUsersModal } from "@/components/pending-users-modal";
 import Link from "next/link";
 
 export default function Dashboard() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isAdmin } = useAuth();
   const router = useRouter();
   const [refreshKey, setRefreshKey] = useState(0);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentSales, setRecentSales] = useState<any[]>([]);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [showPendingModal, setShowPendingModal] = useState(false);
 
   const handleRefresh = () => setRefreshKey(prev => prev + 1);
 
@@ -47,10 +50,16 @@ export default function Dashboard() {
         .limit(5);
 
       if (salesData) setRecentSales(salesData);
+
+      // Fetch pending users count (solo admin)
+      if (isAdmin) {
+        const { data: pendingData } = await supabase.rpc('get_pending_users');
+        if (pendingData) setPendingCount(pendingData.length);
+      }
     };
 
     fetchData();
-  }, [refreshKey, user, isLoading]);
+  }, [refreshKey, user, isLoading, isAdmin]);
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-zinc-950"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
@@ -76,6 +85,19 @@ export default function Dashboard() {
             <Button variant="outline" size="icon" onClick={handleRefresh}>
               <RefreshCcw className="w-4 h-4" />
             </Button>
+            {isAdmin && pendingCount > 0 && (
+              <Button
+                variant="outline"
+                onClick={() => setShowPendingModal(true)}
+                className="relative"
+              >
+                <Users className="w-4 h-4 mr-2" />
+                Pendientes
+                <span className="absolute -top-1 -right-1 bg-amber-500 text-black text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {pendingCount}
+                </span>
+              </Button>
+            )}
             <Button variant="outline" onClick={() => router.push('/analytics')}>
               <BarChart3 className="w-4 h-4 mr-2" />
               Analytics
@@ -163,6 +185,16 @@ export default function Dashboard() {
         </div>
       </div>
       <Diagnostics />
+      <PendingUsersModal
+        isOpen={showPendingModal}
+        onClose={() => setShowPendingModal(false)}
+        onUpdate={() => {
+          handleRefresh();
+          supabase.rpc('get_pending_users').then(({ data }) => {
+            if (data) setPendingCount(data.length);
+          });
+        }}
+      />
     </main>
   );
 }
