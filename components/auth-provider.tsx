@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 type UserRole = 'admin' | 'seller' | null;
 
@@ -11,6 +11,7 @@ interface AuthContextType {
     user: User | null;
     session: Session | null;
     role: UserRole;
+    approved: boolean;
     isLoading: boolean;
     isAdmin: boolean;
     signInWithGoogle: () => Promise<void>;
@@ -23,8 +24,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [role, setRole] = useState<UserRole>(null);
+    const [approved, setApproved] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
+    const pathname = usePathname();
 
     useEffect(() => {
         // 1. Check active session
@@ -32,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setSession(session);
             setUser(session?.user ?? null);
             if (session?.user) {
-                fetchUserRole(session.user.id);
+                fetchUserProfile(session.user.id);
             } else {
                 setIsLoading(false);
             }
@@ -46,9 +49,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(session?.user ?? null);
 
             if (session?.user) {
-                fetchUserRole(session.user.id);
+                fetchUserProfile(session.user.id);
             } else {
                 setRole(null);
+                setApproved(false);
                 setIsLoading(false);
                 // Redirect to login if signed out (only on client)
                 if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
@@ -60,19 +64,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return () => subscription.unsubscribe();
     }, []);
 
-    async function fetchUserRole(userId: string) {
+    // Redirigir usuarios no aprobados
+    useEffect(() => {
+        if (isLoading) return;
+
+        const publicPaths = ['/login', '/pendiente'];
+        const isPublicPath = publicPaths.includes(pathname);
+
+        if (user && !approved && !isPublicPath) {
+            router.push('/pendiente');
+        }
+    }, [user, approved, isLoading, pathname, router]);
+
+    async function fetchUserProfile(userId: string) {
         try {
             const { data, error } = await supabase
                 .from('profiles')
-                .select('role')
+                .select('role, approved')
                 .eq('id', userId)
                 .single();
 
             if (error) {
-                console.error('Error fetching role:', error);
-                // Fallback or handle error (maybe user has no profile yet? trigger should handle it)
+                console.error('Error fetching profile:', error);
+                setRole(null);
+                setApproved(false);
             } else {
                 setRole(data?.role as UserRole);
+                setApproved(data?.approved ?? false);
             }
         } catch (err) {
             console.error(err);
@@ -94,6 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         session,
         role,
+        approved,
         isLoading,
         isAdmin: role === 'admin',
         signInWithGoogle,
