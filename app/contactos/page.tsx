@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Phone, Mail, Calendar, AlertTriangle, Clock, CheckCircle, Users, Filter, UserPlus } from 'lucide-react';
+import { Phone, Mail, Calendar, AlertTriangle, Clock, CheckCircle, Users, Filter, UserPlus, Home } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import type { CustomerToContact } from '@/types/customer-recurrence';
@@ -16,6 +18,7 @@ interface Prospect {
 }
 
 export default function ContactosPage() {
+  const router = useRouter();
   const [contacts, setContacts] = useState<CustomerToContact[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<CustomerToContact[]>([]);
   const [prospects, setProspects] = useState<Prospect[]>([]);
@@ -200,10 +203,20 @@ export default function ContactosPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-            <Phone className="h-10 w-10 text-purple-600" />
-            Lista de Contacto
-          </h1>
+          <div className="flex items-center gap-4 mb-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => router.push('/')}
+              className="bg-white hover:bg-gray-100"
+            >
+              <Home className="h-4 w-4" />
+            </Button>
+            <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
+              <Phone className="h-10 w-10 text-purple-600" />
+              Lista de Contacto
+            </h1>
+          </div>
           <p className="text-gray-600">
             Clientes que necesitan ser contactados según su recurrencia de compra
           </p>

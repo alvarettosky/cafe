@@ -1,13 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, User, Search, Calendar, Phone, Mail, TrendingUp, Edit } from 'lucide-react';
+import { Users, User, Search, Calendar, Phone, Mail, TrendingUp, Edit, Home } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { CustomerModal } from '@/components/customer-modal';
+import { Button } from '@/components/ui/button';
 import type { CustomerWithRecurrence } from '@/types/customer-recurrence';
 
 export default function CustomersPage() {
+  const router = useRouter();
   const [customers, setCustomers] = useState<CustomerWithRecurrence[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<CustomerWithRecurrence[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -130,10 +133,20 @@ export default function CustomersPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-            <Users className="h-10 w-10 text-blue-600" />
-            Gestión de Clientes
-          </h1>
+          <div className="flex items-center gap-4 mb-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => router.push('/')}
+              className="bg-white hover:bg-gray-100"
+            >
+              <Home className="h-4 w-4" />
+            </Button>
+            <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
+              <Users className="h-10 w-10 text-blue-600" />
+              Gestión de Clientes
+            </h1>
+          </div>
           <p className="text-gray-600">
             Administra la información de recurrencia de tus clientes
           </p>
