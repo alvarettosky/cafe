@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Phone, Mail, Calendar, AlertTriangle, Clock, CheckCircle, Users, Filter, UserPlus, Home } from 'lucide-react';
+import { Phone, Mail, Calendar, AlertTriangle, Clock, CheckCircle, Users, Filter, UserPlus, Home, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
+import { SmartWhatsAppButton } from '@/components/smart-whatsapp-button';
+import { RepeatSaleButton } from '@/components/repeat-sale-button';
 import type { CustomerToContact } from '@/types/customer-recurrence';
 
 interface Prospect {
@@ -419,28 +421,40 @@ export default function ContactosPage() {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       {contact.phone && (
                         <>
-                          <button
-                            onClick={() => handleWhatsAppContact(contact)}
-                            className="flex-1 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"
-                          >
-                            <Phone className="h-4 w-4" />
-                            WhatsApp
-                          </button>
+                          <SmartWhatsAppButton
+                            customerId={contact.customer_id}
+                            customerName={contact.full_name}
+                            phone={contact.phone}
+                            variant="default"
+                            size="sm"
+                            showLabel={true}
+                            className="flex-1"
+                          />
                           <button
                             onClick={() => handlePhoneCall(contact)}
                             className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                            title="Llamar"
                           >
                             <Phone className="h-4 w-4" />
                           </button>
                         </>
                       )}
+                      <RepeatSaleButton
+                        customerId={contact.customer_id}
+                        customerName={contact.full_name}
+                        onSaleCreated={fetchContacts}
+                        variant="outline"
+                        size="sm"
+                        showLabel={false}
+                      />
                       {contact.email && (
                         <a
                           href={`mailto:${contact.email}`}
                           className="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                          title="Enviar email"
                         >
                           <Mail className="h-4 w-4" />
                         </a>
@@ -527,16 +541,20 @@ export default function ContactosPage() {
                   <div className="flex gap-2">
                     {prospect.phone && (
                       <>
-                        <button
-                          onClick={() => handleWhatsAppProspect(prospect)}
-                          className="flex-1 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"
-                        >
-                          <Phone className="h-4 w-4" />
-                          WhatsApp
-                        </button>
+                        <SmartWhatsAppButton
+                          customerId={prospect.id}
+                          customerName={prospect.full_name}
+                          phone={prospect.phone}
+                          messageType="prospect"
+                          variant="default"
+                          size="sm"
+                          showLabel={true}
+                          className="flex-1"
+                        />
                         <button
                           onClick={() => handlePhoneCallProspect(prospect)}
                           className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                          title="Llamar"
                         >
                           <Phone className="h-4 w-4" />
                         </button>
@@ -546,6 +564,7 @@ export default function ContactosPage() {
                       <a
                         href={`mailto:${prospect.email}`}
                         className="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                        title="Enviar email"
                       >
                         <Mail className="h-4 w-4" />
                       </a>

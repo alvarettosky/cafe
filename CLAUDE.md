@@ -95,6 +95,11 @@ Pre-commit automático (Husky + lint-staged):
 - `customers` - Clientes con recurrencia típica, última compra, dirección
 - `customer_contacts` - Historial de contactos con clientes
 - `profiles` - Roles de usuario (admin/seller) para RLS
+- `whatsapp_templates` - Templates de mensajes WhatsApp para contacto automático
+
+**Vistas:**
+
+- `customer_segments` - Segmentación RFM automática de clientes (champion, loyal, potential, new, at_risk, lost, prospect)
 
 **RPC Functions Críticas:**
 
@@ -107,6 +112,11 @@ Pre-commit automático (Husky + lint-staged):
 - `get_pending_users()` - Lista usuarios pendientes de aprobación (solo admin)
 - `approve_user(p_user_id)` - Aprueba un usuario (solo admin)
 - `reject_user(p_user_id)` - Rechaza/elimina un usuario (solo admin)
+- `get_last_sale_for_repeat(customer_id)` - Obtiene última venta para repetir pedido
+- `generate_whatsapp_message(customer_id, template_key)` - Genera mensaje WhatsApp contextual
+- `get_customer_whatsapp_template(customer_id)` - Determina template automático según estado del cliente
+- `get_customer_segment_stats()` - Estadísticas de segmentación de clientes
+- `get_customers_by_segment(segment)` - Lista clientes por segmento
 
 **Row Level Security (RLS):**
 
@@ -202,6 +212,7 @@ Directorio `supabase/migrations/` contiene migración secuencial:
 
 - `migrations/phase1_migration_clean.sql` - Recurrencia y edición de ventas
 - `migrations/update_process_coffee_sale_with_recurrence.sql` - Actualiza RPC con parámetro recurrencia
+- `migrations/021_fase1_recurrencia.sql` - Fase 1: Repetir pedido, WhatsApp inteligente, segmentación RFM
 
 Ver `SUPABASE_SETUP.md` para orden completo de ejecución.
 
@@ -239,7 +250,7 @@ Ver `SUPABASE_SETUP.md` para orden completo de ejecución.
 
 **Modales**:
 
-- `NewSaleModal` - Crear venta (incluye recurrencia)
+- `NewSaleModal` - Crear venta (incluye recurrencia). Soporta `initialData` para repetir ventas.
 - `NewCustomerModal` - Crear cliente
 - `CustomerModal` - Editar cliente (nombre, teléfono, email, dirección, recurrencia, última compra)
 - `ProductModal` - Editar inventario (solo admins)
@@ -249,6 +260,13 @@ Ver `SUPABASE_SETUP.md` para orden completo de ejecución.
 
 - `RecurrenceInput` - Input con sugerencia AI para recurrencia
 - `DateRangeSelector` - Selector de rango con presets para analytics
+
+**Fase 1 - Maximizar Recurrencia** (Nuevos):
+
+- `RepeatSaleButton` - Botón para repetir última compra de un cliente. Usa RPC `get_last_sale_for_repeat`.
+- `SmartWhatsAppButton` - Botón WhatsApp con mensaje contextual automático según estado del cliente.
+- `CustomerSegmentBadge` - Badge que muestra segmento RFM del cliente (champion, loyal, at_risk, etc.)
+- `CustomerSegmentStats` - Card con estadísticas de segmentación de clientes.
 
 **UI Base**:
 
@@ -355,6 +373,10 @@ const { data, error } = await supabase.rpc('process_coffee_sale', {
 ## Recursos Adicionales
 
 - **Documentación completa**: `/docs/testing/` para guías de testing
+- **Roadmap de Mejoras**: `/docs/plans/2026-01-19-roadmap-mejoras-competitivas.md`
+  - Fase 1: `/docs/plans/2026-01-19-fase1-maximizar-recurrencia.md`
+  - Fase 2: `/docs/plans/2026-01-19-fase2-portal-cliente-self-service.md`
+  - Fase 3: `/docs/plans/2026-01-19-fase3-crecimiento.md`
 - **Deploy**: `VERCEL_DEPLOYMENT.md` y `DEPLOYMENT_SUMMARY.md`
 - **Migraciones**: `MIGRATION_NOTES.md` para contexto histórico
 - **Demo en vivo**: https://cafe-pi-steel.vercel.app

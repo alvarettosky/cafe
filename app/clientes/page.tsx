@@ -1,19 +1,26 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, User, Search, Calendar, Phone, Mail, TrendingUp, Edit, Home } from 'lucide-react';
+import { Users, User, Search, Calendar, Phone, Mail, TrendingUp, Edit, Home, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { CustomerModal } from '@/components/customer-modal';
 import { Button } from '@/components/ui/button';
+import { RepeatSaleButton } from '@/components/repeat-sale-button';
+import { CustomerSegmentBadge, CustomerSegmentStats, CustomerSegment } from '@/components/customer-segment-badge';
 import type { CustomerWithRecurrence } from '@/types/customer-recurrence';
+
+interface CustomerWithSegment extends CustomerWithRecurrence {
+  segment?: CustomerSegment;
+}
 
 export default function CustomersPage() {
   const router = useRouter();
-  const [customers, setCustomers] = useState<CustomerWithRecurrence[]>([]);
-  const [filteredCustomers, setFilteredCustomers] = useState<CustomerWithRecurrence[]>([]);
+  const [customers, setCustomers] = useState<CustomerWithSegment[]>([]);
+  const [filteredCustomers, setFilteredCustomers] = useState<CustomerWithSegment[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [segmentFilter, setSegmentFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,20 +31,34 @@ export default function CustomersPage() {
 
   useEffect(() => {
     filterCustomers();
-  }, [searchQuery, customers]);
+  }, [searchQuery, segmentFilter, customers]);
 
   const fetchCustomers = async () => {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
-        .from('customers')
+      // Intentar obtener datos con segmentos desde la vista
+      const { data: segmentData, error: segmentError } = await supabase
+        .from('customer_segments')
         .select('*')
         .order('full_name', { ascending: true });
 
-      if (error) throw error;
+      if (!segmentError && segmentData) {
+        // Si la vista existe, usar esos datos
+        setCustomers(segmentData.map(c => ({
+          ...c,
+          segment: c.segment as CustomerSegment
+        })));
+      } else {
+        // Fallback: obtener datos básicos de customers
+        const { data, error } = await supabase
+          .from('customers')
+          .select('*')
+          .order('full_name', { ascending: true });
 
-      setCustomers(data || []);
+        if (error) throw error;
+        setCustomers(data || []);
+      }
     } catch (error) {
       console.error('Error fetching customers:', error);
     } finally {
@@ -46,18 +67,25 @@ export default function CustomersPage() {
   };
 
   const filterCustomers = () => {
-    if (!searchQuery.trim()) {
-      setFilteredCustomers(customers);
-      return;
+    let filtered = customers;
+
+    // Filtrar por búsqueda
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (customer) =>
+          customer.full_name.toLowerCase().includes(query) ||
+          customer.phone?.toLowerCase().includes(query) ||
+          customer.email?.toLowerCase().includes(query)
+      );
     }
 
-    const query = searchQuery.toLowerCase();
-    const filtered = customers.filter(
-      (customer) =>
-        customer.full_name.toLowerCase().includes(query) ||
-        customer.phone?.toLowerCase().includes(query) ||
-        customer.email?.toLowerCase().includes(query)
-    );
+    // Filtrar por segmento
+    if (segmentFilter !== 'all') {
+      filtered = filtered.filter(
+        (customer) => customer.segment === segmentFilter
+      );
+    }
 
     setFilteredCustomers(filtered);
   };
@@ -152,22 +180,38 @@ export default function CustomersPage() {
           </p>
         </motion.div>
 
-        {/* Search */}
+        {/* Search and Filter */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className="mb-6"
         >
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar por nombre, teléfono o email..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
-            />
+          <div className="flex gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Buscar por nombre, teléfono o email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+              />
+            </div>
+            <select
+              value={segmentFilter}
+              onChange={(e) => setSegmentFilter(e.target.value)}
+              className="px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-gray-700"
+            >
+              <option value="all">Todos los segmentos</option>
+              <option value="champion">Champion</option>
+              <option value="loyal">Leal</option>
+              <option value="potential">Potencial</option>
+              <option value="new">Nuevo</option>
+              <option value="at_risk">En Riesgo</option>
+              <option value="lost">Perdido</option>
+              <option value="prospect">Prospecto</option>
+            </select>
           </div>
         </motion.div>
 
@@ -245,6 +289,9 @@ export default function CustomersPage() {
                       Cliente
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Segmento
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Contacto
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -253,9 +300,6 @@ export default function CustomersPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Recurrencia
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Estado
-                    </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Acciones
                     </th>
@@ -263,7 +307,6 @@ export default function CustomersPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredCustomers.map((customer) => {
-                    const status = getRecurrenceStatus(customer);
                     return (
                       <tr key={customer.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -275,6 +318,13 @@ export default function CustomersPage() {
                               <p className="font-medium text-gray-900">{customer.full_name}</p>
                             </div>
                           </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {customer.segment ? (
+                            <CustomerSegmentBadge segment={customer.segment} />
+                          ) : (
+                            <span className="text-sm text-gray-400">-</span>
+                          )}
                         </td>
                         <td className="px-6 py-4">
                           <div className="space-y-1">
@@ -307,19 +357,25 @@ export default function CustomersPage() {
                             <span className="text-sm text-gray-400">No configurado</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`text-sm font-medium ${status.color}`}>
-                            {status.text}
-                          </span>
-                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
-                          <button
-                            onClick={() => handleEditCustomer(customer.id)}
-                            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                          >
-                            <Edit className="h-4 w-4" />
-                            Editar
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            {customer.last_purchase_date && (
+                              <RepeatSaleButton
+                                customerId={customer.id}
+                                customerName={customer.full_name}
+                                onSaleCreated={fetchCustomers}
+                                size="sm"
+                                showLabel={false}
+                              />
+                            )}
+                            <button
+                              onClick={() => handleEditCustomer(customer.id)}
+                              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                            >
+                              <Edit className="h-4 w-4" />
+                              Editar
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );

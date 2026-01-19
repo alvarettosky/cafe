@@ -32,9 +32,12 @@ La aplicación está desplegada en Vercel con actualizaciones automáticas en ca
 
 ### 👥 Gestión Avanzada de Clientes
 
-- **Lista de Clientes** (`/clientes`) - Búsqueda, filtrado y edición completa
+- **Lista de Clientes** (`/clientes`) - Búsqueda, filtrado por segmento y edición completa
+- **Segmentación RFM automática** - Champion, Leal, Potencial, Nuevo, En Riesgo, Perdido, Prospecto
 - **Lista de Contacto** (`/contactos`) - Clasificación por urgencia (Urgente, Pronto, Planificado)
 - **Sección Prospectos** - Clientes potenciales que nunca han comprado
+- **Repetir Pedido** - Un click para reordenar la última compra de un cliente
+- **WhatsApp Inteligente** - Mensajes contextuales automáticos según estado del cliente
 - Campos completos: nombre, teléfono, email, dirección, recurrencia
 - Visualización de última compra y recurrencia típica
 - Navegación con botón Home desde todas las páginas secundarias
@@ -220,9 +223,12 @@ Ver documentación completa en `/docs/testing/`
 ### Planes de Diseño
 
 - **[docs/plans/](docs/plans/)** - Diseños y arquitectura de features
+  - **Roadmap de Mejoras Competitivas** - Plan maestro en 3 fases
+  - Fase 1: Maximizar Sistema de Recurrencia
+  - Fase 2: Portal Cliente Self-Service
+  - Fase 3: Crecimiento y Escalabilidad
   - Customer Recurrence and Sales Editing
   - Advanced Metrics Dashboard
-  - Testing Ecosystem
 
 ## 📂 Estructura del Proyecto
 
@@ -242,7 +248,10 @@ cafe-mirador/
 │   ├── customer-modal.tsx        # Modal de cliente con recurrencia
 │   ├── recurrence-input.tsx      # Input de recurrencia con IA
 │   ├── pending-users-modal.tsx   # Modal de aprobación de usuarios
-│   └── date-range-selector.tsx   # Selector de rangos de fecha
+│   ├── date-range-selector.tsx   # Selector de rangos de fecha
+│   ├── repeat-sale-button.tsx    # Botón para repetir última compra
+│   ├── smart-whatsapp-button.tsx # WhatsApp con mensaje contextual
+│   └── customer-segment-badge.tsx # Badge de segmentación RFM
 ├── lib/                          # Utilidades
 │   └── supabase.ts              # Cliente Supabase
 ├── types/                        # TypeScript types
@@ -279,28 +288,43 @@ cafe-mirador/
 - **`get_pending_users()`** - Lista usuarios pendientes de aprobación (solo admin)
 - **`approve_user(user_id)`** - Aprueba un usuario (solo admin)
 - **`reject_user(user_id)`** - Rechaza/elimina un usuario (solo admin)
+- **`get_last_sale_for_repeat(customer_id)`** - Obtiene última venta para repetir pedido
+- **`generate_whatsapp_message(customer_id, template_key)`** - Genera mensaje WhatsApp contextual
+- **`get_customer_whatsapp_template(customer_id)`** - Determina template según estado del cliente
+- **`get_customer_segment_stats()`** - Estadísticas de segmentación de clientes
+
+### Vistas
+
+- **`customer_segments`** - Segmentación RFM automática de clientes
 
 Ver `CLAUDE.md` para esquema completo de la base de datos.
 
 ## 🚀 Roadmap
 
-### En Desarrollo
+### ✅ Fase 1 - Maximizar Recurrencia (Completado)
 
-- [ ] Notificaciones push para clientes recurrentes
-- [ ] Integración con WhatsApp Business API
-- [ ] Exportar listas de contactos a CSV/Excel
-- [ ] Dashboard de métricas de recurrencia
+- [x] Repetir última compra con un click
+- [x] WhatsApp inteligente con mensajes contextuales
+- [x] Segmentación RFM automática de clientes
+- [x] Templates de WhatsApp personalizables
+- [x] Filtrado por segmento en lista de clientes
+
+### 🔄 Fase 2 - Portal de Auto-servicio (En Desarrollo)
+
+- [ ] Magic links para clientes (sin contraseña)
+- [ ] Portal de cliente para ver historial y repetir pedidos
+- [ ] Sistema de suscripciones (café cada X días)
+- [ ] Notificaciones por email de próxima compra
+
+### 📋 Fase 3 - Crecimiento (Planificado)
+
+- [ ] Sistema de referidos (cliente trae cliente)
+- [ ] Listas de precios diferenciadas por cliente
+- [ ] Rutas de entrega optimizadas
+- [ ] Exportar contactos a CSV/Excel
 - [ ] PWA (Progressive Web App)
 
-### Futuro
-
-- [ ] Sistema de recordatorios automáticos
-- [ ] Gráficas de predicción de ventas
-- [ ] Multi-tienda / Multi-usuario
-- [ ] Reportes avanzados en PDF
-- [ ] Integración con facturación electrónica
-
-Ver [.claude/TODO.md](.claude/TODO.md) para lista completa de tareas.
+Ver [docs/plans/](docs/plans/) para documentación detallada de cada fase.
 
 ## 🤝 Contribución
 

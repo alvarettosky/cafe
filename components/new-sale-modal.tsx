@@ -4,11 +4,46 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
-import { Coffee, Loader2 } from "lucide-react";
+import { Coffee, Loader2, RefreshCw } from "lucide-react";
 import { RecurrenceInput } from "./recurrence-input";
 
-export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void }) {
-    const [isOpen, setIsOpen] = useState(false);
+// Tipo para datos iniciales (usado por RepeatSaleButton)
+export interface SaleInitialData {
+    customerId: string;
+    customerName: string;
+    items: Array<{
+        product_id: string;
+        product_name: string;
+        quantity: number;
+        unit_type: string;
+        unit_price: number;
+    }>;
+    paymentMethod: string;
+}
+
+interface NewSaleModalProps {
+    onSaleComplete: () => void;
+    // Props opcionales para control externo
+    externalOpen?: boolean;
+    onExternalClose?: () => void;
+    initialData?: SaleInitialData | null;
+    showTrigger?: boolean;
+}
+
+export function NewSaleModal({
+    onSaleComplete,
+    externalOpen,
+    onExternalClose,
+    initialData,
+    showTrigger = true
+}: NewSaleModalProps) {
+    // Control interno vs externo
+    const [internalOpen, setInternalOpen] = useState(false);
+    const isControlled = externalOpen !== undefined;
+    const isOpen = isControlled ? externalOpen : internalOpen;
+    const setIsOpen = isControlled ? (open: boolean) => {
+        if (!open && onExternalClose) onExternalClose();
+    } : setInternalOpen;
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -45,11 +80,37 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
         "Pago a crédito o pendiente"
     ];
 
-    // Update suggested price when unit changes
+    // Estado para indicar que es una repetición de venta
+    const [isRepeatSale, setIsRepeatSale] = useState(false);
+
+    // Update suggested price when unit changes (solo si no es repeat sale)
     useEffect(() => {
-        const suggestedPrice = unit === 'libra' ? 10.00 : 5.00;
-        setPricePerUnit(suggestedPrice);
-    }, [unit]);
+        if (!isRepeatSale) {
+            const suggestedPrice = unit === 'libra' ? 10.00 : 5.00;
+            setPricePerUnit(suggestedPrice);
+        }
+    }, [unit, isRepeatSale]);
+
+    // Aplicar datos iniciales cuando se abre con initialData
+    useEffect(() => {
+        if (isOpen && initialData) {
+            setIsRepeatSale(true);
+            setSelectedCustomerId(initialData.customerId);
+            setPaymentMethod(initialData.paymentMethod || 'Efectivo');
+
+            // Si hay items, usar el primero (por ahora solo soportamos un item)
+            if (initialData.items && initialData.items.length > 0) {
+                const firstItem = initialData.items[0];
+                setProductId(firstItem.product_id);
+                setQuantity(firstItem.quantity);
+                setUnit(firstItem.unit_type === 'libra' ? 'libra' : 'media_libra');
+                setPricePerUnit(firstItem.unit_price);
+            }
+        } else if (!isOpen) {
+            // Resetear el flag cuando se cierra
+            setIsRepeatSale(false);
+        }
+    }, [isOpen, initialData]);
 
     useEffect(() => {
         if (isOpen) {
@@ -192,6 +253,11 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
             setCustomerRecurrence(null);
             setSuggestedRecurrence(null);
             setShowRecurrenceInput(false);
+            setIsRepeatSale(false);
+            setProductId("");
+            setQuantity(1);
+            setUnit("libra");
+            setPricePerUnit(10.00);
 
             onSaleComplete();
         } catch (err: any) {
@@ -203,14 +269,24 @@ export function NewSaleModal({ onSaleComplete }: { onSaleComplete: () => void })
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-                <Button variant="default" size="lg" className="shadow-lg shadow-primary/20">
-                    <Coffee className="mr-2 h-5 w-5" /> Nueva Venta
-                </Button>
-            </DialogTrigger>
+            {showTrigger && (
+                <DialogTrigger asChild>
+                    <Button variant="default" size="lg" className="shadow-lg shadow-primary/20">
+                        <Coffee className="mr-2 h-5 w-5" /> Nueva Venta
+                    </Button>
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-[500px] bg-card glass border-white/10 max-h-[85vh] flex flex-col">
                 <DialogHeader className="flex-shrink-0">
-                    <DialogTitle>Registrar Venta de Café</DialogTitle>
+                    <DialogTitle className="flex items-center gap-2">
+                        {isRepeatSale && <RefreshCw className="h-5 w-5 text-green-500" />}
+                        {isRepeatSale ? 'Repetir Venta' : 'Registrar Venta de Café'}
+                    </DialogTitle>
+                    {isRepeatSale && initialData && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                            Repitiendo última compra de {initialData.customerName}
+                        </p>
+                    )}
                 </DialogHeader>
                 <div className="grid gap-3 py-3 overflow-y-auto flex-1 pr-2">
                     {/* Customer Selection Section */}
