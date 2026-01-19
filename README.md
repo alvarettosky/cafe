@@ -13,6 +13,7 @@ Sistema completo de gestión para **Mirador Montañero Café Selecto** que inclu
 - 👥 **CRM con recurrencia inteligente** - Predicción de compras con IA
 - 📞 **Sistema de contactos** - Alertas automáticas para clientes recurrentes
 - 📈 **Analytics** - Gráficas de ventas, inventario y tendencias
+- 🔐 **Sistema de aprobación de usuarios** - Control de acceso por admin
 
 ## 🚀 Demo en Vivo
 
@@ -44,12 +45,21 @@ La aplicación está desplegada en Vercel con actualizaciones automáticas en ca
 - Cálculo automático de precios por unidad (libra/media libra)
 - Múltiples métodos de pago (Efectivo, Transferencias, Nequi, DaviPlata)
 
+### 🔐 Sistema de Aprobación de Usuarios
+
+- Nuevos usuarios quedan **pendientes** hasta aprobación del admin
+- Página de espera (`/pendiente`) para usuarios no aprobados
+- Badge en dashboard muestra usuarios pendientes (solo admin)
+- Modal de aprobación/rechazo con un click
+- RLS actualizado para bloquear acceso a datos sin aprobación
+
 ### 📊 Dashboard en Tiempo Real
 
 - KPIs: Total inventario, ventas del día, café tostado, alertas de stock
 - Inventario en tiempo real con edición y eliminación
 - Ventas recientes con información del cliente
 - Navegación rápida a Analytics, Clientes, Contactos
+- Badge de usuarios pendientes para administradores
 
 ### 📈 Analytics Avanzado
 
@@ -222,12 +232,14 @@ cafe-mirador/
 │   ├── clientes/                 # Gestión de clientes
 │   ├── contactos/                # Lista de contacto
 │   ├── login/                    # Autenticación
+│   ├── pendiente/                # Página de espera (usuarios no aprobados)
 │   └── ventas/nueva/             # Formulario de nueva venta
 ├── components/                   # Componentes React
 │   ├── __tests__/                # Tests de componentes
 │   ├── ui/                       # Componentes base (shadcn/ui)
 │   ├── customer-modal.tsx        # Modal de cliente con recurrencia
 │   ├── recurrence-input.tsx      # Input de recurrencia con IA
+│   ├── pending-users-modal.tsx   # Modal de aprobación de usuarios
 │   └── date-range-selector.tsx   # Selector de rangos de fecha
 ├── lib/                          # Utilidades
 │   └── supabase.ts              # Cliente Supabase
@@ -262,6 +274,9 @@ cafe-mirador/
 - **`process_coffee_sale(...)`** - Procesa venta completa con transacción
 - **`get_dashboard_stats()`** - Obtiene KPIs del dashboard
 - **`get_customers_to_contact(urgency_days)`** - Lista clientes para contactar
+- **`get_pending_users()`** - Lista usuarios pendientes de aprobación (solo admin)
+- **`approve_user(user_id)`** - Aprueba un usuario (solo admin)
+- **`reject_user(user_id)`** - Rechaza/elimina un usuario (solo admin)
 
 Ver `CLAUDE.md` para esquema completo de la base de datos.
 
@@ -303,4 +318,4 @@ MIT License - Ver [LICENSE](LICENSE) para más detalles.
 
 **Stack:** Next.js 16 + TypeScript + Supabase + TailwindCSS
 **Deployment:** Vercel
-**Última actualización:** 2026-01-18
+**Última actualización:** 2026-01-19
