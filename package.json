@@ -21,7 +21,8 @@
     "test:db:watch": "vitest tests/database/",
     "prepare": "husky install .husky",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "backup:execute": "tsx scripts/backup/index.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
