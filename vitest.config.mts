@@ -16,6 +16,7 @@ export default defineConfig({
             '**/.worktrees/**',
             '**/dist/**',
             '**/.next/**',
+            '**/e2e/**',
         ],
         alias: {
             '@': path.resolve(__dirname, './'),

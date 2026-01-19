@@ -25,7 +25,7 @@ const mockData: TimeSeriesDataPoint[] = [
 describe('RevenueChart', () => {
   it('should render chart with default title', () => {
     render(<RevenueChart data={mockData} />);
-    expect(screen.getByText('Revenue & Profit Trend')).toBeInTheDocument();
+    expect(screen.getByText('Tendencia de Ingresos y Ganancias')).toBeInTheDocument();
   });
 
   it('should render chart with custom title', () => {
@@ -35,7 +35,7 @@ describe('RevenueChart', () => {
 
   it('should render chart with empty data', () => {
     render(<RevenueChart data={[]} />);
-    expect(screen.getByText('Revenue & Profit Trend')).toBeInTheDocument();
+    expect(screen.getByText('Tendencia de Ingresos y Ganancias')).toBeInTheDocument();
   });
 
   it('should apply glass card styling', () => {
