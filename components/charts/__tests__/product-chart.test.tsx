@@ -23,7 +23,7 @@ const mockProducts: ProductMetric[] = [
 describe('ProductChart', () => {
   it('should render chart with default title', () => {
     render(<ProductChart data={mockProducts} />);
-    expect(screen.getByText('Product Performance')).toBeInTheDocument();
+    expect(screen.getByText('Rendimiento de Productos')).toBeInTheDocument();
   });
 
   it('should render chart with custom title', () => {
@@ -33,7 +33,7 @@ describe('ProductChart', () => {
 
   it('should handle empty data gracefully', () => {
     render(<ProductChart data={[]} />);
-    expect(screen.getByText('Product Performance')).toBeInTheDocument();
+    expect(screen.getByText('Rendimiento de Productos')).toBeInTheDocument();
   });
 
   it('should render bar chart container', () => {

@@ -11,6 +11,11 @@ export default defineConfig({
         environment: 'jsdom',
         globals: true,
         setupFiles: './vitest.setup.mts',
+        exclude: [
+            'node_modules/**',
+            'e2e/**', // Exclude Playwright E2E tests
+            '**/*.spec.ts', // Exclude Playwright spec files
+        ],
         alias: {
             '@': path.resolve(__dirname, './'),
         },

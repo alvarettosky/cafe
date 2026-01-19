@@ -67,3 +67,22 @@ Object.defineProperty(window, 'ResizeObserver', {
   configurable: true,
   value: ResizeObserverMock,
 })
+
+// Mock PointerEvent for Framer Motion
+if (!global.PointerEvent) {
+  class PointerEvent extends Event {
+    button: number
+    ctrlKey: boolean
+    pointerType: string
+
+    constructor(type: string, params: PointerEventInit = {}) {
+      super(type, params)
+      this.button = params.button || 0
+      this.ctrlKey = params.ctrlKey || false
+      this.pointerType = params.pointerType || 'mouse'
+    }
+  }
+
+  global.PointerEvent = PointerEvent as any
+  window.PointerEvent = PointerEvent as any
+}

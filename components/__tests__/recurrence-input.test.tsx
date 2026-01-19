@@ -20,7 +20,7 @@ describe('RecurrenceInput', () => {
       );
 
       expect(screen.getByText('Recurrencia típica (días)')).toBeInTheDocument();
-      expect(screen.getByPlaceholderText('Ej: 7, 14, 30...')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Ej: 15 días')).toBeInTheDocument();
     });
 
     it('should render with custom label', () => {
@@ -55,7 +55,7 @@ describe('RecurrenceInput', () => {
         />
       );
 
-      const input = screen.getByPlaceholderText('Ej: 7, 14, 30...');
+      const input = screen.getByPlaceholderText('Ej: 15 días');
       expect(input).toHaveValue(14);
     });
   });
@@ -71,7 +71,7 @@ describe('RecurrenceInput', () => {
         />
       );
 
-      expect(screen.getByText(/Sugerencia AI:/)).toBeInTheDocument();
+      expect(screen.getByText(/Sugerencia:/)).toBeInTheDocument();
       expect(screen.getByText(/7 días/)).toBeInTheDocument();
     });
 
@@ -87,7 +87,7 @@ describe('RecurrenceInput', () => {
         />
       );
 
-      const acceptButton = screen.getByText('Usar sugerencia');
+      const acceptButton = screen.getByText(/Usar 7d/);
       await user.click(acceptButton);
 
       expect(mockOnChange).toHaveBeenCalledWith(7);
@@ -131,7 +131,7 @@ describe('RecurrenceInput', () => {
         />
       );
 
-      const input = screen.getByPlaceholderText('Ej: 7, 14, 30...');
+      const input = screen.getByPlaceholderText('Ej: 15 días');
       await user.type(input, '21');
 
       expect(mockOnChange).toHaveBeenCalledWith(21);
@@ -147,7 +147,7 @@ describe('RecurrenceInput', () => {
         />
       );
 
-      const input = screen.getByPlaceholderText('Ej: 7, 14, 30...');
+      const input = screen.getByPlaceholderText('Ej: 15 días');
       await user.clear(input);
 
       expect(mockOnChange).toHaveBeenCalledWith(null);
@@ -163,7 +163,7 @@ describe('RecurrenceInput', () => {
         />
       );
 
-      const input = screen.getByPlaceholderText('Ej: 7, 14, 30...');
+      const input = screen.getByPlaceholderText('Ej: 15 días');
       await user.type(input, 'abc');
 
       // Input type="number" prevents non-numeric input
@@ -180,7 +180,7 @@ describe('RecurrenceInput', () => {
         />
       );
 
-      const input = screen.getByPlaceholderText('Ej: 7, 14, 30...');
+      const input = screen.getByPlaceholderText('Ej: 15 días');
 
       // Try to type negative number
       await user.type(input, '-5');
@@ -212,7 +212,7 @@ describe('RecurrenceInput', () => {
         />
       );
 
-      const input = screen.getByPlaceholderText('Ej: 7, 14, 30...');
+      const input = screen.getByPlaceholderText('Ej: 15 días');
       await user.type(input, '7');
 
       expect(mockOnChange).toHaveBeenCalledWith(7);
@@ -228,7 +228,7 @@ describe('RecurrenceInput', () => {
         />
       );
 
-      const input = screen.getByPlaceholderText('Ej: 7, 14, 30...');
+      const input = screen.getByPlaceholderText('Ej: 15 días');
       await user.type(input, '14');
 
       expect(mockOnChange).toHaveBeenCalledWith(14);
@@ -244,7 +244,7 @@ describe('RecurrenceInput', () => {
         />
       );
 
-      const input = screen.getByPlaceholderText('Ej: 7, 14, 30...');
+      const input = screen.getByPlaceholderText('Ej: 15 días');
       await user.type(input, '30');
 
       expect(mockOnChange).toHaveBeenCalledWith(30);
@@ -260,7 +260,7 @@ describe('RecurrenceInput', () => {
         />
       );
 
-      const input = screen.getByPlaceholderText('Ej: 7, 14, 30...');
+      const input = screen.getByPlaceholderText('Ej: 15 días');
       const label = screen.getByText('Recurrencia típica (días)');
 
       expect(label).toBeInTheDocument();
@@ -275,7 +275,7 @@ describe('RecurrenceInput', () => {
         />
       );
 
-      const input = screen.getByPlaceholderText('Ej: 7, 14, 30...');
+      const input = screen.getByPlaceholderText('Ej: 15 días');
       expect(input).toHaveAttribute('type', 'number');
     });
 
@@ -287,7 +287,7 @@ describe('RecurrenceInput', () => {
         />
       );
 
-      const input = screen.getByPlaceholderText('Ej: 7, 14, 30...');
+      const input = screen.getByPlaceholderText('Ej: 15 días');
       expect(input).toHaveAttribute('min', '1');
     });
   });
@@ -303,7 +303,7 @@ describe('RecurrenceInput', () => {
         />
       );
 
-      const input = screen.getByPlaceholderText('Ej: 7, 14, 30...');
+      const input = screen.getByPlaceholderText('Ej: 15 días');
       await user.type(input, '365');
 
       expect(mockOnChange).toHaveBeenCalledWith(365);
@@ -319,7 +319,7 @@ describe('RecurrenceInput', () => {
         />
       );
 
-      const input = screen.getByPlaceholderText('Ej: 7, 14, 30...');
+      const input = screen.getByPlaceholderText('Ej: 15 días');
       await user.type(input, '1');
 
       expect(mockOnChange).toHaveBeenCalledWith(1);
@@ -335,7 +335,7 @@ describe('RecurrenceInput', () => {
         />
       );
 
-      const input = screen.getByPlaceholderText('Ej: 7, 14, 30...');
+      const input = screen.getByPlaceholderText('Ej: 15 días');
       await user.clear(input);
 
       expect(mockOnChange).toHaveBeenCalledWith(null);

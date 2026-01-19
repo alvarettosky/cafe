@@ -12,7 +12,7 @@ const mockPayments: PaymentBreakdown = {
 describe('PaymentChart', () => {
   it('should render chart with default title', () => {
     render(<PaymentChart data={mockPayments} />);
-    expect(screen.getByText('Payment Methods')).toBeInTheDocument();
+    expect(screen.getByText('Métodos de Pago')).toBeInTheDocument();
   });
 
   it('should render chart with custom title', () => {
@@ -22,7 +22,7 @@ describe('PaymentChart', () => {
 
   it('should handle empty data object', () => {
     render(<PaymentChart data={{}} />);
-    expect(screen.getByText('Payment Methods')).toBeInTheDocument();
+    expect(screen.getByText('Métodos de Pago')).toBeInTheDocument();
   });
 
   it('should render pie chart container', () => {

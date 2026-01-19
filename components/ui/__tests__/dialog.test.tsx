@@ -325,14 +325,15 @@ describe('Dialog Components', () => {
       const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
 
-      // Tab through focusable elements
-      await user.tab();
+      // Radix UI Dialog auto-focuses the first focusable element
+      // So Input 1 should already have focus
       expect(screen.getByPlaceholderText('Input 1')).toHaveFocus();
 
+      // Tab through focusable elements
       await user.tab();
       expect(screen.getByPlaceholderText('Input 2')).toHaveFocus();
 
-      // Should wrap back to close button, not escape to outside button
+      // Should wrap to close button
       await user.tab();
       expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();
     });
