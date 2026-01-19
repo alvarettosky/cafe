@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NewCustomerModal } from "@/components/new-customer-modal";
-import { Coffee, Package, TrendingUp, AlertTriangle, RefreshCcw, BarChart3, Users, Phone } from "lucide-react";
+import { Coffee, Package, TrendingUp, AlertTriangle, RefreshCcw, BarChart3, Users, Phone, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
@@ -17,7 +17,7 @@ import { PendingUsersModal } from "@/components/pending-users-modal";
 import Link from "next/link";
 
 export default function Dashboard() {
-  const { user, isLoading, isAdmin } = useAuth();
+  const { user, isLoading, isAdmin, signOut } = useAuth();
   const router = useRouter();
   const [refreshKey, setRefreshKey] = useState(0);
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -116,6 +116,9 @@ export default function Dashboard() {
                 <Coffee className="mr-2 h-5 w-5" /> Nueva Venta
               </Button>
             </Link>
+            <Button variant="outline" size="icon" onClick={signOut}>
+              <LogOut className="w-4 h-4" />
+            </Button>
           </div>
         </header>
 
