@@ -82,7 +82,7 @@ Pre-commit automático (Husky + lint-staged):
 /pendiente      → Pantalla de espera para usuarios no aprobados
 /analytics      → Dashboard analítico (gráficos de ventas, métricas)
 /clientes       → Gestión de clientes con recurrencia
-/contactos      → Lista de contactos por recurrencia (integración WhatsApp)
+/contactos      → Lista de contactos por recurrencia + Prospectos (integración WhatsApp)
 ```
 
 ### Base de Datos (Supabase)
@@ -144,6 +144,7 @@ Pre-commit automático (Husky + lint-staged):
    - `days_until_expected = typical_recurrence_days - days_since_last_purchase`
    - Urgencia: alta (≤-7d), media (≤0d), baja (≤3d)
 6. Integración WhatsApp: genera mensaje automático con nombre y días de atraso
+7. Sección **Prospectos**: clientes con `last_purchase_date = NULL` (nunca han comprado)
 
 **Componentes Clave**:
 

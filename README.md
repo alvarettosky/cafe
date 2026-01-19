@@ -34,8 +34,10 @@ La aplicación está desplegada en Vercel con actualizaciones automáticas en ca
 
 - **Lista de Clientes** (`/clientes`) - Búsqueda, filtrado y edición completa
 - **Lista de Contacto** (`/contactos`) - Clasificación por urgencia (Urgente, Pronto, Planificado)
+- **Sección Prospectos** - Clientes potenciales que nunca han comprado
 - Campos completos: nombre, teléfono, email, dirección, recurrencia
 - Visualización de última compra y recurrencia típica
+- Navegación con botón Home desde todas las páginas secundarias
 
 ### ☕ Punto de Venta Optimizado
 
