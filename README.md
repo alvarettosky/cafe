@@ -58,6 +58,18 @@ La aplicación está desplegada en Vercel con actualizaciones automáticas en ca
 - Métricas de rendimiento
 - Filtros por rango de fechas
 
+### 💾 Sistema de Backup y Exportación
+
+- **Backups automáticos diarios** via GitHub Actions (2:00 AM UTC)
+- **Exportación manual** de datos desde Dashboard, Clientes y Analytics
+- **Almacenamiento en Google Drive** con política de retención:
+  - Backups diarios: 7 días
+  - Backups semanales: 30 días
+  - Backups mensuales: 1 año
+- **Formatos soportados**: CSV, XLSX (Excel), JSON comprimido, SQL dump
+- **Notificaciones por email** después de cada backup
+- **Solo administradores** pueden exportar datos
+
 ## 🛠 Tecnologías
 
 ### Frontend
@@ -83,7 +95,7 @@ La aplicación está desplegada en Vercel con actualizaciones automáticas en ca
 - **Playwright** - E2E tests
 - **Testing Library** - Component testing
 - **MSW** - API mocking
-- **Coverage**: 72% (216 tests pasando)
+- **Coverage**: 72%+ (181 tests pasando)
 
 ## Requisitos previos
 
@@ -205,6 +217,12 @@ Ver documentación completa en `/docs/testing/`
 - **[docs/testing/CI_CD.md](docs/testing/CI_CD.md)** - Pipeline CI/CD
 - **[docs/testing/WRITING_TESTS.md](docs/testing/WRITING_TESTS.md)** - Cómo escribir tests
 
+### Backup y Exportación
+
+- **[docs/BACKUP_SETUP_GUIDE.md](docs/BACKUP_SETUP_GUIDE.md)** - Configuración del sistema de backup
+- **[docs/USER_GUIDE_BACKUPS.md](docs/USER_GUIDE_BACKUPS.md)** - Guía de usuario para exportaciones
+- **[docs/BACKUP_TEST_CHECKLIST.md](docs/BACKUP_TEST_CHECKLIST.md)** - Checklist de testing
+
 ### Planes de Diseño
 
 - **[docs/plans/](docs/plans/)** - Diseños y arquitectura de features
@@ -226,11 +244,20 @@ cafe-mirador/
 ├── components/                   # Componentes React
 │   ├── __tests__/                # Tests de componentes
 │   ├── ui/                       # Componentes base (shadcn/ui)
+│   ├── backups/                  # Sistema de exportación
+│   │   └── DownloadButton.tsx    # Botón de exportación
 │   ├── customer-modal.tsx        # Modal de cliente con recurrencia
 │   ├── recurrence-input.tsx      # Input de recurrencia con IA
 │   └── date-range-selector.tsx   # Selector de rangos de fecha
+├── scripts/                      # Scripts de automatización
+│   └── backup/                   # Sistema de backup
+│       ├── index.ts              # Orquestador principal
+│       ├── export-to-json.ts     # Exportación JSON
+│       ├── upload-to-gdrive.ts   # Subida a Google Drive
+│       └── send-notification.ts  # Notificaciones email
 ├── lib/                          # Utilidades
-│   └── supabase.ts              # Cliente Supabase
+│   ├── supabase.ts              # Cliente Supabase
+│   └── export-utils.ts          # Utilidades de exportación
 ├── types/                        # TypeScript types
 │   └── customer-recurrence.ts    # Tipos de recurrencia
 ├── supabase/                     # Base de datos
@@ -267,11 +294,17 @@ Ver `CLAUDE.md` para esquema completo de la base de datos.
 
 ## 🚀 Roadmap
 
+### Completado Recientemente
+
+- [x] Sistema de backup automático con GitHub Actions
+- [x] Exportación manual a CSV/XLSX desde la interfaz
+- [x] Almacenamiento en Google Drive con política de retención
+- [x] Notificaciones por email después de backups
+
 ### En Desarrollo
 
 - [ ] Notificaciones push para clientes recurrentes
 - [ ] Integración con WhatsApp Business API
-- [ ] Exportar listas de contactos a CSV/Excel
 - [ ] Dashboard de métricas de recurrencia
 - [ ] PWA (Progressive Web App)
 

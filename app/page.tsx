@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NewCustomerModal } from "@/components/new-customer-modal";
 import { Coffee, Package, TrendingUp, AlertTriangle, RefreshCcw, BarChart3, Users, Phone } from "lucide-react";
+import { DownloadButton } from "@/components/backups";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
@@ -76,6 +77,11 @@ export default function Dashboard() {
             <Button variant="outline" size="icon" onClick={handleRefresh}>
               <RefreshCcw className="w-4 h-4" />
             </Button>
+            <DownloadButton
+              tableName="inventory"
+              label="Exportar Inventario"
+              size="sm"
+            />
             <Button variant="outline" onClick={() => router.push('/analytics')}>
               <BarChart3 className="w-4 h-4 mr-2" />
               Analytics

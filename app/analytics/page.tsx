@@ -20,6 +20,7 @@ import { PaymentChart } from '@/components/charts/payment-chart';
 import { ProductChart } from '@/components/charts/product-chart';
 import { DateRangeSelector } from '@/components/date-range-selector';
 import { Button } from '@/components/ui/button';
+import { DownloadButton } from '@/components/backups';
 import type {
   AdvancedMetrics,
   TimeSeriesDataPoint,
@@ -259,11 +260,20 @@ export default function AnalyticsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="flex justify-start"
+            className="flex justify-between items-center"
           >
             <DateRangeSelector
               onPresetChange={handlePresetChange}
               activePreset={activePreset as any}
+            />
+            <DownloadButton
+              tableName={['sales', 'sale_items']}
+              dateRange={{
+                start: dateRange.start.toISOString(),
+                end: dateRange.end.toISOString(),
+              }}
+              label="Exportar Ventas"
+              size="sm"
             />
           </motion.div>
 

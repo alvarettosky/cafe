@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Users, User, Search, Calendar, Phone, Mail, TrendingUp, Edit } from 'lucide-react';
+import { DownloadButton } from '@/components/backups';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { CustomerModal } from '@/components/customer-modal';
@@ -134,9 +135,16 @@ export default function CustomersPage() {
             <Users className="h-10 w-10 text-blue-600" />
             Gestión de Clientes
           </h1>
-          <p className="text-gray-600">
-            Administra la información de recurrencia de tus clientes
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-gray-600">
+              Administra la información de recurrencia de tus clientes
+            </p>
+            <DownloadButton
+              tableName={['customers', 'customer_contacts']}
+              label="Exportar Clientes"
+              size="sm"
+            />
+          </div>
         </motion.div>
 
         {/* Search */}

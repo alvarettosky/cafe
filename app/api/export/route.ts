@@ -159,7 +159,13 @@ export async function POST(request: NextRequest) {
       );
       headers.set('Content-Disposition', `attachment; filename="${file.name}"`);
 
-      return new NextResponse(file.content, { headers });
+      // Convert Buffer to Uint8Array for NextResponse compatibility
+      const body =
+        typeof file.content === 'string'
+          ? file.content
+          : new Uint8Array(file.content);
+
+      return new NextResponse(body, { headers });
     } else {
       // Multiple tables - create zip
       const zipBuffer = await createZipArchive(files);
@@ -170,7 +176,8 @@ export async function POST(request: NextRequest) {
       headers.set('Content-Type', 'application/zip');
       headers.set('Content-Disposition', `attachment; filename="${zipName}"`);
 
-      return new NextResponse(zipBuffer, { headers });
+      // Convert Buffer to Uint8Array for NextResponse compatibility
+      return new NextResponse(new Uint8Array(zipBuffer), { headers });
     }
   } catch (error) {
     console.error('Error de exportación:', error);
