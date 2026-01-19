@@ -285,6 +285,12 @@ npm install  # Instalar deps en worktree
 
 Después de completar feature, copiar archivos al main y hacer merge.
 
+**Exclusiones importantes:** El directorio `.worktrees/` está excluido de:
+
+- `.gitignore` - No se commitean los worktrees
+- `.eslintignore` - No se lintean (evita errores con builds `.next/`)
+- `vitest.config.mts` - No se ejecutan tests duplicados
+
 ### CI/CD Pipeline
 
 GitHub Actions:
