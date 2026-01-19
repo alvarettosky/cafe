@@ -1,20 +1,32 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Phone, Mail, Calendar, AlertTriangle, Clock, CheckCircle, Users, Filter } from 'lucide-react';
+import { Phone, Mail, Calendar, AlertTriangle, Clock, CheckCircle, Users, Filter, UserPlus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import type { CustomerToContact } from '@/types/customer-recurrence';
 
+interface Prospect {
+  id: string;
+  full_name: string;
+  phone: string | null;
+  email: string | null;
+  created_at: string;
+  days_since_registered: number;
+}
+
 export default function ContactosPage() {
   const [contacts, setContacts] = useState<CustomerToContact[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<CustomerToContact[]>([]);
+  const [prospects, setProspects] = useState<Prospect[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingProspects, setLoadingProspects] = useState(true);
   const [urgencyFilter, setUrgencyFilter] = useState<string>('all');
   const [daysThreshold, setDaysThreshold] = useState(7);
 
   useEffect(() => {
     fetchContacts();
+    fetchProspects();
   }, [daysThreshold]);
 
   useEffect(() => {
@@ -36,6 +48,37 @@ export default function ContactosPage() {
       console.error('Error fetching contacts:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProspects = async () => {
+    setLoadingProspects(true);
+
+    try {
+      // Clientes que nunca han comprado (last_purchase_date IS NULL)
+      // Excluir "Venta Rápida" (UUID especial)
+      const { data, error } = await supabase
+        .from('customers')
+        .select('id, full_name, phone, email, created_at')
+        .is('last_purchase_date', null)
+        .neq('id', '00000000-0000-0000-0000-000000000000')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Calcular días desde registro
+      const prospectsWithDays = (data || []).map((p) => ({
+        ...p,
+        days_since_registered: Math.floor(
+          (Date.now() - new Date(p.created_at).getTime()) / (1000 * 60 * 60 * 24)
+        ),
+      }));
+
+      setProspects(prospectsWithDays);
+    } catch (error) {
+      console.error('Error fetching prospects:', error);
+    } finally {
+      setLoadingProspects(false);
     }
   };
 
@@ -119,6 +162,25 @@ export default function ContactosPage() {
   const handlePhoneCall = (contact: CustomerToContact) => {
     if (!contact.phone) return;
     window.location.href = `tel:${contact.phone}`;
+  };
+
+  const getProspectMessage = (prospect: Prospect) => {
+    return `Hola ${prospect.full_name}! ☕ Somos de Mirador Montañero Café Selecto. ¿Ya probaste nuestro café? Tenemos los mejores granos recién tostados. ¡Te esperamos!`;
+  };
+
+  const handleWhatsAppProspect = (prospect: Prospect) => {
+    if (!prospect.phone) return;
+
+    const message = getProspectMessage(prospect);
+    const phoneNumber = prospect.phone.replace(/\D/g, '');
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const handlePhoneCallProspect = (prospect: Prospect) => {
+    if (!prospect.phone) return;
+    window.location.href = `tel:${prospect.phone}`;
   };
 
   const stats = {
@@ -374,6 +436,113 @@ export default function ContactosPage() {
                   </motion.div>
                 );
               })}
+            </div>
+          )}
+        </motion.div>
+
+        {/* Prospects Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-10"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <UserPlus className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Prospectos</h2>
+              <p className="text-gray-600">Clientes potenciales que aún no han comprado</p>
+            </div>
+            <span className="ml-auto bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+              {prospects.length}
+            </span>
+          </div>
+
+          {loadingProspects ? (
+            <div className="py-8 text-center text-gray-500">
+              Cargando prospectos...
+            </div>
+          ) : prospects.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 py-8 text-center">
+              <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
+              <p className="text-lg font-medium text-gray-900 mb-1">
+                Sin prospectos pendientes
+              </p>
+              <p className="text-gray-600">
+                Todos los clientes registrados ya han realizado al menos una compra
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {prospects.map((prospect) => (
+                <motion.div
+                  key={prospect.id}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="rounded-lg p-5 shadow-sm border-2 bg-blue-50 border-blue-200 text-blue-900"
+                >
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-blue-500 text-white">
+                        <UserPlus className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg">{prospect.full_name}</h3>
+                        <span className="text-xs font-medium px-2 py-1 rounded bg-blue-500 text-white">
+                          Prospecto
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Info */}
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar className="h-4 w-4" />
+                      <span>Registrado hace {prospect.days_since_registered} días</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      <span className="text-amber-700 font-medium">Sin compras registradas</span>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2">
+                    {prospect.phone && (
+                      <>
+                        <button
+                          onClick={() => handleWhatsAppProspect(prospect)}
+                          className="flex-1 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                        >
+                          <Phone className="h-4 w-4" />
+                          WhatsApp
+                        </button>
+                        <button
+                          onClick={() => handlePhoneCallProspect(prospect)}
+                          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                        >
+                          <Phone className="h-4 w-4" />
+                        </button>
+                      </>
+                    )}
+                    {prospect.email && (
+                      <a
+                        href={`mailto:${prospect.email}`}
+                        className="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                      >
+                        <Mail className="h-4 w-4" />
+                      </a>
+                    )}
+                    {!prospect.phone && !prospect.email && (
+                      <span className="text-sm text-gray-500 italic">Sin datos de contacto</span>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
             </div>
           )}
         </motion.div>
