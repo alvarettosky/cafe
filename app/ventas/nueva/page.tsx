@@ -1,6 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+
+interface Product {
+    product_id: string;
+    product_name: string;
+}
+
+interface Customer {
+    id: string;
+    full_name: string;
+    typical_recurrence_days: number | null;
+}
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
@@ -17,11 +28,11 @@ export default function NuevaVentaPage() {
     const [quantity, setQuantity] = useState(1);
     const [unit, setUnit] = useState<"libra" | "media_libra">("libra");
     const [productId, setProductId] = useState("");
-    const [products, setProducts] = useState<any[]>([]);
+    const [products, setProducts] = useState<Product[]>([]);
     const [pricePerUnit, setPricePerUnit] = useState(10.00);
 
     // Customer State
-    const [customers, setCustomers] = useState<any[]>([]);
+    const [customers, setCustomers] = useState<Customer[]>([]);
     const [selectedCustomerId, setSelectedCustomerId] = useState("");
     const [isNewCustomerMode, setIsNewCustomerMode] = useState(false);
     const [newCustomerName, setNewCustomerName] = useState("");
@@ -72,18 +83,7 @@ export default function NuevaVentaPage() {
         fetchCustomers();
     }, []);
 
-    // Fetch suggested recurrence when customer is selected
-    useEffect(() => {
-        if (selectedCustomerId && selectedCustomerId !== '00000000-0000-0000-0000-000000000000') {
-            fetchCustomerRecurrence();
-        } else {
-            setCustomerRecurrence(null);
-            setSuggestedRecurrence(null);
-            setShowRecurrenceInput(false);
-        }
-    }, [selectedCustomerId]);
-
-    const fetchCustomerRecurrence = async () => {
+    const fetchCustomerRecurrence = useCallback(async () => {
         if (!selectedCustomerId) return;
 
         try {
@@ -110,7 +110,18 @@ export default function NuevaVentaPage() {
         } catch (err) {
             console.error('Error fetching recurrence:', err);
         }
-    };
+    }, [selectedCustomerId, customers]);
+
+    // Fetch suggested recurrence when customer is selected
+    useEffect(() => {
+        if (selectedCustomerId && selectedCustomerId !== '00000000-0000-0000-0000-000000000000') {
+            fetchCustomerRecurrence();
+        } else {
+            setCustomerRecurrence(null);
+            setSuggestedRecurrence(null);
+            setShowRecurrenceInput(false);
+        }
+    }, [selectedCustomerId, fetchCustomerRecurrence]);
 
     const handleSale = async () => {
         if (!productId) {
@@ -183,8 +194,8 @@ export default function NuevaVentaPage() {
             // Navigate back to home
             router.push('/');
             router.refresh();
-        } catch (err: any) {
-            setError(err.message || "Error processing sale");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Error processing sale");
         } finally {
             setIsLoading(false);
         }
@@ -312,7 +323,7 @@ export default function NuevaVentaPage() {
                                 <select
                                     id="unit-select"
                                     value={unit}
-                                    onChange={(e) => setUnit(e.target.value as any)}
+                                    onChange={(e) => setUnit(e.target.value as "libra" | "media_libra")}
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                 >
                                     <option value="libra">Libra (500g)</option>

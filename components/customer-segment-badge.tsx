@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Crown,
   Heart,
@@ -110,14 +110,7 @@ export function CustomerSegmentBadge({
   const [segment, setSegment] = useState<CustomerSegment | null>(propSegment || null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Si se proporciona customerId pero no segment, cargar desde la vista
-  useEffect(() => {
-    if (customerId && !propSegment) {
-      fetchSegment();
-    }
-  }, [customerId, propSegment]);
-
-  const fetchSegment = async () => {
+  const fetchSegment = useCallback(async () => {
     if (!customerId) return;
 
     setIsLoading(true);
@@ -138,7 +131,14 @@ export function CustomerSegmentBadge({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [customerId]);
+
+  // Si se proporciona customerId pero no segment, cargar desde la vista
+  useEffect(() => {
+    if (customerId && !propSegment) {
+      fetchSegment();
+    }
+  }, [customerId, propSegment, fetchSegment]);
 
   // Si está cargando
   if (isLoading) {

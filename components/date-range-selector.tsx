@@ -16,7 +16,7 @@ interface DateRangeSelectorProps {
   activePreset?: DateRangePreset;
 }
 
-const getDateRange = (preset: DateRangePreset): DateRange => {
+export const getDateRange = (preset: DateRangePreset): DateRange => {
   const now = new Date();
   const start = new Date();
   const end = new Date();

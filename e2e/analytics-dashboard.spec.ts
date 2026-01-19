@@ -70,9 +70,11 @@ test.describe('Analytics Dashboard', () => {
   });
 
   test('should update metrics when date range changes', async ({ page }) => {
-    // Get initial revenue value
+    // Get revenue card locator
     const revenueCard = page.locator('text=Ingresos Totales').locator('..');
-    const initialRevenue = await revenueCard.textContent();
+
+    // Verify card is visible before changing date
+    await expect(revenueCard).toBeVisible();
 
     // Change date range to "Hoy"
     await page.click('button:has-text("Hoy")');
@@ -80,10 +82,7 @@ test.describe('Analytics Dashboard', () => {
     // Wait for update
     await page.waitForTimeout(1000);
 
-    // Revenue might change (or stay the same if same data)
-    const newRevenue = await revenueCard.textContent();
-
-    // At least verify the card is still visible
+    // Verify card is still visible after date change
     await expect(revenueCard).toBeVisible();
   });
 

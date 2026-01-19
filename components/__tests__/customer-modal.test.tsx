@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CustomerModal } from '../customer-modal';
 import { supabase } from '@/lib/supabase';
@@ -10,7 +10,8 @@ vi.mock('@/lib/supabase', () => ({
     from: vi.fn(() => ({
       select: vi.fn(() => ({
         eq: vi.fn(() => ({
-          single: vi.fn()
+          single: vi.fn(),
+          order: vi.fn(() => Promise.resolve({ data: [], error: null }))
         }))
       })),
       update: vi.fn(() => ({
@@ -54,8 +55,8 @@ describe('CustomerModal', () => {
         }))
       }));
 
-      (supabase.from as any).mockImplementation(fromMock);
-      (supabase.rpc as any).mockResolvedValue({ data: 8, error: null });
+      vi.mocked(supabase.from).mockImplementation(fromMock);
+      vi.mocked(supabase.rpc).mockResolvedValue({ data: 8, error: null });
 
       render(
         <CustomerModal
@@ -75,13 +76,14 @@ describe('CustomerModal', () => {
       const fromMock = vi.fn(() => ({
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
-            single: vi.fn(() => Promise.resolve({ data: mockCustomer, error: null }))
+            single: vi.fn(() => Promise.resolve({ data: mockCustomer, error: null })),
+            order: vi.fn(() => Promise.resolve({ data: [], error: null }))
           }))
         }))
       }));
 
-      (supabase.from as any).mockImplementation(fromMock);
-      (supabase.rpc as any).mockResolvedValue({ data: 8, error: null });
+      vi.mocked(supabase.from).mockImplementation(fromMock);
+      vi.mocked(supabase.rpc).mockResolvedValue({ data: 8, error: null });
     });
 
     it('should display customer information correctly', async () => {
@@ -139,7 +141,8 @@ describe('CustomerModal', () => {
       const fromMock = vi.fn(() => ({
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
-            single: vi.fn(() => Promise.resolve({ data: mockCustomer, error: null }))
+            single: vi.fn(() => Promise.resolve({ data: mockCustomer, error: null })),
+            order: vi.fn(() => Promise.resolve({ data: [], error: null }))
           }))
         })),
         update: vi.fn(() => ({
@@ -149,8 +152,8 @@ describe('CustomerModal', () => {
         }))
       }));
 
-      (supabase.from as any).mockImplementation(fromMock);
-      (supabase.rpc as any).mockResolvedValue({ data: 8, error: null });
+      vi.mocked(supabase.from).mockImplementation(fromMock);
+      vi.mocked(supabase.rpc).mockResolvedValue({ data: 8, error: null });
     });
 
     it('should allow editing customer name', async () => {
@@ -228,7 +231,8 @@ describe('CustomerModal', () => {
       const fromMock = vi.fn(() => ({
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
-            single: vi.fn(() => Promise.resolve({ data: mockCustomer, error: null }))
+            single: vi.fn(() => Promise.resolve({ data: mockCustomer, error: null })),
+            order: vi.fn(() => Promise.resolve({ data: [], error: null }))
           }))
         })),
         update: vi.fn(() => ({
@@ -238,8 +242,8 @@ describe('CustomerModal', () => {
         }))
       }));
 
-      (supabase.from as any).mockImplementation(fromMock);
-      (supabase.rpc as any).mockResolvedValue({ data: 8, error: null });
+      vi.mocked(supabase.from).mockImplementation(fromMock);
+      vi.mocked(supabase.rpc).mockResolvedValue({ data: 8, error: null });
     });
 
     it('should save customer changes', async () => {
@@ -308,8 +312,8 @@ describe('CustomerModal', () => {
         }))
       }));
 
-      (supabase.from as any).mockImplementation(fromMock);
-      (supabase.rpc as any).mockResolvedValue({ data: 8, error: null });
+      vi.mocked(supabase.from).mockImplementation(fromMock);
+      vi.mocked(supabase.rpc).mockResolvedValue({ data: 8, error: null });
     });
 
     it('should close modal when cancel button is clicked', async () => {
@@ -361,8 +365,8 @@ describe('CustomerModal', () => {
         }))
       }));
 
-      (supabase.from as any).mockImplementation(fromMock);
-      (supabase.rpc as any).mockResolvedValue({ data: null, error: null });
+      vi.mocked(supabase.from).mockImplementation(fromMock);
+      vi.mocked(supabase.rpc).mockResolvedValue({ data: null, error: null });
 
       render(
         <CustomerModal

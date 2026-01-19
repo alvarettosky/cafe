@@ -91,6 +91,7 @@ Pre-commit automático (Husky + lint-staged):
 /portal/pedidos     → Historial completo de pedidos del cliente
 /portal/perfil      → Edición de datos de contacto (teléfono, email, dirección)
 /portal/suscripcion → Gestión de suscripción automática de café
+/portal/referidos   → Programa de referidos (generar códigos, ver historial)
 ```
 
 ### Base de Datos (Supabase)
@@ -107,6 +108,13 @@ Pre-commit automático (Husky + lint-staged):
 - `customer_auth` - Autenticación de clientes (magic links, sesiones)
 - `customer_subscriptions` - Suscripciones automáticas de café
 - `subscription_items` - Items de cada suscripción
+- `referrals` - Programa de referidos (códigos, estados, recompensas)
+- `referral_program_config` - Configuración del programa de referidos
+- `price_lists` - Listas de precios diferenciados por tipo de cliente
+- `price_list_items` - Precios personalizados por producto en cada lista
+- `delivery_zones` - Zonas de entrega con días de reparto
+- `deliveries` - Entregas programadas con estado
+- `delivery_items` - Items de cada entrega
 
 **Vistas:**
 
@@ -146,6 +154,17 @@ Pre-commit automático (Husky + lint-staged):
 - `get_customer_subscription(p_customer_id)` - Obtiene suscripción activa
 - `upsert_customer_subscription(p_customer_id, p_frequency_days, p_items)` - Crea/actualiza suscripción
 - `toggle_subscription_status(p_customer_id, p_action)` - Pausa/reanuda/omite/cancela
+
+**Crecimiento y Escalabilidad (Fase 3):**
+
+- `generate_referral_code(p_customer_id)` - Genera código de referido único
+- `apply_referral_code(p_code, p_new_customer_phone)` - Aplica código de referido
+- `complete_referral_on_purchase(p_referral_id)` - Completa referido tras compra
+- `get_referral_stats()` - Estadísticas del programa de referidos
+- `get_my_referrals(p_customer_id)` - Lista referidos de un cliente
+- `get_product_price_for_customer(p_customer_id, p_product_id)` - Precio según tipo de cliente
+- `get_deliveries_for_date(p_date)` - Entregas programadas para una fecha
+- `get_customers_without_zone()` - Clientes sin zona asignada
 
 **Row Level Security (RLS):**
 
@@ -243,6 +262,7 @@ Directorio `supabase/migrations/` contiene migración secuencial:
 - `migrations/update_process_coffee_sale_with_recurrence.sql` - Actualiza RPC con parámetro recurrencia
 - `migrations/021_fase1_recurrencia.sql` - Fase 1: Repetir pedido, WhatsApp inteligente, segmentación RFM
 - `migrations/022_fase2_portal_cliente.sql` - Fase 2: Portal de cliente, magic links, suscripciones
+- `migrations/022_fase3_crecimiento.sql` - Fase 3: Referidos, listas de precios, zonas de entrega
 
 Ver `SUPABASE_SETUP.md` para orden completo de ejecución.
 
@@ -314,7 +334,7 @@ Sistema self-service para clientes. Autenticación sin contraseña mediante magi
 
 - `NewSaleModal` - Crear venta (incluye recurrencia). Soporta `initialData` para repetir ventas.
 - `NewCustomerModal` - Crear cliente
-- `CustomerModal` - Editar cliente (nombre, teléfono, email, dirección, recurrencia, última compra)
+- `CustomerModal` - Editar cliente (nombre, teléfono, email, dirección, recurrencia, última compra, tipo de cliente, zona de entrega)
 - `ProductModal` - Editar inventario (solo admins)
 - `PendingUsersModal` - Aprobar/rechazar usuarios (solo admins)
 
@@ -334,6 +354,16 @@ Sistema self-service para clientes. Autenticación sin contraseña mediante magi
 
 - `GeneratePortalAccessButton` - Botón para generar magic link de acceso al portal. Muestra diálogo con enlace y opciones de copiar/enviar por WhatsApp.
 - `context/customer-portal-context.tsx` - Provider de autenticación para el portal de clientes.
+
+**Fase 3 - Crecimiento y Escalabilidad**:
+
+- `AdminReferralsDashboard` - Panel de administración de referidos con estadísticas y lista de códigos.
+- `CustomerTypeSelect` - Selector de tipo de cliente (retail, mayorista pequeño/grande, cafetería, personalizado).
+- `DeliveryZoneSelect` - Selector de zona de entrega con colores y días de reparto.
+- `PriceListManager` - Gestor de listas de precios diferenciados por tipo de cliente.
+- `DeliveryZonesManager` - Gestor de zonas de entrega con días de reparto.
+- `DeliveriesDashboard` - Panel de entregas diarias agrupadas por zona con estados.
+- `app/portal/referidos/page.tsx` - Portal de referidos para clientes (generar códigos, compartir, historial).
 
 **UI Base**:
 

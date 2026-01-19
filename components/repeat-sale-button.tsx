@@ -63,9 +63,9 @@ export function RepeatSaleButton({
 
       setInitialData(saleData);
       setIsModalOpen(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching last sale:", err);
-      setError(err.message || "Error al obtener última venta");
+      setError(err instanceof Error ? err.message : "Error al obtener última venta");
       setTimeout(() => setError(null), 3000);
     } finally {
       setIsLoading(false);

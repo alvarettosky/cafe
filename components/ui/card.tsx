@@ -8,6 +8,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function Card({ className, children, hoverEffect = false, ...props }: CardProps) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- framer-motion types incompatible with React 19
     const MotionDiv = motion.div as any;
     return (
         <MotionDiv
@@ -25,18 +26,18 @@ export function Card({ className, children, hoverEffect = false, ...props }: Car
     );
 }
 
-export function CardHeader({ className, children }: React.HTMLAttributes<HTMLDivElement>) {
-    return <div className={cn("flex flex-col space-y-1.5 pb-2", className)}>{children}</div>;
+export function CardHeader({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+    return <div className={cn("flex flex-col space-y-1.5 pb-2", className)} {...props}>{children}</div>;
 }
 
-export function CardTitle({ className, children }: React.HTMLAttributes<HTMLHeadingElement>) {
+export function CardTitle({ className, children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
     return (
-        <h3 className={cn("font-semibold leading-none tracking-tight text-lg", className)}>
+        <h3 className={cn("font-semibold leading-none tracking-tight text-lg", className)} {...props}>
             {children}
         </h3>
     );
 }
 
-export function CardContent({ className, children }: React.HTMLAttributes<HTMLDivElement>) {
-    return <div className={cn("pt-0", className)}>{children}</div>;
+export function CardContent({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+    return <div className={cn("pt-0", className)} {...props}>{children}</div>;
 }

@@ -66,8 +66,8 @@ export function ProductModal({ isOpen, onClose, onSuccess, productToEdit }: Prod
 
             onSuccess();
             onClose();
-        } catch (err: any) {
-            alert('Error: ' + err.message);
+        } catch (err: unknown) {
+            alert('Error: ' + (err instanceof Error ? err.message : 'Unknown error'));
         } finally {
             setLoading(false);
         }

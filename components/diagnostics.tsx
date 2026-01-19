@@ -12,7 +12,7 @@ export function Diagnostics() {
         const check = async () => {
             try {
                 // 1. Check basic connection
-                const { data, error, count } = await supabase
+                const { error, count } = await supabase
                     .from('inventory')
                     .select('*', { count: 'exact', head: true });
 
@@ -24,9 +24,9 @@ export function Diagnostics() {
                     setStatus('ok');
                     setMessage(`Conexión OK. Inventario: ${count} ítems encontrados.`);
                 }
-            } catch (err: any) {
+            } catch (err: unknown) {
                 setStatus('error');
-                setMessage(`Client Exception: ${err.message}`);
+                setMessage(`Client Exception: ${err instanceof Error ? err.message : 'Unknown error'}`);
             }
         };
 

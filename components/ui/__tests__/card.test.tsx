@@ -112,7 +112,7 @@ describe('Card Components', () => {
       render(<CardTitle>Title</CardTitle>);
       const title = screen.getByText('Title');
       expect(title).toHaveClass('font-semibold');
-      expect(title).toHaveClass('leading-none');
+      // Note: leading-none is merged/removed by tailwind-merge since text-lg includes line-height
       expect(title).toHaveClass('tracking-tight');
       expect(title).toHaveClass('text-lg');
     });

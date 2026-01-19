@@ -32,6 +32,13 @@ interface CartItem {
   unit_type: "libra" | "media_libra";
 }
 
+interface RepeatOrderItem {
+  product_id?: string;
+  product_name: string;
+  quantity: number;
+  unit: string;
+}
+
 function NuevoPedidoContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -69,8 +76,8 @@ function NuevoPedidoContent() {
           const repeatData = sessionStorage.getItem("repeat_order");
           if (repeatData) {
             try {
-              const items = JSON.parse(repeatData);
-              const cartItems: CartItem[] = items.map((item: any) => ({
+              const items: RepeatOrderItem[] = JSON.parse(repeatData);
+              const cartItems: CartItem[] = items.map((item: RepeatOrderItem) => ({
                 product_id: item.product_id || "",
                 product_name: item.product_name,
                 quantity: item.quantity,

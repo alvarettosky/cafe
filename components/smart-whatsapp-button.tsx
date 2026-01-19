@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MessageCircle, Loader2, Eye, Send } from "lucide-react";
+import { MessageCircle, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import {
@@ -96,9 +96,9 @@ export function SmartWhatsAppButton({
       }
 
       return data as WhatsAppMessage;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error generating message:', err);
-      setError(err.message || 'Error al generar mensaje');
+      setError(err instanceof Error ? err.message : 'Error al generar mensaje');
       return null;
     } finally {
       setIsLoading(false);

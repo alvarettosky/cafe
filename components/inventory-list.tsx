@@ -23,7 +23,7 @@ export function InventoryList() {
 
     const fetchInventory = async () => {
         setLoading(true);
-        const { data, error } = await supabase
+        const { data } = await supabase
             .from('inventory')
             .select('*')
             .order('product_name');
@@ -33,6 +33,8 @@ export function InventoryList() {
     };
 
     useEffect(() => {
+        // Initial data fetch on mount - fetchInventory is reused by handleDelete
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchInventory();
     }, []);
 

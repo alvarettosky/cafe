@@ -3,8 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NewCustomerModal } from "@/components/new-customer-modal";
-import { Coffee, Package, TrendingUp, AlertTriangle, RefreshCcw, BarChart3, Users, Phone, LogOut } from "lucide-react";
-import { motion } from "framer-motion";
+import { Coffee, Package, TrendingUp, AlertTriangle, RefreshCcw, BarChart3, Users, Phone, LogOut, LucideIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -16,12 +15,33 @@ import { Diagnostics } from "@/components/diagnostics";
 import { PendingUsersModal } from "@/components/pending-users-modal";
 import Link from "next/link";
 
+interface RecentSale {
+  id: string;
+  created_at: string;
+  total_amount: number;
+  payment_method: string;
+  customers: {
+    full_name: string;
+    address: string | null;
+    phone: string | null;
+  } | null;
+}
+
+interface KpiCardProps {
+  title: string;
+  value: string | number;
+  icon: LucideIcon;
+  trend?: string;
+  description?: string;
+  className?: string;
+}
+
 export default function Dashboard() {
   const { user, isLoading, isAdmin, signOut } = useAuth();
   const router = useRouter();
   const [refreshKey, setRefreshKey] = useState(0);
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [recentSales, setRecentSales] = useState<any[]>([]);
+  const [recentSales, setRecentSales] = useState<RecentSale[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
   const [showPendingModal, setShowPendingModal] = useState(false);
 
@@ -202,7 +222,7 @@ export default function Dashboard() {
   );
 }
 
-function KpiCard({ title, value, icon: Icon, trend, description, className }: any) {
+function KpiCard({ title, value, icon: Icon, trend, description, className }: KpiCardProps) {
   return (
     <Card hoverEffect className={className}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

@@ -53,8 +53,8 @@ export function NewCustomerModal({ onCustomerAdded }: { onCustomerAdded?: () => 
                 setSuccess(null);
             }, 1000);
 
-        } catch (err: any) {
-            setError(err.message || "Error al crear cliente");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Error al crear cliente");
         } finally {
             setIsLoading(false);
         }

@@ -263,7 +263,7 @@ export default function AnalyticsPage() {
           >
             <DateRangeSelector
               onPresetChange={handlePresetChange}
-              activePreset={activePreset as any}
+              activePreset={activePreset as "hoy" | "esta-semana" | "este-mes" | "este-trimestre" | "este-año"}
             />
           </motion.div>
 

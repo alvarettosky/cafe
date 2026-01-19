@@ -4,8 +4,6 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { Loader2, Lock } from 'lucide-react';
-import { z } from 'zod';
-import { useAuth } from '@/components/auth-provider';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -41,8 +39,8 @@ export default function LoginPage() {
                 if (error) throw error;
                 router.push('/');
             }
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Error desconocido');
         } finally {
             setLoading(false);
         }

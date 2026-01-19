@@ -7,11 +7,29 @@ const eslintConfig = defineConfig([
   ...nextTs,
   // Override default ignores of eslint-config-next.
   globalIgnores([
-    // Default ignores of eslint-config-next:
+    // Build outputs
     ".next/**",
     "out/**",
+    "dist/**",
     "build/**",
     "next-env.d.ts",
+    // Dependencies
+    "node_modules/**",
+    // Git worktrees (development isolation)
+    ".worktrees/**",
+    // Generated files
+    "*.min.js",
+    "coverage/**",
+    ".nyc_output/**",
+    // Playwright
+    ".playwright-mcp/**",
+    "playwright-report/**",
+    "test-results/**",
+    // k6 load testing scripts (use require imports)
+    "tests/load/**",
+    // Helper scripts (CommonJS)
+    "execute-sql-node.js",
+    "fix-analytics-auto.js",
   ]),
 ]);
 

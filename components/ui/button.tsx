@@ -26,6 +26,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             icon: "h-9 w-9",
         };
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- framer-motion types incompatible with React 19
         const MotionButton = motion.button as any;
 
         return (

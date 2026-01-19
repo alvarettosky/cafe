@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Users, User, Search, Calendar, Phone, Mail, TrendingUp, Edit, Home, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Users, User, Search, Calendar, Phone, Mail, TrendingUp, Edit, Home } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -9,7 +9,7 @@ import { CustomerModal } from '@/components/customer-modal';
 import { Button } from '@/components/ui/button';
 import { RepeatSaleButton } from '@/components/repeat-sale-button';
 import { GeneratePortalAccessButton } from '@/components/generate-portal-access-button';
-import { CustomerSegmentBadge, CustomerSegmentStats, CustomerSegment } from '@/components/customer-segment-badge';
+import { CustomerSegmentBadge, CustomerSegment } from '@/components/customer-segment-badge';
 import type { CustomerWithRecurrence } from '@/types/customer-recurrence';
 
 interface CustomerWithSegment extends CustomerWithRecurrence {
@@ -30,9 +30,33 @@ export default function CustomersPage() {
     fetchCustomers();
   }, []);
 
+  const filterCustomers = useCallback(() => {
+    let filtered = customers;
+
+    // Filtrar por búsqueda
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (customer) =>
+          customer.full_name.toLowerCase().includes(query) ||
+          customer.phone?.toLowerCase().includes(query) ||
+          customer.email?.toLowerCase().includes(query)
+      );
+    }
+
+    // Filtrar por segmento
+    if (segmentFilter !== 'all') {
+      filtered = filtered.filter(
+        (customer) => customer.segment === segmentFilter
+      );
+    }
+
+    setFilteredCustomers(filtered);
+  }, [customers, searchQuery, segmentFilter]);
+
   useEffect(() => {
     filterCustomers();
-  }, [searchQuery, segmentFilter, customers]);
+  }, [filterCustomers]);
 
   const fetchCustomers = async () => {
     setLoading(true);
@@ -67,30 +91,6 @@ export default function CustomersPage() {
     }
   };
 
-  const filterCustomers = () => {
-    let filtered = customers;
-
-    // Filtrar por búsqueda
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (customer) =>
-          customer.full_name.toLowerCase().includes(query) ||
-          customer.phone?.toLowerCase().includes(query) ||
-          customer.email?.toLowerCase().includes(query)
-      );
-    }
-
-    // Filtrar por segmento
-    if (segmentFilter !== 'all') {
-      filtered = filtered.filter(
-        (customer) => customer.segment === segmentFilter
-      );
-    }
-
-    setFilteredCustomers(filtered);
-  };
-
   const handleEditCustomer = (customerId: string) => {
     setSelectedCustomerId(customerId);
     setIsModalOpen(true);
@@ -120,37 +120,6 @@ export default function CustomersPage() {
       month: 'short',
       day: 'numeric',
     });
-  };
-
-  const getRecurrenceStatus = (customer: CustomerWithRecurrence) => {
-    if (!customer.last_purchase_date) {
-      return { text: 'Sin compras', color: 'text-gray-400' };
-    }
-
-    if (!customer.typical_recurrence_days) {
-      return { text: 'Sin configurar', color: 'text-yellow-600' };
-    }
-
-    const daysSinceLastPurchase = Math.floor(
-      (new Date().getTime() - new Date(customer.last_purchase_date).getTime()) /
-        (1000 * 60 * 60 * 24)
-    );
-
-    const daysUntilExpected = customer.typical_recurrence_days - daysSinceLastPurchase;
-
-    if (daysUntilExpected <= -7) {
-      return { text: `Urgente (${Math.abs(daysUntilExpected)}d tarde)`, color: 'text-red-600' };
-    }
-
-    if (daysUntilExpected <= 0) {
-      return { text: `Contactar pronto (${Math.abs(daysUntilExpected)}d tarde)`, color: 'text-orange-600' };
-    }
-
-    if (daysUntilExpected <= 3) {
-      return { text: `Pronto (en ${daysUntilExpected}d)`, color: 'text-yellow-600' };
-    }
-
-    return { text: `En ${daysUntilExpected} días`, color: 'text-green-600' };
   };
 
   return (

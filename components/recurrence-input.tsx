@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Calendar, TrendingUp } from 'lucide-react';
 
 interface RecurrenceInputProps {
@@ -20,15 +20,18 @@ export function RecurrenceInput({
   helperText = '¿Cada cuántos días suele comprar este cliente?',
   showSuggestion = false,
 }: RecurrenceInputProps) {
-  const [inputValue, setInputValue] = useState(value?.toString() || '');
+  // Use local state only for the current editing session
+  const [localInput, setLocalInput] = useState<string | null>(null);
 
-  useEffect(() => {
-    setInputValue(value?.toString() || '');
-  }, [value]);
+  // Derive display value from prop or local input
+  const inputValue = useMemo(() => {
+    if (localInput !== null) return localInput;
+    return value?.toString() || '';
+  }, [localInput, value]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    setInputValue(newValue);
+    setLocalInput(newValue);
 
     if (newValue === '') {
       onChange(null);
@@ -43,7 +46,7 @@ export function RecurrenceInput({
   const handleUseSuggestion = () => {
     if (suggestedValue !== null) {
       onChange(suggestedValue);
-      setInputValue(suggestedValue.toString());
+      setLocalInput(null); // Reset local input so it derives from value
     }
   };
 

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Phone, Mail, Calendar, AlertTriangle, Clock, CheckCircle, Users, Filter, UserPlus, Home, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Phone, Mail, Calendar, AlertTriangle, Clock, CheckCircle, Users, Filter, UserPlus, Home } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -29,16 +29,7 @@ export default function ContactosPage() {
   const [urgencyFilter, setUrgencyFilter] = useState<string>('all');
   const [daysThreshold, setDaysThreshold] = useState(7);
 
-  useEffect(() => {
-    fetchContacts();
-    fetchProspects();
-  }, [daysThreshold]);
-
-  useEffect(() => {
-    filterContacts();
-  }, [urgencyFilter, contacts]);
-
-  const fetchContacts = async () => {
+  const fetchContacts = useCallback(async () => {
     setLoading(true);
 
     try {
@@ -54,14 +45,12 @@ export default function ContactosPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [daysThreshold]);
 
-  const fetchProspects = async () => {
+  const fetchProspects = useCallback(async () => {
     setLoadingProspects(true);
 
     try {
-      // Clientes que nunca han comprado (last_purchase_date IS NULL)
-      // Excluir "Venta Rápida" (UUID especial)
       const { data, error } = await supabase
         .from('customers')
         .select('id, full_name, phone, email, created_at')
@@ -71,7 +60,6 @@ export default function ContactosPage() {
 
       if (error) throw error;
 
-      // Calcular días desde registro
       const prospectsWithDays = (data || []).map((p) => ({
         ...p,
         days_since_registered: Math.floor(
@@ -85,9 +73,9 @@ export default function ContactosPage() {
     } finally {
       setLoadingProspects(false);
     }
-  };
+  }, []);
 
-  const filterContacts = () => {
+  const filterContacts = useCallback(() => {
     if (urgencyFilter === 'all') {
       setFilteredContacts(contacts);
       return;
@@ -95,7 +83,16 @@ export default function ContactosPage() {
 
     const filtered = contacts.filter((contact) => contact.urgency === urgencyFilter);
     setFilteredContacts(filtered);
-  };
+  }, [urgencyFilter, contacts]);
+
+  useEffect(() => {
+    fetchContacts();
+    fetchProspects();
+  }, [fetchContacts, fetchProspects]);
+
+  useEffect(() => {
+    filterContacts();
+  }, [filterContacts]);
 
   const getUrgencyConfig = (urgency: string) => {
     switch (urgency) {
@@ -143,44 +140,9 @@ export default function ContactosPage() {
     });
   };
 
-  const getContactMessage = (contact: CustomerToContact) => {
-    const baseMessage = `Hola ${contact.full_name}! ☕ Esperamos que estés muy bien.`;
-
-    if (contact.days_until_expected !== null && contact.days_until_expected < 0) {
-      const daysLate = Math.abs(contact.days_until_expected);
-      return `${baseMessage} Hace ${daysLate} días que no te vemos. ¿Necesitas café? Tenemos disponible nuestros mejores granos recién tostados.`;
-    }
-
-    return `${baseMessage} ¿Cómo va tu café? Tenemos disponible nuestros mejores granos recién tostados.`;
-  };
-
-  const handleWhatsAppContact = (contact: CustomerToContact) => {
-    if (!contact.phone) return;
-
-    const message = getContactMessage(contact);
-    const phoneNumber = contact.phone.replace(/\D/g, '');
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-
-    window.open(whatsappUrl, '_blank');
-  };
-
   const handlePhoneCall = (contact: CustomerToContact) => {
     if (!contact.phone) return;
     window.location.href = `tel:${contact.phone}`;
-  };
-
-  const getProspectMessage = (prospect: Prospect) => {
-    return `Hola ${prospect.full_name}! ☕ Somos de Mirador Montañero Café Selecto. ¿Ya probaste nuestro café? Tenemos los mejores granos recién tostados. ¡Te esperamos!`;
-  };
-
-  const handleWhatsAppProspect = (prospect: Prospect) => {
-    if (!prospect.phone) return;
-
-    const message = getProspectMessage(prospect);
-    const phoneNumber = prospect.phone.replace(/\D/g, '');
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-
-    window.open(whatsappUrl, '_blank');
   };
 
   const handlePhoneCallProspect = (prospect: Prospect) => {

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, User, Phone, Mail, Calendar, Save, TrendingUp, MapPin } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { User, Phone, Mail, Calendar, Save, TrendingUp, MapPin } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,8 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { RecurrenceInput } from './recurrence-input';
+import { CustomerTypeSelect, CustomerType } from './customer-type-select';
+import { DeliveryZoneSelect } from './delivery-zone-select';
 import { supabase } from '@/lib/supabase';
 import type { CustomerWithRecurrence } from '@/types/customer-recurrence';
 
@@ -35,18 +37,13 @@ export function CustomerModal({
   const [lastPurchaseDate, setLastPurchaseDate] = useState('');
   const [recurrenceDays, setRecurrenceDays] = useState<number | null>(null);
   const [suggestedRecurrence, setSuggestedRecurrence] = useState<number | null>(null);
+  const [customerType, setCustomerType] = useState<CustomerType>('retail');
+  const [deliveryZoneId, setDeliveryZoneId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isOpen && customerId) {
-      fetchCustomerData();
-      fetchSuggestedRecurrence();
-    }
-  }, [isOpen, customerId]);
-
-  const fetchCustomerData = async () => {
+  const fetchCustomerData = useCallback(async () => {
     if (!customerId) return;
 
     setLoading(true);
@@ -68,15 +65,17 @@ export function CustomerModal({
       setAddress(data.address || '');
       setLastPurchaseDate(data.last_purchase_date || '');
       setRecurrenceDays(data.typical_recurrence_days);
+      setCustomerType(data.customer_type || 'retail');
+      setDeliveryZoneId(data.delivery_zone_id || null);
     } catch (err) {
       console.error('Error fetching customer:', err);
       setError('Error al cargar datos del cliente');
     } finally {
       setLoading(false);
     }
-  };
+  }, [customerId]);
 
-  const fetchSuggestedRecurrence = async () => {
+  const fetchSuggestedRecurrence = useCallback(async () => {
     if (!customerId) return;
 
     try {
@@ -91,7 +90,14 @@ export function CustomerModal({
     } catch (err) {
       console.error('Error calculating suggested recurrence:', err);
     }
-  };
+  }, [customerId]);
+
+  useEffect(() => {
+    if (isOpen && customerId) {
+      fetchCustomerData();
+      fetchSuggestedRecurrence();
+    }
+  }, [isOpen, customerId, fetchCustomerData, fetchSuggestedRecurrence]);
 
   const handleSave = async () => {
     if (!customerId) return;
@@ -124,6 +130,8 @@ export function CustomerModal({
         address: address.trim() || null,
         last_purchase_date: formattedDate,
         typical_recurrence_days: recurrenceDays,
+        customer_type: customerType,
+        delivery_zone_id: deliveryZoneId,
       };
 
       // Update customer data
@@ -144,9 +152,9 @@ export function CustomerModal({
 
       onCustomerUpdated?.();
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error updating customer:', err);
-      setError(err.message || 'Error al guardar cambios');
+      setError(err instanceof Error ? err.message : 'Error al guardar cambios');
     } finally {
       setSaving(false);
     }
@@ -271,6 +279,18 @@ export function CustomerModal({
                 <p className="text-xs text-gray-500 mt-1">
                   Normalmente se actualiza automáticamente con las ventas
                 </p>
+              </div>
+
+              {/* Customer Type and Delivery Zone */}
+              <div className="grid grid-cols-2 gap-4">
+                <CustomerTypeSelect
+                  value={customerType}
+                  onChange={setCustomerType}
+                />
+                <DeliveryZoneSelect
+                  value={deliveryZoneId}
+                  onChange={setDeliveryZoneId}
+                />
               </div>
             </div>
 

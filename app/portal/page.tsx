@@ -18,6 +18,8 @@ import {
   Calendar,
   Package,
   AlertCircle,
+  Users,
+  Gift,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -375,6 +377,39 @@ export default function PortalDashboard() {
               </CardContent>
             </Card>
           )}
+        </motion.div>
+
+        {/* Referrals Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18 }}
+        >
+          <Card className="border-purple-200 dark:border-purple-800 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
+            <CardContent className="py-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <Gift className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      Programa de Referidos
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Invita amigos y gana descuentos
+                    </p>
+                  </div>
+                </div>
+                <Link href="/portal/referidos">
+                  <Button variant="outline" size="sm" className="border-purple-300 text-purple-700 hover:bg-purple-100">
+                    <Users className="h-4 w-4 mr-2" />
+                    Ver mas
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Recent Orders */}
