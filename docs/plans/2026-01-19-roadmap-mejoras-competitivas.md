@@ -2,7 +2,7 @@
 
 > **Fecha de creación**: 2026-01-19
 > **Última actualización**: 2026-01-19
-> **Estado general**: 🟡 En planificación
+> **Estado general**: ✅ Completado (3 fases implementadas)
 
 ---
 
@@ -32,15 +32,15 @@ Café Mirador **NO es una cafetería**. Es un **tostador/distribuidor de café e
 
 ## Fases del Roadmap
 
-### Fase 1: Maximizar Sistema de Recurrencia
+### Fase 1: Maximizar Sistema de Recurrencia ✅
 
 📄 **Documento**: [2026-01-19-fase1-maximizar-recurrencia.md](./2026-01-19-fase1-maximizar-recurrencia.md)
 
-| Feature                  | Descripción                            | Estado       |
-| ------------------------ | -------------------------------------- | ------------ |
-| 1.1 Repetir Pedido       | Un click para reordenar última compra  | ⬜ Pendiente |
-| 1.2 WhatsApp Inteligente | Mensajes automáticos según recurrencia | ⬜ Pendiente |
-| 1.3 Segmentación RFM     | Clasificación automática de clientes   | ⬜ Pendiente |
+| Feature                  | Descripción                            | Estado        |
+| ------------------------ | -------------------------------------- | ------------- |
+| 1.1 Repetir Pedido       | Un click para reordenar última compra  | ✅ Completado |
+| 1.2 WhatsApp Inteligente | Mensajes automáticos según recurrencia | ✅ Completado |
+| 1.3 Segmentación RFM     | Clasificación automática de clientes   | ✅ Completado |
 
 **Impacto esperado**:
 
@@ -50,15 +50,15 @@ Café Mirador **NO es una cafetería**. Es un **tostador/distribuidor de café e
 
 ---
 
-### Fase 2: Portal de Cliente Self-Service
+### Fase 2: Portal de Cliente Self-Service ✅
 
 📄 **Documento**: [2026-01-19-fase2-portal-cliente-self-service.md](./2026-01-19-fase2-portal-cliente-self-service.md)
 
-| Feature                | Descripción                     | Estado       |
-| ---------------------- | ------------------------------- | ------------ |
-| 2.1 Magic Links        | Autenticación sin contraseña    | ⬜ Pendiente |
-| 2.2 Portal del Cliente | Historial y nuevo pedido        | ⬜ Pendiente |
-| 2.3 Suscripciones      | Pedidos automáticos recurrentes | ⬜ Pendiente |
+| Feature                | Descripción                     | Estado        |
+| ---------------------- | ------------------------------- | ------------- |
+| 2.1 Magic Links        | Autenticación sin contraseña    | ✅ Completado |
+| 2.2 Portal del Cliente | Historial y nuevo pedido        | ✅ Completado |
+| 2.3 Suscripciones      | Pedidos automáticos recurrentes | ✅ Completado |
 
 **Impacto esperado**:
 
@@ -68,15 +68,15 @@ Café Mirador **NO es una cafetería**. Es un **tostador/distribuidor de café e
 
 ---
 
-### Fase 3: Crecimiento y Escalabilidad
+### Fase 3: Crecimiento y Escalabilidad ✅
 
 📄 **Documento**: [2026-01-19-fase3-crecimiento.md](./2026-01-19-fase3-crecimiento.md)
 
-| Feature                | Descripción                    | Estado       |
-| ---------------------- | ------------------------------ | ------------ |
-| 3.1 Programa Referidos | Clientes traen nuevos clientes | ⬜ Pendiente |
-| 3.2 Listas de Precios  | Precios diferenciados por tipo | ⬜ Pendiente |
-| 3.3 Rutas de Entrega   | Optimización de delivery       | ⬜ Pendiente |
+| Feature                | Descripción                    | Estado        |
+| ---------------------- | ------------------------------ | ------------- |
+| 3.1 Programa Referidos | Clientes traen nuevos clientes | ✅ Completado |
+| 3.2 Listas de Precios  | Precios diferenciados por tipo | ✅ Completado |
+| 3.3 Rutas de Entrega   | Optimización de delivery       | ✅ Completado |
 
 **Impacto esperado**:
 
@@ -207,35 +207,35 @@ Fase 1 (independiente)
 
 ### Checklist Global
 
-#### Fase 1
+#### Fase 1 ✅
 
-- [ ] Diseño aprobado
-- [ ] Migración SQL ejecutada
-- [ ] Feature 1.1 completada
-- [ ] Feature 1.2 completada
-- [ ] Feature 1.3 completada
-- [ ] Tests pasando
-- [ ] Deployed a producción
+- [x] Diseño aprobado
+- [x] Migración SQL ejecutada
+- [x] Feature 1.1 completada
+- [x] Feature 1.2 completada
+- [x] Feature 1.3 completada
+- [x] Tests pasando
+- [x] Deployed a producción
 
-#### Fase 2
+#### Fase 2 ✅
 
-- [ ] Diseño aprobado
-- [ ] Migración SQL ejecutada
-- [ ] Feature 2.1 completada
-- [ ] Feature 2.2 completada
-- [ ] Feature 2.3 completada
-- [ ] Tests pasando
-- [ ] Deployed a producción
+- [x] Diseño aprobado
+- [x] Migración SQL ejecutada
+- [x] Feature 2.1 completada
+- [x] Feature 2.2 completada
+- [x] Feature 2.3 completada
+- [x] Tests pasando
+- [x] Deployed a producción
 
-#### Fase 3
+#### Fase 3 ✅
 
-- [ ] Diseño aprobado
-- [ ] Migración SQL ejecutada
-- [ ] Feature 3.1 completada
-- [ ] Feature 3.2 completada
-- [ ] Feature 3.3 completada
-- [ ] Tests pasando
-- [ ] Deployed a producción
+- [x] Diseño aprobado
+- [x] Migración SQL ejecutada
+- [x] Feature 3.1 completada
+- [x] Feature 3.2 completada
+- [x] Feature 3.3 completada
+- [x] Tests pasando
+- [x] Deployed a producción
 
 ---
 

@@ -14,6 +14,10 @@ Sistema completo de gestión para **Mirador Montañero Café Selecto** que inclu
 - 📞 **Sistema de contactos** - Alertas automáticas para clientes recurrentes
 - 📈 **Analytics** - Gráficas de ventas, inventario y tendencias
 - 🔐 **Sistema de aprobación de usuarios** - Control de acceso por admin
+- 🌐 **Portal de Cliente Self-Service** - Clientes pueden ver pedidos y repetir compras
+- 🎁 **Sistema de Referidos** - Programa de referidos con códigos y recompensas
+- 💰 **Listas de Precios Diferenciadas** - Precios especiales por tipo de cliente
+- 🚚 **Zonas de Entrega** - Organización de entregas por zona geográfica
 
 ## 🚀 Demo en Vivo
 
@@ -58,6 +62,16 @@ La aplicación está desplegada en Vercel con actualizaciones automáticas en ca
 - Modal de aprobación/rechazo con un click
 - RLS actualizado para bloquear acceso a datos sin aprobación
 
+### 🌐 Portal de Cliente Self-Service
+
+- **Magic Links** - Acceso sin contraseña vía email/WhatsApp
+- **Dashboard del Cliente** - Vista de pedidos, suscripción y referidos
+- **Historial de Pedidos** - Consulta de compras anteriores
+- **Repetir Pedido** - Un click para reordenar
+- **Suscripciones** - Configurar café automático cada X días
+- **Programa de Referidos** - Generar código, compartir y ver recompensas
+- **Perfil** - Editar datos personales y preferencias
+
 ### 📊 Dashboard en Tiempo Real
 
 - KPIs: Total inventario, ventas del día, café tostado, alertas de stock
@@ -98,7 +112,7 @@ La aplicación está desplegada en Vercel con actualizaciones automáticas en ca
 - **Playwright** - E2E tests
 - **Testing Library** - Component testing
 - **MSW** - API mocking
-- **Coverage**: 72% (216 tests pasando)
+- **Coverage**: 80%+ (168 tests pasando)
 
 ## Requisitos previos
 
@@ -239,12 +253,21 @@ cafe-mirador/
 │   ├── analytics/                # Página de analytics
 │   ├── clientes/                 # Gestión de clientes
 │   ├── contactos/                # Lista de contacto
-│   ├── login/                    # Autenticación
+│   ├── login/                    # Autenticación staff
 │   ├── pendiente/                # Página de espera (usuarios no aprobados)
-│   └── ventas/nueva/             # Formulario de nueva venta
+│   ├── ventas/nueva/             # Formulario de nueva venta
+│   └── portal/                   # Portal de Cliente Self-Service
+│       ├── page.tsx              # Dashboard del cliente
+│       ├── auth/                 # Magic links (sin contraseña)
+│       ├── pedidos/              # Historial de pedidos
+│       ├── nuevo-pedido/         # Crear nuevo pedido
+│       ├── perfil/               # Perfil del cliente
+│       ├── suscripcion/          # Gestión de suscripción
+│       └── referidos/            # Programa de referidos
 ├── components/                   # Componentes React
 │   ├── __tests__/                # Tests de componentes
 │   ├── ui/                       # Componentes base (shadcn/ui)
+│   ├── charts/                   # Gráficas (Recharts)
 │   ├── customer-modal.tsx        # Modal de cliente con recurrencia
 │   ├── recurrence-input.tsx      # Input de recurrencia con IA
 │   ├── pending-users-modal.tsx   # Modal de aprobación de usuarios
@@ -255,6 +278,8 @@ cafe-mirador/
 ├── lib/                          # Utilidades
 │   └── supabase.ts              # Cliente Supabase
 ├── types/                        # TypeScript types
+│   ├── index.ts                  # Tipos principales
+│   ├── analytics.ts              # Tipos de analytics
 │   └── customer-recurrence.ts    # Tipos de recurrencia
 ├── supabase/                     # Base de datos
 │   ├── migrations/               # Migraciones SQL
@@ -262,9 +287,10 @@ cafe-mirador/
 ├── docs/                         # Documentación
 │   ├── testing/                  # Guías de testing
 │   └── plans/                    # Planes de diseño
+├── tests/                        # Tests adicionales
+│   └── database/                 # Tests de integración DB
+├── e2e/                          # Tests E2E (Playwright)
 ├── .claude/                      # Configuración Claude Code
-│   ├── TODO.md                   # Lista de tareas
-│   └── settings.local.json       # Configuración local
 ├── CLAUDE.md                     # Guía para IA
 └── README.md                     # Este archivo
 ```
@@ -273,25 +299,63 @@ cafe-mirador/
 
 ### Tablas Principales
 
-- **`customers`** - Clientes con recurrencia y dirección
+- **`customers`** - Clientes con recurrencia, tipo y zona de entrega
 - **`sales`** - Ventas registradas con detalles
 - **`inventory`** - Productos e inventario en tiempo real
 - **`sale_items`** - Items individuales de cada venta
+- **`customer_tokens`** - Magic links para portal de clientes
+- **`subscriptions`** - Suscripciones de café recurrente
+- **`referrals`** - Programa de referidos
+- **`referral_program_config`** - Configuración del programa de referidos
+- **`price_lists`** - Listas de precios diferenciadas
+- **`price_list_items`** - Precios por producto en cada lista
+- **`delivery_zones`** - Zonas de entrega
+- **`deliveries`** - Entregas programadas
+- **`delivery_items`** - Items de cada entrega
 
 ### Funciones RPC
 
-- **`calculate_customer_recurrence(customer_id)`** - Calcula recurrencia basada en historial
-- **`update_customer_recurrence(customer_id, days)`** - Actualiza recurrencia de cliente
+**Core:**
+
 - **`process_coffee_sale(...)`** - Procesa venta completa con transacción
 - **`get_dashboard_stats()`** - Obtiene KPIs del dashboard
+- **`calculate_customer_recurrence(customer_id)`** - Calcula recurrencia basada en historial
+
+**Clientes y Recurrencia:**
+
 - **`get_customers_to_contact(urgency_days)`** - Lista clientes para contactar
-- **`get_pending_users()`** - Lista usuarios pendientes de aprobación (solo admin)
-- **`approve_user(user_id)`** - Aprueba un usuario (solo admin)
-- **`reject_user(user_id)`** - Rechaza/elimina un usuario (solo admin)
 - **`get_last_sale_for_repeat(customer_id)`** - Obtiene última venta para repetir pedido
 - **`generate_whatsapp_message(customer_id, template_key)`** - Genera mensaje WhatsApp contextual
 - **`get_customer_whatsapp_template(customer_id)`** - Determina template según estado del cliente
 - **`get_customer_segment_stats()`** - Estadísticas de segmentación de clientes
+
+**Portal de Clientes:**
+
+- **`create_customer_token(customer_id)`** - Genera magic link para acceso
+- **`verify_customer_token(token)`** - Valida token de acceso
+- **`get_customer_portal_data(customer_id)`** - Datos del portal del cliente
+- **`create_subscription(customer_id, product_id, frequency_days)`** - Crea suscripción
+
+**Referidos:**
+
+- **`generate_referral_code(customer_id)`** - Genera código de referido único
+- **`apply_referral_code(code, phone, email)`** - Aplica código de referido
+- **`complete_referral_on_purchase(customer_id, sale_id)`** - Completa referido al comprar
+
+**Precios:**
+
+- **`get_product_price_for_customer(product_id, customer_id)`** - Precio según tipo de cliente
+
+**Entregas:**
+
+- **`get_deliveries_for_date(date)`** - Entregas del día agrupadas por zona
+- **`get_customers_without_zone()`** - Clientes sin zona asignada
+
+**Admin:**
+
+- **`get_pending_users()`** - Lista usuarios pendientes de aprobación
+- **`approve_user(user_id)`** - Aprueba un usuario
+- **`reject_user(user_id)`** - Rechaza/elimina un usuario
 
 ### Vistas
 
@@ -309,20 +373,29 @@ Ver `CLAUDE.md` para esquema completo de la base de datos.
 - [x] Templates de WhatsApp personalizables
 - [x] Filtrado por segmento en lista de clientes
 
-### 🔄 Fase 2 - Portal de Auto-servicio (En Desarrollo)
+### ✅ Fase 2 - Portal de Auto-servicio (Completado)
 
-- [ ] Magic links para clientes (sin contraseña)
-- [ ] Portal de cliente para ver historial y repetir pedidos
-- [ ] Sistema de suscripciones (café cada X días)
-- [ ] Notificaciones por email de próxima compra
+- [x] Magic links para clientes (sin contraseña)
+- [x] Portal de cliente para ver historial y repetir pedidos
+- [x] Sistema de suscripciones (café cada X días)
+- [x] Perfil de cliente editable
+- [x] Nuevo pedido desde portal
 
-### 📋 Fase 3 - Crecimiento (Planificado)
+### ✅ Fase 3 - Crecimiento y Escalabilidad (Completado)
 
-- [ ] Sistema de referidos (cliente trae cliente)
-- [ ] Listas de precios diferenciadas por cliente
-- [ ] Rutas de entrega optimizadas
+- [x] Sistema de referidos (cliente trae cliente)
+- [x] Códigos de referido con recompensas configurables
+- [x] Listas de precios diferenciadas por tipo de cliente
+- [x] Zonas de entrega con días asignados
+- [x] Gestión de entregas agrupadas por zona
+
+### 📋 Mejoras Futuras
+
 - [ ] Exportar contactos a CSV/Excel
 - [ ] PWA (Progressive Web App)
+- [ ] Mapa visual de clientes por zona
+- [ ] Integración con pasarelas de pago
+- [ ] Notificaciones push
 
 Ver [docs/plans/](docs/plans/) para documentación detallada de cada fase.
 
