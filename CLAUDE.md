@@ -15,7 +15,7 @@ Sistema completo de gestión para cafetería: inventario, punto de venta (POS), 
 | 3    | Crecimiento y Escalabilidad    | ✅ Completado |
 | 4    | Arquitectura POS Profesional   | ✅ Completado |
 
-**Testing**: 273 tests unitarios + 7 E2E smoke pasando (80%+ cobertura)
+**Testing**: 223 tests unitarios + 7 E2E pasando (80%+ cobertura)
 
 ## Comandos Esenciales
 
@@ -469,7 +469,7 @@ GitHub Actions:
 
 - `.github/workflows/ci.yml` - Lint, tests, type-check, build en cada push
 - `.github/workflows/e2e.yml` - Tests E2E con Playwright
-- `.github/workflows/daily-backup.yml` - Backup diario a Google Drive (2:00 AM UTC)
+- `.github/workflows/daily-backup.yml` - Backup diario automatizado (2:00 AM UTC)
 - Pre-commit hook ejecuta lint-staged automáticamente
 
 Deploy:
@@ -487,48 +487,70 @@ Deploy:
 - Filtro por rango de fechas para tablas con timestamps
 - Límite de 10,000 registros por tabla
 
-**Backup Automático a Google Drive:**
+**Backup Automático a Supabase Storage:**
 
 El sistema ejecuta backups diarios a las 2:00 AM UTC con las siguientes características:
 
-- **Almacenamiento**: Google Drive (via service account)
+- **Almacenamiento**: Supabase Storage (bucket `backups`)
+- **Formato**: ZIP con JSON por cada tabla (20 tablas)
 - **Notificaciones**: Email via Resend (opcional)
-- **Retención**: 7 días diarios, 4 semanas semanales, 12 meses mensuales
-- **Trigger manual**: Desde UI o GitHub Actions
+- **Retención automática**:
+  - Diarios: últimos 7 días
+  - Semanales: últimos 4 domingos
+  - Mensuales: últimos 12 primeros de mes
+- **Trigger manual**: GitHub Actions UI o CLI (`gh workflow run daily-backup.yml`)
 
 **Scripts de Backup:**
 
 ```
 scripts/backup/
-├── export-tables.ts      # Exporta todas las tablas a JSON
-├── upload-gdrive.ts      # Sube backup comprimido a Google Drive
+├── export-tables.ts      # Exporta 20 tablas a JSON
+├── upload-supabase.ts    # Sube backup ZIP a Supabase Storage
 ├── cleanup-retention.ts  # Limpia backups según política de retención
-├── send-notification.ts  # Envía notificación por email
+├── send-notification.ts  # Envía notificación por email (opcional)
 └── run-backup.ts         # Orquestador principal
+```
+
+**Tablas Respaldadas (20):**
+
+```
+profiles, products, product_variants, inventory, customers,
+customer_contacts, customer_auth, price_lists, price_list_items,
+delivery_zones, sales, sale_items, deliveries, delivery_items,
+customer_subscriptions, subscription_items, referral_program_config,
+referrals, inventory_movements, whatsapp_templates
 ```
 
 **Variables de Entorno Requeridas (GitHub Secrets):**
 
-```
-SUPABASE_SERVICE_ROLE_KEY    # Key de servicio para exportar datos
-GOOGLE_DRIVE_CREDENTIALS     # JSON de service account (base64)
-GOOGLE_DRIVE_FOLDER_ID       # ID de carpeta destino en Drive
-RESEND_API_KEY               # (Opcional) API key de Resend
-NOTIFICATION_EMAIL           # (Opcional) Email para notificaciones
-GITHUB_TOKEN                 # (Opcional) Para trigger manual desde UI
-```
+| Secreto                     | Propósito                         | Requerido   |
+| --------------------------- | --------------------------------- | ----------- |
+| `SUPABASE_SERVICE_ROLE_KEY` | Autenticación admin para Supabase | ✅ Sí       |
+| `NEXT_PUBLIC_SUPABASE_URL`  | URL del proyecto Supabase         | ✅ Sí       |
+| `RESEND_API_KEY`            | Notificaciones por email          | ❌ Opcional |
+| `NOTIFICATION_EMAIL`        | Destinatario de notificaciones    | ❌ Opcional |
 
 **Ejecutar backup manualmente:**
 
 ```bash
-npm run backup  # Ejecuta el backup completo
+# Desde GitHub CLI
+gh workflow run daily-backup.yml
+
+# Localmente (requiere SUPABASE_SERVICE_ROLE_KEY en .env.local)
+npm run backup
+```
+
+**Formato del nombre de archivo:**
+
+```
+cafe-mirador-backup-YYYY-MM-DD_HH-MM-SS.zip
 ```
 
 **API Routes:**
 
-- `GET /api/backups/list` - Lista backups en Google Drive
-- `POST /api/backups/trigger` - Ejecuta backup via GitHub Actions
-- `POST /api/export` - Exporta tablas seleccionadas a CSV/XLSX
+- `GET /api/backups/list` - Lista backups en Supabase Storage (solo admin)
+- `POST /api/backups/trigger` - Ejecuta backup via GitHub Actions (solo admin)
+- `POST /api/export` - Exporta tablas seleccionadas a CSV/XLSX (solo admin)
 
 ## Convenciones de Código
 
