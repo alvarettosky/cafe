@@ -37,7 +37,10 @@ interface BackupResult {
 }
 
 export async function runBackup(): Promise<BackupResult> {
-    const timestamp = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const timeStr = now.toISOString().split('T')[1].split('.')[0].replace(/:/g, '-');
+    const timestamp = `${dateStr}_${timeStr}`;
     console.log('='.repeat(50));
     console.log(`BACKUP STARTED: ${timestamp}`);
     console.log('='.repeat(50));
