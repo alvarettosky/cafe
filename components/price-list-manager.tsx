@@ -42,9 +42,8 @@ interface PriceListItem {
 }
 
 interface Product {
-  id: string;
-  name: string;
-  price_per_pound: number;
+  product_id: string;
+  product_name: string;
 }
 
 export function PriceListManager() {
@@ -74,8 +73,8 @@ export function PriceListManager() {
           .order("name"),
         supabase
           .from("inventory")
-          .select("id, name, price_per_pound")
-          .order("name"),
+          .select("product_id, product_name")
+          .order("product_name"),
       ]);
 
       if (listsResult.error) throw listsResult.error;
@@ -479,10 +478,10 @@ export function PriceListManager() {
               <h4 className="font-medium text-gray-700 mb-2">Agregar producto</h4>
               <div className="space-y-2">
                 {products
-                  .filter((p) => !listItems.some((i) => i.product_id === p.id))
+                  .filter((p) => !listItems.some((i) => i.product_id === p.product_id))
                   .map((product) => (
                     <ProductPriceRow
-                      key={product.id}
+                      key={product.product_id}
                       product={product}
                       onAdd={handleAddItem}
                     />
@@ -504,22 +503,19 @@ function ProductPriceRow({
   product: Product;
   onAdd: (productId: string, price: number) => void;
 }) {
-  const [price, setPrice] = useState(product.price_per_pound);
+  const [price, setPrice] = useState(10.00); // Default price
   const [adding, setAdding] = useState(false);
 
   const handleAdd = async () => {
     setAdding(true);
-    await onAdd(product.id, price);
+    await onAdd(product.product_id, price);
     setAdding(false);
   };
 
   return (
     <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-md">
       <div className="flex-1">
-        <p className="font-medium">{product.name}</p>
-        <p className="text-xs text-gray-500">
-          Precio base: ${product.price_per_pound.toLocaleString()}/lb
-        </p>
+        <p className="font-medium">{product.product_name}</p>
       </div>
       <input
         type="number"
