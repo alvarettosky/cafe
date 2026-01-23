@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Users, User, Search, Calendar, Phone, Mail, TrendingUp, Edit, Home } from 'lucide-react';
+import { DownloadButton } from '@/components/export';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -131,19 +132,27 @@ export default function CustomersPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <div className="flex items-center gap-4 mb-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => router.push('/')}
-              className="bg-white hover:bg-gray-100"
-            >
-              <Home className="h-4 w-4" />
-            </Button>
-            <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
-              <Users className="h-10 w-10 text-blue-600" />
-              Gestión de Clientes
-            </h1>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => router.push('/')}
+                className="bg-white hover:bg-gray-100"
+              >
+                <Home className="h-4 w-4" />
+              </Button>
+              <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
+                <Users className="h-10 w-10 text-blue-600" />
+                Gestión de Clientes
+              </h1>
+            </div>
+            <DownloadButton
+              tables={['customers', 'customer_contacts']}
+              format="xlsx"
+              label="Exportar Clientes"
+              fileName="clientes"
+            />
           </div>
           <p className="text-gray-600">
             Administra la información de recurrencia de tus clientes

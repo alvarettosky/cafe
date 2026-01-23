@@ -288,8 +288,44 @@ const mockCustomerPriceInfo = {
   price_list_name: 'Mayoristas',
 }
 
+// Mock export data
+const mockExportBlob = new Uint8Array([80, 75, 3, 4]) // Minimal XLSX header bytes
+
 // MSW Handlers
 export const handlers = [
+  // Mock /api/export endpoint
+  http.post('/api/export', async ({ request }) => {
+    // Check authorization
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return HttpResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+
+    const body = await request.json() as { tables: string[]; format: string; dateRange?: unknown }
+    const { tables, format } = body
+
+    if (!tables || tables.length === 0) {
+      return HttpResponse.json({ error: 'Debe seleccionar al menos una tabla' }, { status: 400 })
+    }
+
+    const filename = tables.length === 1
+      ? `${tables[0]}-2026-01-23.${format}`
+      : `export-2026-01-23.${format}`
+
+    const contentType = format === 'csv'
+      ? 'text/csv; charset=utf-8'
+      : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+
+    return new HttpResponse(mockExportBlob, {
+      status: 200,
+      headers: {
+        'Content-Type': contentType,
+        'Content-Disposition': `attachment; filename="${filename}"`,
+      },
+    })
+  }),
+
+
   // Mock get_advanced_metrics RPC
   http.post(`${SUPABASE_URL}/rest/v1/rpc/get_advanced_metrics`, () => {
     return HttpResponse.json(mockAdvancedMetrics)

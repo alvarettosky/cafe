@@ -20,6 +20,7 @@ import { PaymentChart } from '@/components/charts/payment-chart';
 import { ProductChart } from '@/components/charts/product-chart';
 import { DateRangeSelector } from '@/components/date-range-selector';
 import { Button } from '@/components/ui/button';
+import { DownloadButton } from '@/components/export';
 import type {
   AdvancedMetrics,
   TimeSeriesDataPoint,
@@ -252,6 +253,18 @@ export default function AnalyticsPage() {
                 Analíticas Avanzadas
               </h1>
             </div>
+            <DownloadButton
+              tables={['sales', 'sale_items']}
+              format="xlsx"
+              label="Exportar Ventas"
+              fileName="ventas-analytics"
+              dateRange={{
+                start: dateRange.start.toISOString(),
+                end: dateRange.end.toISOString(),
+              }}
+              variant="outline"
+              className="bg-white/10 border-white/20 hover:bg-white/20 text-white"
+            />
           </motion.div>
 
           {/* Date Range Selector */}

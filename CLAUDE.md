@@ -15,7 +15,7 @@ Sistema completo de gestión para cafetería: inventario, punto de venta (POS), 
 | 3    | Crecimiento y Escalabilidad    | ✅ Completado |
 | 4    | Arquitectura POS Profesional   | ✅ Completado |
 
-**Testing**: 223 tests unitarios + 7 E2E pasando (80%+ cobertura)
+**Testing**: 273 tests unitarios + 7 E2E pasando (80%+ cobertura)
 
 ## Comandos Esenciales
 
@@ -95,6 +95,7 @@ Pre-commit automático (Husky + lint-staged):
 /clientes       → Gestión de clientes con recurrencia
 /contactos      → Lista de contactos por recurrencia + Prospectos (integración WhatsApp)
 /precios        → Gestión de listas de precios diferenciados (solo admin)
+/backups        → Exportación de datos CSV/XLSX y gestión de backups (solo admin)
 
 # Portal de Cliente (Fase 2)
 /portal             → Dashboard del cliente (último pedido, próximo pedido, acciones rápidas)
@@ -256,6 +257,39 @@ RPCs para analytics:
 - `get_advanced_metrics(start_date, end_date)`
 - `get_time_series_data(start_date, end_date, interval)` (intervals: day/week/month)
 
+### Sistema de Exportación
+
+Página `/backups` (solo admins) permite exportar datos a CSV o Excel:
+
+**Tablas exportables:**
+
+- `inventory` - Productos y stock
+- `sales` - Historial de ventas (filtrable por fecha)
+- `sale_items` - Detalle de items vendidos (filtrable por fecha)
+- `customers` - Datos de clientes
+- `customer_contacts` - Historial de contactos (filtrable por fecha)
+- `products` - Catálogo de productos
+- `product_variants` - Variantes de productos
+
+**Funcionalidades:**
+
+- Selección múltiple de tablas
+- Formato CSV o XLSX (Excel con hojas separadas por tabla)
+- Filtro por rango de fechas (para tablas con timestamp)
+- Límite de 10,000 registros por tabla
+- Botones de exportación rápida en Dashboard, Analytics y Clientes
+
+**API Route:** `POST /api/export`
+
+```typescript
+// Request body
+{
+  tables: ['inventory', 'sales'],
+  format: 'xlsx',
+  dateRange?: { start: '2026-01-01', end: '2026-01-31' }
+}
+```
+
 ### Variables de Entorno
 
 Archivo `.env.local` requerido:
@@ -397,6 +431,14 @@ Sistema self-service para clientes. Autenticación sin contraseña mediante magi
 - `ProductVariantSelector` - Selector de producto con variantes agrupadas por producto padre. Muestra SKU, presentación, tipo de molido y stock disponible.
 - `ProductVariantSelectCompact` - Versión compacta del selector de variantes para formularios.
 - `app/precios/page.tsx` - Página de gestión de listas de precios (solo admin). Integra `PriceListManager`.
+
+**Sistema de Exportación (CSV/XLSX)**:
+
+- `DownloadButton` - Botón reutilizable para exportar datos. Props: `tables`, `format`, `dateRange`, `label`. Solo visible para admins.
+- `ExportForm` - Formulario completo de exportación con selección de tablas, formato y filtro de fechas.
+- `app/backups/page.tsx` - Página de exportación de datos (solo admin). Incluye exportaciones rápidas predefinidas.
+- `app/api/export/route.ts` - API route que genera archivos CSV/XLSX con autenticación y validación.
+- `lib/export.ts` - Utilidades para generación de CSV (papaparse) y XLSX (exceljs).
 
 **UI Base**:
 
