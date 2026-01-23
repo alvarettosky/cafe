@@ -5,8 +5,9 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/components/auth-provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Plus, Package } from 'lucide-react';
+import { Pencil, Trash2, Plus, Package, History } from 'lucide-react';
 import { ProductModal } from './product-modal';
+import { InventoryMovements } from './inventory-movements';
 
 interface Product {
     product_id: string;
@@ -20,6 +21,8 @@ export function InventoryList() {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+    const [isMovementsOpen, setIsMovementsOpen] = useState(false);
+    const [selectedProductForHistory, setSelectedProductForHistory] = useState<Product | null>(null);
 
     const fetchInventory = async () => {
         setLoading(true);
@@ -70,16 +73,30 @@ export function InventoryList() {
                                     <p className="font-medium">{product.product_name}</p>
                                     <p className="text-xs text-muted-foreground">Stock: {product.total_grams_available} g</p>
                                 </div>
-                                {isAdmin && (
-                                    <div className="flex gap-2">
-                                        <Button variant="ghost" size="icon" onClick={() => { setEditingProduct(product); setIsModalOpen(true); }}>
-                                            <Pencil className="h-4 w-4 text-amber-500" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleDelete(product.product_id)}>
-                                            <Trash2 className="h-4 w-4 text-red-500" />
-                                        </Button>
-                                    </div>
-                                )}
+                                <div className="flex gap-1">
+                                    {/* Botón de historial - visible para todos */}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => {
+                                            setSelectedProductForHistory(product);
+                                            setIsMovementsOpen(true);
+                                        }}
+                                        title="Ver historial de movimientos"
+                                    >
+                                        <History className="h-4 w-4 text-blue-500" />
+                                    </Button>
+                                    {isAdmin && (
+                                        <>
+                                            <Button variant="ghost" size="icon" onClick={() => { setEditingProduct(product); setIsModalOpen(true); }}>
+                                                <Pencil className="h-4 w-4 text-amber-500" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(product.product_id)}>
+                                                <Trash2 className="h-4 w-4 text-red-500" />
+                                            </Button>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         ))}
                         {products.length === 0 && (
@@ -94,6 +111,13 @@ export function InventoryList() {
                 onClose={() => setIsModalOpen(false)}
                 onSuccess={fetchInventory}
                 productToEdit={editingProduct}
+            />
+
+            <InventoryMovements
+                isOpen={isMovementsOpen}
+                onClose={() => setIsMovementsOpen(false)}
+                product={selectedProductForHistory}
+                onMovementAdded={fetchInventory}
             />
         </Card>
     );

@@ -15,8 +15,21 @@ interface Customer {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
-import { Coffee, Loader2, RefreshCw } from "lucide-react";
+import { Coffee, Loader2, RefreshCw, Tag, Percent } from "lucide-react";
 import { RecurrenceInput } from "./recurrence-input";
+
+// Tipo para información de precio por cliente
+interface CustomerPriceInfo {
+    product_id: string;
+    product_name: string;
+    base_price_per_lb: number;
+    base_price_per_half_lb: number;
+    price_per_lb: number;
+    price_per_half_lb: number;
+    customer_type: string | null;
+    price_list_name: string | null;
+    discount_applied: number | null;
+}
 
 // Tipo para datos iniciales (usado por RepeatSaleButton)
 export interface SaleInitialData {
@@ -93,6 +106,10 @@ export function NewSaleModal({
 
     // Estado para indicar que es una repetición de venta
     const [isRepeatSale, setIsRepeatSale] = useState(false);
+
+    // Estado para precios dinámicos por tipo de cliente
+    const [customerPriceInfo, setCustomerPriceInfo] = useState<CustomerPriceInfo | null>(null);
+    const [loadingPrice, setLoadingPrice] = useState(false);
 
     // Update suggested price when unit changes (solo si no es repeat sale)
     useEffect(() => {
@@ -184,6 +201,48 @@ export function NewSaleModal({
             setShowRecurrenceInput(false);
         }
     }, [selectedCustomerId, fetchCustomerRecurrence]);
+
+    // Obtener precio dinámico cuando cambia cliente o producto
+    const fetchCustomerPrice = useCallback(async () => {
+        if (!productId || !selectedCustomerId || selectedCustomerId === '00000000-0000-0000-0000-000000000000') {
+            setCustomerPriceInfo(null);
+            return;
+        }
+
+        setLoadingPrice(true);
+        try {
+            const { data, error } = await supabase.rpc('get_product_price_for_customer', {
+                p_product_id: productId,
+                p_customer_id: selectedCustomerId
+            });
+
+            if (error) {
+                console.error('Error fetching customer price:', error);
+                setCustomerPriceInfo(null);
+                return;
+            }
+
+            if (data && !data.error) {
+                setCustomerPriceInfo(data);
+                // Solo actualizar precio si no es una repetición de venta
+                if (!isRepeatSale) {
+                    const price = unit === 'libra' ? data.price_per_lb : data.price_per_half_lb;
+                    if (price && price > 0) {
+                        setPricePerUnit(price);
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching customer price:', err);
+        } finally {
+            setLoadingPrice(false);
+        }
+    }, [productId, selectedCustomerId, unit, isRepeatSale]);
+
+    // Llamar cuando cambie producto o cliente
+    useEffect(() => {
+        fetchCustomerPrice();
+    }, [fetchCustomerPrice]);
 
     const handleSale = async () => {
         if (!productId) {
@@ -413,7 +472,12 @@ export function NewSaleModal({
 
                     {/* Price Section */}
                     <div className="flex flex-col space-y-2">
-                        <label htmlFor="price-input" className="text-sm font-medium">Precio por Unidad ($)</label>
+                        <div className="flex items-center justify-between">
+                            <label htmlFor="price-input" className="text-sm font-medium">Precio por Unidad ($)</label>
+                            {loadingPrice && (
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                            )}
+                        </div>
                         <input
                             id="price-input"
                             type="number"
@@ -423,6 +487,21 @@ export function NewSaleModal({
                             onChange={(e) => setPricePerUnit(parseFloat(e.target.value) || 0)}
                             className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm"
                         />
+                        {/* Indicador de descuento aplicado */}
+                        {customerPriceInfo && customerPriceInfo.discount_applied && customerPriceInfo.discount_applied > 0 && (
+                            <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-200 dark:border-green-800">
+                                <Percent className="h-4 w-4 text-green-600" />
+                                <div className="flex-1">
+                                    <p className="text-xs font-medium text-green-700 dark:text-green-400">
+                                        Descuento aplicado: {customerPriceInfo.discount_applied.toFixed(1)}%
+                                    </p>
+                                    <p className="text-xs text-green-600 dark:text-green-500">
+                                        {customerPriceInfo.price_list_name || customerPriceInfo.customer_type || 'Lista especial'}
+                                    </p>
+                                </div>
+                                <Tag className="h-4 w-4 text-green-600" />
+                            </div>
+                        )}
                         <div className="flex justify-between items-center p-2.5 bg-primary/5 rounded-md border border-primary/20">
                             <span className="text-sm font-medium text-muted-foreground">Total:</span>
                             <span className="text-lg font-bold text-primary">

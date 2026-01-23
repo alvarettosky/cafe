@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NewCustomerModal } from "@/components/new-customer-modal";
-import { Coffee, Package, TrendingUp, AlertTriangle, RefreshCcw, BarChart3, Users, Phone, LogOut, LucideIcon } from "lucide-react";
+import { Coffee, Package, TrendingUp, AlertTriangle, RefreshCcw, BarChart3, Users, Phone, LogOut, LucideIcon, DollarSign } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -130,6 +130,12 @@ export default function Dashboard() {
               <Phone className="w-4 h-4 mr-2" />
               Contactos
             </Button>
+            {isAdmin && (
+              <Button variant="outline" onClick={() => router.push('/precios')}>
+                <DollarSign className="w-4 h-4 mr-2" />
+                Precios
+              </Button>
+            )}
             <NewCustomerModal />
             <Link href="/ventas/nueva">
               <Button variant="default" size="lg" className="shadow-lg shadow-primary/20">
