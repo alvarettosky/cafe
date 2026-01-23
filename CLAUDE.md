@@ -15,7 +15,7 @@ Sistema completo de gestión para cafetería: inventario, punto de venta (POS), 
 | 3    | Crecimiento y Escalabilidad    | ✅ Completado |
 | 4    | Arquitectura POS Profesional   | ✅ Completado |
 
-**Testing**: 273 tests unitarios + 7 E2E pasando (80%+ cobertura)
+**Testing**: 273 tests unitarios + 7 E2E smoke pasando (80%+ cobertura)
 
 ## Comandos Esenciales
 
@@ -469,6 +469,7 @@ GitHub Actions:
 
 - `.github/workflows/ci.yml` - Lint, tests, type-check, build en cada push
 - `.github/workflows/e2e.yml` - Tests E2E con Playwright
+- `.github/workflows/daily-backup.yml` - Backup diario a Google Drive (2:00 AM UTC)
 - Pre-commit hook ejecuta lint-staged automáticamente
 
 Deploy:
@@ -476,6 +477,58 @@ Deploy:
 - Vercel conectado a repo
 - Deploy automático en push a `main`
 - Environment variables configuradas en Vercel dashboard
+
+### Sistema de Backups Automatizados
+
+**Exportación Manual (CSV/XLSX):**
+
+- Página `/backups` permite exportar datos en CSV o Excel
+- Tablas disponibles: inventory, sales, sale_items, customers, customer_contacts, products, product_variants
+- Filtro por rango de fechas para tablas con timestamps
+- Límite de 10,000 registros por tabla
+
+**Backup Automático a Google Drive:**
+
+El sistema ejecuta backups diarios a las 2:00 AM UTC con las siguientes características:
+
+- **Almacenamiento**: Google Drive (via service account)
+- **Notificaciones**: Email via Resend (opcional)
+- **Retención**: 7 días diarios, 4 semanas semanales, 12 meses mensuales
+- **Trigger manual**: Desde UI o GitHub Actions
+
+**Scripts de Backup:**
+
+```
+scripts/backup/
+├── export-tables.ts      # Exporta todas las tablas a JSON
+├── upload-gdrive.ts      # Sube backup comprimido a Google Drive
+├── cleanup-retention.ts  # Limpia backups según política de retención
+├── send-notification.ts  # Envía notificación por email
+└── run-backup.ts         # Orquestador principal
+```
+
+**Variables de Entorno Requeridas (GitHub Secrets):**
+
+```
+SUPABASE_SERVICE_ROLE_KEY    # Key de servicio para exportar datos
+GOOGLE_DRIVE_CREDENTIALS     # JSON de service account (base64)
+GOOGLE_DRIVE_FOLDER_ID       # ID de carpeta destino en Drive
+RESEND_API_KEY               # (Opcional) API key de Resend
+NOTIFICATION_EMAIL           # (Opcional) Email para notificaciones
+GITHUB_TOKEN                 # (Opcional) Para trigger manual desde UI
+```
+
+**Ejecutar backup manualmente:**
+
+```bash
+npm run backup  # Ejecuta el backup completo
+```
+
+**API Routes:**
+
+- `GET /api/backups/list` - Lista backups en Google Drive
+- `POST /api/backups/trigger` - Ejecuta backup via GitHub Actions
+- `POST /api/export` - Exporta tablas seleccionadas a CSV/XLSX
 
 ## Convenciones de Código
 

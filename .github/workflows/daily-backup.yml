@@ -1,0 +1,88 @@
+name: Daily Backup
+
+on:
+  schedule:
+    # Run at 2:00 AM UTC daily
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    # Allow manual trigger
+    inputs:
+      debug:
+        description: 'Enable debug logging'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  backup:
+    name: Backup Cafe Mirador Data
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      GOOGLE_DRIVE_CREDENTIALS: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
+      GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run backup
+        id: backup
+        run: |
+          if [ "${{ inputs.debug }}" = "true" ]; then
+            export DEBUG=true
+          fi
+          npm run backup
+        continue-on-error: true
+
+      - name: Check backup result
+        if: steps.backup.outcome == 'failure'
+        run: |
+          echo "Backup failed!"
+          exit 1
+
+      - name: Report success
+        if: steps.backup.outcome == 'success'
+        run: echo "Backup completed successfully!"
+
+  notify-on-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: backup
+    if: failure()
+
+    env:
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
+      GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+    steps:
+      - name: Send failure notification
+        run: |
+          if [ -n "$RESEND_API_KEY" ] && [ -n "$NOTIFICATION_EMAIL" ]; then
+            curl -X POST 'https://api.resend.com/emails' \
+              -H "Authorization: Bearer $RESEND_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"from\": \"Cafe Mirador <backups@resend.dev>\",
+                \"to\": [\"$NOTIFICATION_EMAIL\"],
+                \"subject\": \"Backup FAILED - Cafe Mirador\",
+                \"html\": \"<h1>Backup Failed</h1><p>The daily backup job failed. Please check the GitHub Actions logs.</p><p><a href='$GITHUB_RUN_URL'>View Logs</a></p>\"
+              }"
+          else
+            echo "Notification skipped: missing credentials"
+          fi

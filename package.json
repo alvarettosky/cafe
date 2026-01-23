@@ -21,20 +21,24 @@
     "test:db:watch": "vitest tests/database/",
     "prepare": "husky install .husky",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "backup": "npx tsx scripts/backup/run-backup.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
     "@supabase/supabase-js": "^2.90.1",
+    "archiver": "^7.0.1",
     "clsx": "^2.1.1",
     "exceljs": "^4.4.0",
     "framer-motion": "^12.26.2",
+    "googleapis": "^170.1.0",
     "lucide-react": "^0.562.0",
     "next": "16.1.2",
     "papaparse": "^5.5.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^2.15.0",
+    "resend": "^6.8.0",
     "tailwind-merge": "^3.4.0",
     "zod": "^4.3.5"
   },
@@ -48,6 +52,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^14.5.2",
+    "@types/archiver": "^7.0.0",
     "@types/node": "^20",
     "@types/papaparse": "^5.5.2",
     "@types/react": "^19",

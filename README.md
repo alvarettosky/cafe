@@ -20,6 +20,7 @@ Sistema completo de gestión para **Mirador Montañero Café Selecto** que inclu
 - 🚚 **Zonas de Entrega** - Organización de entregas por zona geográfica
 - 📋 **Kardex de Inventario** - Trazabilidad completa de movimientos de stock
 - 🏷️ **Productos con Variantes** - SKUs, presentaciones y tipos de molido
+- 💾 **Sistema de Backups** - Exportación CSV/XLSX y backups automáticos a Google Drive
 
 ## 🚀 Demo en Vivo
 
@@ -89,6 +90,14 @@ La aplicación está desplegada en Vercel con actualizaciones automáticas en ca
 - Métricas de rendimiento
 - Filtros por rango de fechas
 
+### 💾 Sistema de Backups y Exportación
+
+- **Exportación Manual** - CSV y Excel con selección de tablas
+- **Backups Automáticos** - Diarios a Google Drive (2:00 AM UTC)
+- **Política de Retención** - 7 días diarios, 4 semanas, 12 meses
+- **Notificaciones** - Email via Resend al completar backup
+- **Historial** - Ver y descargar backups desde la UI
+
 ## 🛠 Tecnologías
 
 ### Frontend
@@ -114,7 +123,7 @@ La aplicación está desplegada en Vercel con actualizaciones automáticas en ca
 - **Playwright** - E2E tests
 - **Testing Library** - Component testing
 - **MSW** - API mocking
-- **Coverage**: 80%+ (223 unit tests + 7 E2E tests pasando)
+- **Coverage**: 80%+ (273 unit tests + 7 E2E tests pasando)
 
 ## Requisitos previos
 
@@ -259,6 +268,7 @@ cafe-mirador/
 │   ├── pendiente/                # Página de espera (usuarios no aprobados)
 │   ├── ventas/nueva/             # Formulario de nueva venta
 │   ├── precios/                  # Gestión de listas de precios (admin)
+│   ├── backups/                  # Exportación y backups (admin)
 │   └── portal/                   # Portal de Cliente Self-Service
 │       ├── page.tsx              # Dashboard del cliente
 │       ├── auth/                 # Magic links (sin contraseña)
@@ -408,9 +418,16 @@ Ver `CLAUDE.md` para esquema completo de la base de datos.
 - [x] Movimientos automáticos al procesar ventas
 - [x] Historial de movimientos por producto
 
+### ✅ Fase 5 - Backups y Exportación (Completado)
+
+- [x] Exportación de datos a CSV/Excel
+- [x] Backups automáticos diarios a Google Drive
+- [x] Política de retención configurable
+- [x] Notificaciones por email via Resend
+- [x] UI para gestión de backups
+
 ### 📋 Mejoras Futuras
 
-- [ ] Exportar contactos a CSV/Excel
 - [ ] PWA (Progressive Web App)
 - [ ] Mapa visual de clientes por zona
 - [ ] Integración con pasarelas de pago
@@ -436,4 +453,4 @@ MIT License - Ver [LICENSE](LICENSE) para más detalles.
 
 **Stack:** Next.js 16 + TypeScript + Supabase + TailwindCSS
 **Deployment:** Vercel
-**Última actualización:** 2026-01-22
+**Última actualización:** 2026-01-23
