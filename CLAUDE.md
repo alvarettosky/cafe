@@ -13,8 +13,9 @@ Sistema completo de gestión para cafetería: inventario, punto de venta (POS), 
 | 1    | Maximizar Recurrencia          | ✅ Completado |
 | 2    | Portal de Cliente Self-Service | ✅ Completado |
 | 3    | Crecimiento y Escalabilidad    | ✅ Completado |
+| 4    | Arquitectura POS Profesional   | ✅ Completado |
 
-**Testing**: 168 tests pasando (80%+ cobertura)
+**Testing**: 223 tests unitarios + 7 E2E pasando (80%+ cobertura)
 
 ## Comandos Esenciales
 
@@ -93,6 +94,7 @@ Pre-commit automático (Husky + lint-staged):
 /analytics      → Dashboard analítico (gráficos de ventas, métricas)
 /clientes       → Gestión de clientes con recurrencia
 /contactos      → Lista de contactos por recurrencia + Prospectos (integración WhatsApp)
+/precios        → Gestión de listas de precios diferenciados (solo admin)
 
 # Portal de Cliente (Fase 2)
 /portal             → Dashboard del cliente (último pedido, próximo pedido, acciones rápidas)
@@ -125,6 +127,9 @@ Pre-commit automático (Husky + lint-staged):
 - `delivery_zones` - Zonas de entrega con días de reparto
 - `deliveries` - Entregas programadas con estado
 - `delivery_items` - Items de cada entrega
+- `inventory_movements` - Kardex de movimientos de inventario (Fase 4)
+- `products` - Catálogo de productos padre (Fase 4)
+- `product_variants` - Variantes vendibles con SKU, presentación, tipo de molido (Fase 4)
 
 **Vistas:**
 
@@ -175,6 +180,13 @@ Pre-commit automático (Husky + lint-staged):
 - `get_product_price_for_customer(p_customer_id, p_product_id)` - Precio según tipo de cliente
 - `get_deliveries_for_date(p_date)` - Entregas programadas para una fecha
 - `get_customers_without_zone()` - Clientes sin zona asignada
+
+**Arquitectura POS Profesional (Fase 4):**
+
+- `get_inventory_movements(p_product_id, p_limit, p_offset, p_movement_type, p_date_from, p_date_to)` - Historial de movimientos de inventario (Kardex)
+- `add_inventory_movement(p_product_id, p_movement_type, p_quantity_grams, p_reason, p_unit_cost, p_batch_number)` - Registra movimiento manual de inventario
+- `get_products_with_variants()` - Lista productos con sus variantes
+- `get_variants_for_sale()` - Variantes disponibles para venta con stock
 
 **Row Level Security (RLS):**
 
@@ -273,6 +285,10 @@ Directorio `supabase/migrations/` contiene migración secuencial:
 - `migrations/021_fase1_recurrencia.sql` - Fase 1: Repetir pedido, WhatsApp inteligente, segmentación RFM
 - `migrations/022_fase2_portal_cliente.sql` - Fase 2: Portal de cliente, magic links, suscripciones
 - `migrations/022_fase3_crecimiento.sql` - Fase 3: Referidos, listas de precios, zonas de entrega
+- `migrations/023_inventory_kardex.sql` - Fase 4: Kardex de inventario (inventory_movements)
+- `migrations/024_product_variants.sql` - Fase 4: Productos con variantes (products, product_variants)
+- `migrations/025_migrate_inventory_to_variants.sql` - Fase 4: Migración de datos a variantes
+- `migrations/026_fix_kardex_types.sql` - Fase 4: Corrección de tipos en RPC kardex
 
 Ver `SUPABASE_SETUP.md` para orden completo de ejecución.
 
@@ -375,6 +391,13 @@ Sistema self-service para clientes. Autenticación sin contraseña mediante magi
 - `DeliveriesDashboard` - Panel de entregas diarias agrupadas por zona con estados.
 - `app/portal/referidos/page.tsx` - Portal de referidos para clientes (generar códigos, compartir, historial).
 
+**Fase 4 - Arquitectura POS Profesional**:
+
+- `InventoryMovements` - Modal de historial de movimientos (Kardex) por producto. Muestra entradas, salidas, ajustes con trazabilidad completa.
+- `ProductVariantSelector` - Selector de producto con variantes agrupadas por producto padre. Muestra SKU, presentación, tipo de molido y stock disponible.
+- `ProductVariantSelectCompact` - Versión compacta del selector de variantes para formularios.
+- `app/precios/page.tsx` - Página de gestión de listas de precios (solo admin). Integra `PriceListManager`.
+
 **UI Base**:
 
 - `components/ui/` - Componentes Radix UI styled con Tailwind
@@ -420,6 +443,8 @@ Deploy:
 - Tipos definidos en `types/` directory
 - Interfaces importantes:
   - `types/customer-recurrence.ts` - CustomerWithRecurrence, CustomerToContact
+  - `types/inventory.ts` - InventoryMovement, MovementType (sale, restock, adjustment, loss, return)
+  - `types/products.ts` - Product, ProductVariant, VariantForSale
   - `types/index.ts` - DashboardStats, Sales, Products
 
 ### Componentes React

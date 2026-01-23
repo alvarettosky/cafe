@@ -18,6 +18,8 @@ Sistema completo de gestión para **Mirador Montañero Café Selecto** que inclu
 - 🎁 **Sistema de Referidos** - Programa de referidos con códigos y recompensas
 - 💰 **Listas de Precios Diferenciadas** - Precios especiales por tipo de cliente
 - 🚚 **Zonas de Entrega** - Organización de entregas por zona geográfica
+- 📋 **Kardex de Inventario** - Trazabilidad completa de movimientos de stock
+- 🏷️ **Productos con Variantes** - SKUs, presentaciones y tipos de molido
 
 ## 🚀 Demo en Vivo
 
@@ -112,7 +114,7 @@ La aplicación está desplegada en Vercel con actualizaciones automáticas en ca
 - **Playwright** - E2E tests
 - **Testing Library** - Component testing
 - **MSW** - API mocking
-- **Coverage**: 80%+ (168 tests pasando)
+- **Coverage**: 80%+ (223 unit tests + 7 E2E tests pasando)
 
 ## Requisitos previos
 
@@ -256,6 +258,7 @@ cafe-mirador/
 │   ├── login/                    # Autenticación staff
 │   ├── pendiente/                # Página de espera (usuarios no aprobados)
 │   ├── ventas/nueva/             # Formulario de nueva venta
+│   ├── precios/                  # Gestión de listas de precios (admin)
 │   └── portal/                   # Portal de Cliente Self-Service
 │       ├── page.tsx              # Dashboard del cliente
 │       ├── auth/                 # Magic links (sin contraseña)
@@ -312,6 +315,9 @@ cafe-mirador/
 - **`delivery_zones`** - Zonas de entrega
 - **`deliveries`** - Entregas programadas
 - **`delivery_items`** - Items de cada entrega
+- **`inventory_movements`** - Kardex de movimientos de inventario
+- **`products`** - Catálogo de productos padre
+- **`product_variants`** - Variantes vendibles (SKU, presentación, molido)
 
 ### Funciones RPC
 
@@ -351,6 +357,11 @@ cafe-mirador/
 - **`get_deliveries_for_date(date)`** - Entregas del día agrupadas por zona
 - **`get_customers_without_zone()`** - Clientes sin zona asignada
 
+**Inventario (Kardex):**
+
+- **`get_inventory_movements(product_id, ...)`** - Historial de movimientos de un producto
+- **`add_inventory_movement(...)`** - Registra movimiento manual (reposición, merma, ajuste)
+
 **Admin:**
 
 - **`get_pending_users()`** - Lista usuarios pendientes de aprobación
@@ -389,6 +400,14 @@ Ver `CLAUDE.md` para esquema completo de la base de datos.
 - [x] Zonas de entrega con días asignados
 - [x] Gestión de entregas agrupadas por zona
 
+### ✅ Fase 4 - Arquitectura POS Profesional (Completado)
+
+- [x] Kardex de inventario con trazabilidad completa
+- [x] Productos con variantes (SKU, presentación, tipo de molido)
+- [x] Página de gestión de listas de precios (/precios)
+- [x] Movimientos automáticos al procesar ventas
+- [x] Historial de movimientos por producto
+
 ### 📋 Mejoras Futuras
 
 - [ ] Exportar contactos a CSV/Excel
@@ -417,4 +436,4 @@ MIT License - Ver [LICENSE](LICENSE) para más detalles.
 
 **Stack:** Next.js 16 + TypeScript + Supabase + TailwindCSS
 **Deployment:** Vercel
-**Última actualización:** 2026-01-19
+**Última actualización:** 2026-01-22

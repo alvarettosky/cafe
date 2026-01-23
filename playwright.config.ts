@@ -18,12 +18,21 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
   projects: [
+    // Smoke tests - no auth required
+    {
+      name: 'smoke',
+      testMatch: /smoke\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    // Setup for authenticated tests
     {
       name: 'setup',
       testMatch: /.*\.setup\.ts/,
     },
+    // Authenticated tests
     {
       name: 'chromium',
+      testIgnore: /smoke\.spec\.ts/,
       use: {
         ...devices['Desktop Chrome'],
         storageState: '.auth/user.json',
@@ -32,6 +41,7 @@ export default defineConfig({
     },
     {
       name: 'firefox',
+      testIgnore: /smoke\.spec\.ts/,
       use: {
         ...devices['Desktop Firefox'],
         storageState: '.auth/user.json',
@@ -40,6 +50,7 @@ export default defineConfig({
     },
     {
       name: 'webkit',
+      testIgnore: /smoke\.spec\.ts/,
       use: {
         ...devices['Desktop Safari'],
         storageState: '.auth/user.json',
@@ -48,6 +59,7 @@ export default defineConfig({
     },
     {
       name: 'Mobile Chrome',
+      testIgnore: /smoke\.spec\.ts/,
       use: {
         ...devices['Pixel 5'],
         storageState: '.auth/user.json',
@@ -56,7 +68,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'cd frontend && npm run dev',
+    command: 'npm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
