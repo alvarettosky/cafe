@@ -128,6 +128,7 @@ async function uploadFile(
         requestBody: fileMetadata,
         media: media,
         fields: 'id, name, webViewLink',
+        supportsAllDrives: true,
     });
 
     console.log(`  Uploaded: ${response.data.name} (${response.data.id})`);
