@@ -10,7 +10,7 @@ interface BackupStats {
     totalRows: number;
     errors: number;
     fileSize?: string;
-    driveLink?: string;
+    storagePath?: string;
 }
 
 interface NotificationResult {
@@ -88,9 +88,12 @@ export async function sendBackupNotification(
                   : ''
           }
           ${
-              stats.driveLink
+              stats.storagePath
                   ? `
-          <a href="${stats.driveLink}" class="button">Ver en Google Drive</a>`
+          <div class="stat">
+            <span class="label">Ubicación</span>
+            <span class="value">Supabase Storage: ${stats.storagePath}</span>
+          </div>`
                   : ''
           }
         </div>
@@ -110,7 +113,7 @@ Tablas exportadas: ${stats.tablesExported}
 Total registros: ${stats.totalRows}
 Errores: ${stats.errors}
 ${stats.fileSize ? `Tamaño: ${stats.fileSize}` : ''}
-${stats.driveLink ? `Link: ${stats.driveLink}` : ''}
+${stats.storagePath ? `Ubicación: Supabase Storage - ${stats.storagePath}` : ''}
     `.trim();
 
     try {
@@ -146,7 +149,7 @@ if (require.main === module) {
         totalRows: 1500,
         errors: 0,
         fileSize: '2.5 MB',
-        driveLink: 'https://drive.google.com/file/d/example',
+        storagePath: 'cafe-mirador-backup-2026-01-23.zip',
     };
 
     sendBackupNotification(testStats, true)

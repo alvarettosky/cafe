@@ -1,44 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { google } from 'googleapis';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+const BUCKET_NAME = 'backups';
 
 interface BackupFile {
     id: string;
     name: string;
     createdTime: string;
     size: string;
-    webViewLink: string;
-}
-
-function getGoogleAuth() {
-    const credentialsJson = process.env.GOOGLE_DRIVE_CREDENTIALS;
-
-    if (!credentialsJson) {
-        return null;
-    }
-
-    try {
-        let credentials;
-        try {
-            const decoded = Buffer.from(credentialsJson, 'base64').toString('utf-8');
-            credentials = JSON.parse(decoded);
-        } catch {
-            credentials = JSON.parse(credentialsJson);
-        }
-
-        return new google.auth.GoogleAuth({
-            credentials: {
-                client_email: credentials.client_email,
-                private_key: credentials.private_key,
-            },
-            scopes: ['https://www.googleapis.com/auth/drive.readonly'],
-        });
-    } catch {
-        return null;
-    }
+    downloadUrl: string;
 }
 
 export async function GET(request: NextRequest) {
@@ -77,35 +51,60 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Check if Google Drive is configured
-        const auth = getGoogleAuth();
-        const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
-
-        if (!auth || !folderId) {
+        // Check if service role key is available
+        if (!serviceRoleKey) {
             return NextResponse.json({
                 backups: [],
                 configured: false,
-                message: 'Google Drive no configurado',
+                message: 'Supabase Storage no configurado (falta service role key)',
             });
         }
 
-        // List backups from Google Drive
-        const drive = google.drive({ version: 'v3', auth });
-
-        const response = await drive.files.list({
-            q: `'${folderId}' in parents and trashed = false`,
-            fields: 'files(id, name, createdTime, size, webViewLink)',
-            orderBy: 'createdTime desc',
-            pageSize: 20,
+        // Create admin client for storage operations
+        const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false,
+            },
         });
 
-        const backups: BackupFile[] = (response.data.files || []).map((file) => ({
-            id: file.id || '',
-            name: file.name || '',
-            createdTime: file.createdTime || '',
-            size: formatBytes(parseInt(file.size || '0', 10)),
-            webViewLink: file.webViewLink || '',
-        }));
+        // List backups from Supabase Storage
+        const { data: files, error: listError } = await supabaseAdmin.storage
+            .from(BUCKET_NAME)
+            .list('', {
+                limit: 20,
+                sortBy: { column: 'created_at', order: 'desc' },
+            });
+
+        if (listError) {
+            // Bucket might not exist yet
+            if (listError.message.includes('not found')) {
+                return NextResponse.json({
+                    backups: [],
+                    configured: true,
+                    message: 'No hay backups aún',
+                });
+            }
+            throw listError;
+        }
+
+        // Get signed URLs for each file
+        const backups: BackupFile[] = [];
+        for (const file of files || []) {
+            if (file.name) {
+                const { data: urlData } = await supabaseAdmin.storage
+                    .from(BUCKET_NAME)
+                    .createSignedUrl(file.name, 60 * 60); // 1 hour
+
+                backups.push({
+                    id: file.id || file.name,
+                    name: file.name,
+                    createdTime: file.created_at || '',
+                    size: formatBytes(file.metadata?.size || 0),
+                    downloadUrl: urlData?.signedUrl || '',
+                });
+            }
+        }
 
         return NextResponse.json({
             backups,

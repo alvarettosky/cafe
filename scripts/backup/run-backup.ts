@@ -9,16 +9,13 @@
  * Environment variables required:
  *   - NEXT_PUBLIC_SUPABASE_URL
  *   - SUPABASE_SERVICE_ROLE_KEY
- *   - GOOGLE_DRIVE_CREDENTIALS (base64 encoded)
- *   - GOOGLE_DRIVE_FOLDER_ID
  *   - RESEND_API_KEY (optional)
  *   - NOTIFICATION_EMAIL (optional)
  */
 
 import * as fs from 'fs';
-import * as path from 'path';
 import { exportTables } from './export-tables';
-import { uploadToGoogleDrive } from './upload-gdrive';
+import { uploadToSupabaseStorage } from './upload-supabase';
 import { cleanupBackups } from './cleanup-retention';
 import { sendBackupNotification } from './send-notification';
 
@@ -29,8 +26,8 @@ interface BackupResult {
     tablesExported: number;
     totalRows: number;
     errors: number;
-    uploadedFileId?: string;
-    driveLink?: string;
+    storagePath?: string;
+    downloadUrl?: string;
     fileSize?: string;
     cleanupResult?: {
         kept: number;
@@ -68,17 +65,17 @@ export async function runBackup(): Promise<BackupResult> {
             console.error('Export had errors, but continuing...');
         }
 
-        // Step 2: Upload to Google Drive
-        console.log('\n[2/4] Uploading to Google Drive...');
+        // Step 2: Upload to Supabase Storage
+        console.log('\n[2/4] Uploading to Supabase Storage...');
         const backupFileName = `cafe-mirador-backup-${timestamp}`;
-        const uploadResult = await uploadToGoogleDrive(exportResult.outputPath, backupFileName);
+        const uploadResult = await uploadToSupabaseStorage(exportResult.outputPath, backupFileName);
 
         if (!uploadResult.success) {
             throw new Error(`Upload failed: ${uploadResult.error}`);
         }
 
-        result.uploadedFileId = uploadResult.fileId;
-        result.driveLink = uploadResult.webViewLink;
+        result.storagePath = uploadResult.path;
+        result.downloadUrl = uploadResult.publicUrl;
 
         // Get file size
         const zipPath = `${exportResult.outputPath}.zip`;
@@ -109,7 +106,7 @@ export async function runBackup(): Promise<BackupResult> {
                     totalRows: result.totalRows,
                     errors: result.errors,
                     fileSize: result.fileSize,
-                    driveLink: result.driveLink,
+                    storagePath: result.storagePath,
                 },
                 true
             );
@@ -163,7 +160,7 @@ export async function runBackup(): Promise<BackupResult> {
     console.log(`Rows: ${result.totalRows}`);
     console.log(`Errors: ${result.errors}`);
     if (result.fileSize) console.log(`Size: ${result.fileSize}`);
-    if (result.driveLink) console.log(`Drive: ${result.driveLink}`);
+    if (result.storagePath) console.log(`Storage: ${result.storagePath}`);
     if (result.cleanupResult) {
         console.log(`Cleanup: ${result.cleanupResult.deleted} deleted, ${result.cleanupResult.kept} kept`);
     }

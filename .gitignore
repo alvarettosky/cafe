@@ -30,3 +30,4 @@ VERCEL_FIX.html
 
 # Git worktrees
 .worktrees/
+backups/

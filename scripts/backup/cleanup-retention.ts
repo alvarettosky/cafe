@@ -6,7 +6,7 @@
  * - Monthly: Keep last 12 months (1st of month backups)
  */
 
-import { listBackups, deleteFile } from './upload-gdrive';
+import { listBackups, deleteBackup } from './upload-supabase';
 
 interface RetentionPolicy {
     daily: number; // Days to keep daily backups
@@ -49,7 +49,7 @@ export async function cleanupBackups(policy: RetentionPolicy = DEFAULT_POLICY): 
         const monthlyCutoff = new Date(now.getTime() - policy.monthly * 30 * 24 * 60 * 60 * 1000);
 
         for (const backup of backups) {
-            const createdDate = new Date(backup.createdTime);
+            const createdDate = new Date(backup.createdAt);
             const dayOfWeek = createdDate.getDay(); // 0 = Sunday
             const dayOfMonth = createdDate.getDate();
 
@@ -76,7 +76,7 @@ export async function cleanupBackups(policy: RetentionPolicy = DEFAULT_POLICY): 
                 result.kept.push(backup.name);
             } else {
                 console.log(`  Delete: ${backup.name}`);
-                const deleted = await deleteFile(backup.id);
+                const deleted = await deleteBackup(backup.name);
                 if (deleted) {
                     result.deleted.push(backup.name);
                 } else {
