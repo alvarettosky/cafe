@@ -99,7 +99,7 @@ export function PriceListManager() {
         .from("price_list_items")
         .select(`
           *,
-          product:inventory(name)
+          product:inventory(product_name)
         `)
         .eq("price_list_id", listId);
 
@@ -109,13 +109,13 @@ export function PriceListManager() {
         id: string;
         price_list_id: string;
         product_id: string;
-        product: { name: string } | null;
+        product: { product_name: string } | null;
         custom_price: number;
       }) => ({
         id: item.id,
         price_list_id: item.price_list_id,
         product_id: item.product_id,
-        product_name: item.product?.name || "Producto desconocido",
+        product_name: item.product?.product_name || "Producto desconocido",
         custom_price: item.custom_price,
       }));
 
