@@ -291,8 +291,48 @@ const mockCustomerPriceInfo = {
 // Mock export data
 const mockExportBlob = new Uint8Array([80, 75, 3, 4]) // Minimal XLSX header bytes
 
+// Mock backup data
+const mockBackups = [
+  {
+    id: 'backup-1',
+    name: 'cafe-mirador-backup-2026-01-22.zip',
+    createdTime: '2026-01-22T02:00:00Z',
+    size: '1.5 MB',
+    webViewLink: 'https://storage.example.com/backup-1',
+  },
+  {
+    id: 'backup-2',
+    name: 'cafe-mirador-backup-2026-01-21.zip',
+    createdTime: '2026-01-21T02:00:00Z',
+    size: '1.4 MB',
+    webViewLink: 'https://storage.example.com/backup-2',
+  },
+  {
+    id: 'backup-3',
+    name: 'cafe-mirador-backup-2026-01-20.zip',
+    createdTime: '2026-01-20T02:00:00Z',
+    size: '1.3 MB',
+    webViewLink: null,
+  },
+]
+
 // MSW Handlers
 export const handlers = [
+  // Mock /api/backups/list endpoint
+  http.get('/api/backups/list', () => {
+    return HttpResponse.json({
+      backups: mockBackups,
+      configured: true,
+    })
+  }),
+
+  // Mock /api/backups/trigger endpoint
+  http.post('/api/backups/trigger', () => {
+    return HttpResponse.json({
+      message: 'Backup iniciado correctamente',
+    })
+  }),
+
   // Mock /api/export endpoint
   http.post('/api/export', async ({ request }) => {
     // Check authorization
