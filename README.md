@@ -20,7 +20,7 @@ Sistema completo de gestión para **Mirador Montañero Café Selecto** que inclu
 - 🚚 **Zonas de Entrega** - Organización de entregas por zona geográfica
 - 📋 **Kardex de Inventario** - Trazabilidad completa de movimientos de stock
 - 🏷️ **Productos con Variantes** - SKUs, presentaciones y tipos de molido
-- 💾 **Sistema de Backups** - Exportación CSV/XLSX y backups automáticos a Google Drive
+- 💾 **Sistema de Backups** - Exportación CSV/XLSX y backups automáticos a Supabase Storage
 
 ## 🚀 Demo en Vivo
 
@@ -93,9 +93,9 @@ La aplicación está desplegada en Vercel con actualizaciones automáticas en ca
 ### 💾 Sistema de Backups y Exportación
 
 - **Exportación Manual** - CSV y Excel con selección de tablas
-- **Backups Automáticos** - Diarios a Google Drive (2:00 AM UTC)
+- **Backups Automáticos** - Diarios a Supabase Storage (2:00 AM UTC)
 - **Política de Retención** - 7 días diarios, 4 semanas, 12 meses
-- **Notificaciones** - Email via Resend al completar backup
+- **Notificaciones** - Email via Resend al completar backup (opcional)
 - **Historial** - Ver y descargar backups desde la UI
 
 ## 🛠 Tecnologías
@@ -123,7 +123,7 @@ La aplicación está desplegada en Vercel con actualizaciones automáticas en ca
 - **Playwright** - E2E tests
 - **Testing Library** - Component testing
 - **MSW** - API mocking
-- **Coverage**: 80%+ (273 unit tests + 7 E2E tests pasando)
+- **Coverage**: 93%+ (854 unit tests + 7 E2E tests pasando)
 
 ## Requisitos previos
 
@@ -421,9 +421,9 @@ Ver `CLAUDE.md` para esquema completo de la base de datos.
 ### ✅ Fase 5 - Backups y Exportación (Completado)
 
 - [x] Exportación de datos a CSV/Excel
-- [x] Backups automáticos diarios a Google Drive
-- [x] Política de retención configurable
-- [x] Notificaciones por email via Resend
+- [x] Backups automáticos diarios a Supabase Storage
+- [x] Política de retención configurable (7d/4w/12m)
+- [x] Notificaciones por email via Resend (opcional)
 - [x] UI para gestión de backups
 
 ### 📋 Mejoras Futuras

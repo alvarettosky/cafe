@@ -5,6 +5,44 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.0] - 2026-01-23
+
+### 🎉 Agregado
+
+#### Sistema de Backups Automatizados
+
+- Backups diarios automáticos a Supabase Storage (2:00 AM UTC via GitHub Actions)
+- Scripts de backup en `scripts/backup/`:
+  - `export-tables.ts` - Exporta 20 tablas a JSON
+  - `upload-supabase.ts` - Sube backup ZIP a Supabase Storage
+  - `cleanup-retention.ts` - Limpieza con política de retención (7d/4w/12m)
+  - `send-notification.ts` - Notificación por email via Resend (opcional)
+  - `run-backup.ts` - Orquestador principal
+- Workflow GitHub Actions `.github/workflows/daily-backup.yml`
+- API routes para gestión de backups:
+  - `GET /api/backups/list` - Lista backups en Supabase Storage
+  - `POST /api/backups/trigger` - Ejecuta backup via GitHub Actions
+
+#### Testing Masivo
+
+- 581 nuevos tests unitarios (de 273 a 854 total)
+- Cobertura aumentada de 5% a 93.9%
+- Tests para todas las páginas del portal de cliente
+- Tests para API routes de exportación y backups
+- Tests para páginas principales (dashboard, analytics, clientes, contactos)
+
+### ✨ Mejorado
+
+- Documentación actualizada (README.md, CLAUDE.md)
+- Formato de nombre de backup con timestamp único: `cafe-mirador-backup-YYYY-MM-DD_HH-MM-SS.zip`
+
+### 🐛 Corregido
+
+- Migración de Google Drive a Supabase Storage (Google Drive service accounts tienen limitaciones de quota)
+- Tests de clientes y contactos con esperas apropiadas para datos asincrónicos
+
+---
+
 ## [1.2.0] - 2026-01-18
 
 ### 🎉 Agregado
@@ -42,7 +80,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - 15 tests para `recurrence-input.test.tsx`
 - Tests corregidos para `date-range-selector.test.tsx`
 - Mocks de Supabase RPC implementados
-- **Coverage**: 72% (216 tests pasando)
+- **Coverage**: 72% (216 tests pasando en v1.2.0)
 
 #### Documentación
 
@@ -137,4 +175,4 @@ get_customers_to_contact(p_urgency_threshold_days INTEGER)
 
 ---
 
-**Última actualización**: 2026-01-18
+**Última actualización**: 2026-01-23

@@ -35,7 +35,20 @@
 - [x] Tests para `recurrence-input.test.tsx` (15 tests)
 - [x] Tests para `date-range-selector.test.tsx` corregidos
 - [x] Mocks de Supabase RPC corregidos
-- [x] 216 tests pasando (72% pass rate)
+- [x] 854 tests unitarios pasando (93%+ cobertura)
+- [x] 7 tests E2E con Playwright
+- [x] Tests para todas las páginas del portal de cliente
+- [x] Tests para API routes de exportación y backups
+
+### Sistema de Backups
+
+- [x] Backups automáticos diarios a Supabase Storage (2:00 AM UTC)
+- [x] Scripts de backup en `scripts/backup/`
+- [x] GitHub Actions workflow para backups
+- [x] Política de retención (7 días diarios, 4 semanas, 12 meses)
+- [x] Notificaciones por email via Resend (opcional)
+- [x] API routes para listar y triggear backups
+- [x] Exportación manual CSV/XLSX
 
 ### Documentación
 
@@ -67,19 +80,19 @@ _No hay tareas en progreso actualmente_
 
 ## 📋 Pendiente
 
-### Testing
+### Testing ✅
 
-- [ ] Aumentar cobertura de tests al 90%
-- [ ] Agregar tests E2E con Playwright
-- [ ] Tests para flujo completo de venta
-- [ ] Tests para integración de recurrencia en ventas
+- [x] Aumentar cobertura de tests al 90% (actual: 93.9%)
+- [x] Agregar tests E2E con Playwright (7 tests)
+- [x] Tests para flujo completo de venta
+- [x] Tests para integración de recurrencia en ventas
 
 ### Features
 
 - [ ] Notificaciones push para clientes que deben ser contactados
 - [ ] Sistema de recordatorios automáticos
 - [ ] Dashboard de métricas de recurrencia
-- [ ] Exportar lista de contactos a CSV/Excel
+- [x] Exportar lista de contactos a CSV/Excel
 - [ ] Integración con WhatsApp Business API
 - [ ] Gráficas de predicción de ventas basadas en recurrencia
 
@@ -90,12 +103,12 @@ _No hay tareas en progreso actualmente_
 - [ ] Lazy loading de componentes pesados
 - [ ] Service Worker para PWA
 
-### DevOps
+### DevOps ✅
 
-- [ ] CI/CD con GitHub Actions
+- [x] CI/CD con GitHub Actions (lint, tests, build, E2E, backups)
 - [ ] Monitoreo de errores con Sentry
 - [ ] Analytics con Google Analytics o Plausible
-- [ ] Backup automático de base de datos
+- [x] Backup automático de base de datos (Supabase Storage)
 
 ### UX/UI
 
@@ -141,4 +154,4 @@ Ver `CLAUDE.md` para esquema completo de:
 
 ---
 
-**Última actualización**: 2026-01-18
+**Última actualización**: 2026-01-23
