@@ -3,7 +3,7 @@
  * Uses existing Supabase configuration - no additional setup required
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -17,7 +17,10 @@ interface UploadResult {
 
 const BUCKET_NAME = 'backups';
 
-function getSupabaseAdmin() {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseAdmin = SupabaseClient<any, 'public', any>;
+
+function getSupabaseAdmin(): SupabaseAdmin {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -33,7 +36,7 @@ function getSupabaseAdmin() {
     });
 }
 
-async function ensureBucketExists(supabase: ReturnType<typeof createClient>) {
+async function ensureBucketExists(supabase: SupabaseAdmin) {
     const { data: buckets } = await supabase.storage.listBuckets();
 
     const bucketExists = buckets?.some((b) => b.name === BUCKET_NAME);
@@ -106,7 +109,7 @@ export async function uploadToSupabaseStorage(
 }
 
 async function uploadFile(
-    supabase: ReturnType<typeof createClient>,
+    supabase: SupabaseAdmin,
     filePath: string,
     fileName: string
 ): Promise<UploadResult> {
