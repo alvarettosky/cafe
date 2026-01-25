@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Plus, Package, History } from 'lucide-react';
 import { ProductModal } from './product-modal';
 import { InventoryMovements } from './inventory-movements';
+import { DownloadButton } from './export';
 
 interface Product {
     product_id: string;
@@ -56,11 +57,21 @@ export function InventoryList() {
                     <Package className="h-5 w-5" />
                     Inventario en Tiempo Real
                 </CardTitle>
-                {isAdmin && (
-                    <Button size="sm" onClick={() => { setEditingProduct(null); setIsModalOpen(true); }}>
-                        <Plus className="mr-2 h-4 w-4" /> Nuevo Producto
-                    </Button>
-                )}
+                <div className="flex items-center gap-2">
+                    <DownloadButton
+                        tables="inventory"
+                        format="xlsx"
+                        fileName="inventario"
+                        label="Exportar"
+                        variant="outline"
+                        size="sm"
+                    />
+                    {isAdmin && (
+                        <Button size="sm" onClick={() => { setEditingProduct(null); setIsModalOpen(true); }}>
+                            <Plus className="mr-2 h-4 w-4" /> Nuevo Producto
+                        </Button>
+                    )}
+                </div>
             </CardHeader>
             <CardContent>
                 {loading ? (
