@@ -19,19 +19,12 @@ vi.mock('@/components/auth-provider', () => ({
 }));
 
 // Mock framer-motion
-vi.mock('framer-motion', () => {
-  const React = require('react');
-  return {
-    motion: {
-      div: React.forwardRef(({ children, ...props }: { children: React.ReactNode }, ref: React.Ref<HTMLDivElement>) =>
-        React.createElement('div', { ...props, ref }, children)
-      ),
-      button: React.forwardRef(({ children, ...props }: { children: React.ReactNode }, ref: React.Ref<HTMLButtonElement>) =>
-        React.createElement('button', { ...props, ref }, children)
-      ),
-    },
-  };
-});
+vi.mock('framer-motion', () => ({
+  motion: {
+    div: 'div',
+    button: 'button',
+  },
+}));
 
 // Mock child components
 vi.mock('@/components/inventory-list', () => ({
