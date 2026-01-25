@@ -312,6 +312,8 @@ async function setupMocksOnContext(context: BrowserContext) {
 }
 
 // Custom test that handles auth automatically
+// Note: 'use' is Playwright's fixture callback, not a React Hook
+/* eslint-disable react-hooks/rules-of-hooks */
 export const test = base.extend<{ authenticatedPage: Page }>({
   authenticatedPage: async ({ browser }, use) => {
     if (hasRealCredentials()) {
@@ -341,5 +343,6 @@ export const test = base.extend<{ authenticatedPage: Page }>({
     }
   },
 });
+/* eslint-enable react-hooks/rules-of-hooks */
 
 export { expect };
