@@ -152,10 +152,10 @@ describe('Export Utilities', () => {
         it('should return correct columns for inventory', () => {
             const columns = getTableColumns('inventory');
 
-            expect(columns).toContain('id');
+            expect(columns).toContain('product_id');
             expect(columns).toContain('product_name');
-            expect(columns).toContain('stock_kg');
-            expect(columns).toContain('price_per_lb');
+            expect(columns).toContain('total_grams_available');
+            expect(columns).toContain('unit_price');
         });
 
         it('should return correct columns for sales', () => {
@@ -192,7 +192,9 @@ describe('Export Utilities', () => {
                 const columns = getTableColumns(table);
                 expect(columns).toBeInstanceOf(Array);
                 expect(columns.length).toBeGreaterThan(0);
-                expect(columns).toContain('id');
+                // Each table should have a primary key column (id or product_id)
+                const hasPK = columns.includes('id') || columns.includes('product_id');
+                expect(hasPK).toBe(true);
             });
         });
     });

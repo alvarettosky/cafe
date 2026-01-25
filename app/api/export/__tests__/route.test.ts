@@ -34,7 +34,7 @@ vi.mock('@/lib/export', () => ({
     generateXLSX: vi.fn(async () => Buffer.from([80, 75, 3, 4])),
     getTableColumns: vi.fn((tableName: string) => {
         const columns: Record<string, string[]> = {
-            inventory: ['id', 'product_name', 'stock_kg'],
+            inventory: ['product_id', 'product_name', 'total_grams_available', 'stock_kg'],
             sales: ['id', 'customer_id', 'total', 'created_at'],
             customers: ['id', 'name', 'phone'],
         };
@@ -46,6 +46,12 @@ vi.mock('@/lib/export', () => ({
             customer_contacts: 'contact_date',
         };
         return dateColumns[tableName] || null;
+    }),
+    getPrimaryKeyColumn: vi.fn((tableName: string) => {
+        const pkColumns: Record<string, string> = {
+            inventory: 'product_id',
+        };
+        return pkColumns[tableName] || 'id';
     }),
 }));
 

@@ -7,6 +7,7 @@ import {
     generateXLSX,
     getTableColumns,
     getDateColumn,
+    getPrimaryKeyColumn,
     TableData,
 } from '@/lib/export';
 
@@ -119,11 +120,12 @@ export async function POST(request: NextRequest) {
                 query = query.gte(dateColumn, dateRange.start).lte(dateColumn, dateRange.end);
             }
 
-            // Order by created_at or id
+            // Order by created_at or primary key
             if (dateColumn) {
                 query = query.order(dateColumn, { ascending: false });
             } else {
-                query = query.order('id', { ascending: true });
+                const pkColumn = getPrimaryKeyColumn(tableName);
+                query = query.order(pkColumn, { ascending: true });
             }
 
             const { data, error } = await query;

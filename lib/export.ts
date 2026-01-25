@@ -156,14 +156,14 @@ function formatCellValue(value: unknown): string | number | boolean | Date | nul
 export function getTableColumns(tableName: ExportableTable): string[] {
     const columnMap: Record<ExportableTable, string[]> = {
         inventory: [
-            'id',
+            'product_id',
             'product_name',
+            'total_grams_available',
             'stock_kg',
             'stock_units',
-            'price_per_lb',
-            'cost_per_lb',
+            'unit_price',
+            'cost_per_unit',
             'min_stock_threshold',
-            'created_at',
         ],
         sales: [
             'id',
@@ -224,4 +224,14 @@ export function getDateColumn(tableName: ExportableTable): string | null {
         customer_contacts: 'contact_date',
     };
     return dateColumns[tableName] || null;
+}
+
+/**
+ * Get the primary key column for a table
+ */
+export function getPrimaryKeyColumn(tableName: ExportableTable): string {
+    const pkColumns: Partial<Record<ExportableTable, string>> = {
+        inventory: 'product_id',
+    };
+    return pkColumns[tableName] || 'id';
 }
