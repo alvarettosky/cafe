@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { CustomerModal } from '@/components/customer-modal';
+import { NewCustomerModal } from '@/components/new-customer-modal';
 import { Button } from '@/components/ui/button';
 import { RepeatSaleButton } from '@/components/repeat-sale-button';
 import { GeneratePortalAccessButton } from '@/components/generate-portal-access-button';
@@ -147,12 +148,15 @@ export default function CustomersPage() {
                 Gestión de Clientes
               </h1>
             </div>
-            <DownloadButton
-              tables={['customers', 'customer_contacts']}
-              format="xlsx"
-              label="Exportar Clientes"
-              fileName="clientes"
-            />
+            <div className="flex items-center gap-2">
+              <NewCustomerModal onCustomerAdded={fetchCustomers} />
+              <DownloadButton
+                tables={['customers', 'customer_contacts']}
+                format="xlsx"
+                label="Exportar Clientes"
+                fileName="clientes"
+              />
+            </div>
           </div>
           <p className="text-gray-600">
             Administra la información de recurrencia de tus clientes

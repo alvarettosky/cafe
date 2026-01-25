@@ -33,10 +33,6 @@ vi.mock('@/components/inventory-list', () => ({
   InventoryList: () => <div data-testid="inventory-list">Inventory List Mock</div>,
 }));
 
-vi.mock('@/components/new-customer-modal', () => ({
-  NewCustomerModal: () => <button data-testid="new-customer-modal">Nuevo Cliente</button>,
-}));
-
 vi.mock('@/components/diagnostics', () => ({
   Diagnostics: () => <div data-testid="diagnostics">Diagnostics Mock</div>,
 }));
@@ -239,6 +235,7 @@ describe('Dashboard Page', () => {
         expect(screen.getByRole('button', { name: /analytics/i })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /clientes/i })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /contactos/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /inventario/i })).toBeInTheDocument();
       });
     });
 
@@ -288,6 +285,18 @@ describe('Dashboard Page', () => {
       expect(mockPush).toHaveBeenCalledWith('/contactos');
     });
 
+    it('should navigate to inventario page when button clicked', async () => {
+      const user = userEvent.setup();
+      render(<Dashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /inventario/i })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('button', { name: /inventario/i }));
+      expect(mockPush).toHaveBeenCalledWith('/inventario');
+    });
+
     it('should call signOut when logout button clicked', async () => {
       const user = userEvent.setup();
       render(<Dashboard />);
@@ -315,14 +324,6 @@ describe('Dashboard Page', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('inventory-list')).toBeInTheDocument();
-      });
-    });
-
-    it('should render new customer modal component', async () => {
-      render(<Dashboard />);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('new-customer-modal')).toBeInTheDocument();
       });
     });
 

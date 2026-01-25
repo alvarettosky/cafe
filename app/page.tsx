@@ -2,7 +2,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { NewCustomerModal } from "@/components/new-customer-modal";
 import { Coffee, Package, TrendingUp, AlertTriangle, RefreshCcw, BarChart3, Users, Phone, LogOut, LucideIcon, DollarSign, Database } from "lucide-react";
 import { DownloadButton } from "@/components/export";
 import { useState, useEffect } from "react";
@@ -131,6 +130,10 @@ export default function Dashboard() {
               <Phone className="w-4 h-4 mr-2" />
               Contactos
             </Button>
+            <Button variant="outline" onClick={() => router.push('/inventario')}>
+              <Package className="w-4 h-4 mr-2" />
+              Inventario
+            </Button>
             {isAdmin && (
               <>
                 <Button variant="outline" onClick={() => router.push('/precios')}>
@@ -149,7 +152,6 @@ export default function Dashboard() {
                 />
               </>
             )}
-            <NewCustomerModal />
             <Link href="/ventas/nueva">
               <Button variant="default" size="lg" className="shadow-lg shadow-primary/20">
                 <Coffee className="mr-2 h-5 w-5" /> Nueva Venta
