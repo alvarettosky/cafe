@@ -140,14 +140,28 @@ async function setupMocksOnContext(context: BrowserContext) {
         body: JSON.stringify({
           total_revenue: 1500000,
           total_profit: 450000,
-          total_sales_count: 45,
+          sales_count: 45,
           avg_ticket: 33333,
+          avg_profit_margin: 30.0,
+          inventory_value: 2500000,
+          low_stock_items: 2,
+          pending_credits: 0,
           top_products: [{ name: 'Café de Prueba', total_sold: 20, revenue: 500000 }],
           payment_methods: [
             { method: 'cash', count: 30, total: 1000000 },
             { method: 'transfer', count: 15, total: 500000 },
           ],
         }),
+      });
+      return;
+    }
+
+    // Pending credits for analytics
+    if (url.includes('/rpc/get_pending_credits')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([]),
       });
       return;
     }
@@ -187,6 +201,48 @@ async function setupMocksOnContext(context: BrowserContext) {
       return;
     }
 
+    // Customer recurrence calculation
+    if (url.includes('/rpc/calculate_customer_recurrence')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(14), // Suggest 14 days recurrence
+      });
+      return;
+    }
+
+    // Product performance for analytics
+    if (url.includes('/rpc/get_product_performance')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          { product_name: 'Café Test', units_sold: 50, revenue: 500000, profit: 150000 },
+        ]),
+      });
+      return;
+    }
+
+    // Inventory movements (Kardex)
+    if (url.includes('/rpc/get_inventory_movements')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([]),
+      });
+      return;
+    }
+
+    // Add inventory movement
+    if (url.includes('/rpc/add_inventory_movement')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true }),
+      });
+      return;
+    }
+
     // Data tables
     if (url.includes('/rest/v1/sales')) {
       await route.fulfill({
@@ -201,13 +257,33 @@ async function setupMocksOnContext(context: BrowserContext) {
       return;
     }
 
+    // Products with variants (used by InventoryList component)
+    if (url.includes('/rpc/get_products_with_variants')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([{
+          product_id: 'p1',
+          product_name: 'Café E2E Test',
+          total_grams_available: 5000,
+        }]),
+      });
+      return;
+    }
+
     if (url.includes('/rest/v1/inventory')) {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify([{
-          id: 'i1', name: 'Café E2E', stock_kg: 5, stock_units: 0,
-          unit_price: 25000, cost_per_unit: 15000, min_stock_threshold: 1,
+          product_id: 'p1',
+          product_name: 'Café E2E Test',
+          total_grams_available: 5000,
+          stock_kg: 5,
+          stock_units: 0,
+          unit_price: 25000,
+          cost_per_unit: 15000,
+          min_stock_threshold: 1,
         }]),
       });
       return;
