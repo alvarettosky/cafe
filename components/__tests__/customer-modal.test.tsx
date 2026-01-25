@@ -55,8 +55,10 @@ describe('CustomerModal', () => {
         }))
       }));
 
-      vi.mocked(supabase.from).mockImplementation(fromMock);
-      vi.mocked(supabase.rpc).mockResolvedValue({ data: 8, error: null });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(supabase.from).mockImplementation(fromMock as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(supabase.rpc).mockResolvedValue({ data: 8, error: null } as any);
 
       render(
         <CustomerModal
@@ -82,8 +84,10 @@ describe('CustomerModal', () => {
         }))
       }));
 
-      vi.mocked(supabase.from).mockImplementation(fromMock);
-      vi.mocked(supabase.rpc).mockResolvedValue({ data: 8, error: null });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(supabase.from).mockImplementation(fromMock as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(supabase.rpc).mockResolvedValue({ data: 8, error: null } as any);
     });
 
     it('should display customer information correctly', async () => {
@@ -152,8 +156,10 @@ describe('CustomerModal', () => {
         }))
       }));
 
-      vi.mocked(supabase.from).mockImplementation(fromMock);
-      vi.mocked(supabase.rpc).mockResolvedValue({ data: 8, error: null });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(supabase.from).mockImplementation(fromMock as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(supabase.rpc).mockResolvedValue({ data: 8, error: null } as any);
     });
 
     it('should allow editing customer name', async () => {
@@ -242,8 +248,10 @@ describe('CustomerModal', () => {
         }))
       }));
 
-      vi.mocked(supabase.from).mockImplementation(fromMock);
-      vi.mocked(supabase.rpc).mockResolvedValue({ data: 8, error: null });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(supabase.from).mockImplementation(fromMock as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(supabase.rpc).mockResolvedValue({ data: 8, error: null } as any);
     });
 
     it('should save customer changes', async () => {
@@ -312,8 +320,10 @@ describe('CustomerModal', () => {
         }))
       }));
 
-      vi.mocked(supabase.from).mockImplementation(fromMock);
-      vi.mocked(supabase.rpc).mockResolvedValue({ data: 8, error: null });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(supabase.from).mockImplementation(fromMock as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(supabase.rpc).mockResolvedValue({ data: 8, error: null } as any);
     });
 
     it('should close modal when cancel button is clicked', async () => {
@@ -365,8 +375,10 @@ describe('CustomerModal', () => {
         }))
       }));
 
-      vi.mocked(supabase.from).mockImplementation(fromMock);
-      vi.mocked(supabase.rpc).mockResolvedValue({ data: null, error: null });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(supabase.from).mockImplementation(fromMock as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(supabase.rpc).mockResolvedValue({ data: null, error: null } as any);
 
       render(
         <CustomerModal

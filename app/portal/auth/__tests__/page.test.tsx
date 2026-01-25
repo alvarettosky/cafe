@@ -386,8 +386,10 @@ describe('PortalAuthPage', () => {
 
       // Mock window.location.href
       const originalLocation = window.location;
-      delete (window as { location?: Location }).location;
-      window.location = { ...originalLocation, href: '' } as Location;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (window as any).location;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      window.location = { ...originalLocation, href: '' } as any;
 
       render(<PortalAuthPage />);
 
@@ -401,7 +403,8 @@ describe('PortalAuthPage', () => {
       expect(window.location.href).toContain('wa.me');
 
       // Restore
-      window.location = originalLocation;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      window.location = originalLocation as any;
     });
   });
 });

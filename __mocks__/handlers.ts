@@ -3,7 +3,6 @@ import type {
   AdvancedMetrics,
   TimeSeriesDataPoint,
   ProductMetric,
-  InventoryItem,
 } from '../types'
 import type { InventoryMovement } from '../types/inventory'
 import type { VariantForSale } from '../types/products'
@@ -114,7 +113,9 @@ const mockProductPerformance: ProductMetric[] = [
   },
 ]
 
-const mockInventoryItems: InventoryItem[] = [
+// Mock data matches database schema (product_id), not TypeScript interface (id)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockInventoryItems: any[] = [
   {
     product_id: '1',
     product_name: 'Café Especial',
