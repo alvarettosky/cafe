@@ -3,7 +3,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Coffee, Package, TrendingUp, AlertTriangle, RefreshCcw, BarChart3, Users, Phone, LogOut, LucideIcon, DollarSign, Database } from "lucide-react";
-import { DownloadButton } from "@/components/export";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -144,12 +143,6 @@ export default function Dashboard() {
                   <Database className="w-4 h-4 mr-2" />
                   Backups
                 </Button>
-                <DownloadButton
-                  tables="inventory"
-                  format="xlsx"
-                  label="Inventario"
-                  fileName="inventario"
-                />
               </>
             )}
             <Link href="/ventas/nueva">

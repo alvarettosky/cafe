@@ -278,7 +278,7 @@ Página `/backups` (solo admins) permite exportar datos a CSV o Excel:
 - Formato CSV o XLSX (Excel con hojas separadas por tabla)
 - Filtro por rango de fechas (para tablas con timestamp)
 - Límite de 10,000 registros por tabla
-- Botones de exportación rápida en Dashboard, Analytics y Clientes
+- Botones de exportación rápida en Analytics y Clientes
 
 **API Route:** `POST /api/export`
 

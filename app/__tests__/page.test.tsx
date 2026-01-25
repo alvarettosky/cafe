@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 // Mock the auth provider
@@ -46,11 +46,7 @@ vi.mock('@/components/pending-users-modal', () => ({
     ) : null,
 }));
 
-vi.mock('@/components/export', () => ({
-  DownloadButton: ({ label }: { label: string }) => (
-    <button data-testid="download-button">{label}</button>
-  ),
-}));
+// DownloadButton was removed from Dashboard - no longer needed here
 
 // Import after mocks are set up
 import Dashboard from '../page';
@@ -245,7 +241,6 @@ describe('Dashboard Page', () => {
       await waitFor(() => {
         expect(screen.queryByRole('button', { name: /precios/i })).not.toBeInTheDocument();
         expect(screen.queryByRole('button', { name: /backups/i })).not.toBeInTheDocument();
-        expect(screen.queryByTestId('download-button')).not.toBeInTheDocument();
       });
     });
 
@@ -353,7 +348,6 @@ describe('Dashboard Page', () => {
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /precios/i })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /backups/i })).toBeInTheDocument();
-        expect(screen.getByTestId('download-button')).toBeInTheDocument();
       });
     });
 
