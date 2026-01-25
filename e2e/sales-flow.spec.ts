@@ -1,11 +1,14 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test.describe('Sales Flow', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ authenticatedPage: page }) => {
     await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    // Wait for dashboard to be fully loaded
+    await expect(page.locator('button:has-text("Nueva Venta")')).toBeVisible({ timeout: 15000 });
   });
 
-  test('should complete a full sale transaction', async ({ page }) => {
+  test('should complete a full sale transaction', async ({ authenticatedPage: page }) => {
     // Click "Nueva Venta" button
     await page.click('button:has-text("Nueva Venta")');
 
@@ -34,7 +37,7 @@ test.describe('Sales Flow', () => {
     await expect(page.locator('text=Ventas Hoy')).toBeVisible();
   });
 
-  test('should show validation error when no product selected', async ({ page }) => {
+  test('should show validation error when no product selected', async ({ authenticatedPage: page }) => {
     await page.click('button:has-text("Nueva Venta")');
     await expect(page.locator('text=Registrar Venta de Café')).toBeVisible();
 
@@ -45,7 +48,7 @@ test.describe('Sales Flow', () => {
     await expect(page.locator('text=Selecciona un producto')).toBeVisible();
   });
 
-  test('should allow adding a new customer during sale', async ({ page }) => {
+  test('should allow adding a new customer during sale', async ({ authenticatedPage: page }) => {
     await page.click('button:has-text("Nueva Venta")');
     await expect(page.locator('text=Registrar Venta de Café')).toBeVisible();
 
@@ -63,7 +66,7 @@ test.describe('Sales Flow', () => {
     await expect(page.locator('text=Registrar Venta de Café')).not.toBeVisible({ timeout: 10000 });
   });
 
-  test('should allow selecting different units (libra vs media libra)', async ({ page }) => {
+  test('should allow selecting different units (libra vs media libra)', async ({ authenticatedPage: page }) => {
     await page.click('button:has-text("Nueva Venta")');
     await expect(page.locator('text=Registrar Venta de Café')).toBeVisible();
 
@@ -85,7 +88,7 @@ test.describe('Sales Flow', () => {
     await expect(page.locator('text=Registrar Venta de Café')).not.toBeVisible({ timeout: 10000 });
   });
 
-  test('should support all payment methods', async ({ page }) => {
+  test('should support all payment methods', async ({ authenticatedPage: page }) => {
     await page.click('button:has-text("Nueva Venta")');
     await expect(page.locator('text=Registrar Venta de Café')).toBeVisible();
 

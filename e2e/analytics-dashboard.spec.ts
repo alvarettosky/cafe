@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test.describe('Analytics Dashboard', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ authenticatedPage: page }) => {
     await page.goto('/');
 
     // Navigate to analytics
@@ -9,7 +9,7 @@ test.describe('Analytics Dashboard', () => {
     await page.waitForURL('/analytics');
   });
 
-  test('should display all KPI cards', async ({ page }) => {
+  test('should display all KPI cards', async ({ authenticatedPage: page }) => {
     // Check for KPI cards
     await expect(page.locator('text=Ingresos Totales')).toBeVisible();
     await expect(page.locator('text=Ganancia Total')).toBeVisible();
@@ -17,14 +17,14 @@ test.describe('Analytics Dashboard', () => {
     await expect(page.locator('text=Créditos Pendientes')).toBeVisible();
   });
 
-  test('should display all charts', async ({ page }) => {
+  test('should display all charts', async ({ authenticatedPage: page }) => {
     // Check for chart titles
     await expect(page.locator('text=Revenue & Profit Trend')).toBeVisible();
     await expect(page.locator('text=Payment Methods')).toBeVisible();
     await expect(page.locator('text=Product Performance').or(page.locator('text=Top Products'))).toBeVisible();
   });
 
-  test('should allow date range selection', async ({ page }) => {
+  test('should allow date range selection', async ({ authenticatedPage: page }) => {
     // Check date range selector buttons
     await expect(page.locator('button:has-text("Hoy")')).toBeVisible();
     await expect(page.locator('button:has-text("Esta Semana")')).toBeVisible();
@@ -37,7 +37,7 @@ test.describe('Analytics Dashboard', () => {
     await expect(page.locator('text=Revenue & Profit Trend')).toBeVisible();
   });
 
-  test('should have working back button', async ({ page }) => {
+  test('should have working back button', async ({ authenticatedPage: page }) => {
     // Click back button
     await page.click('button[aria-label="Go back"]');
 
@@ -46,7 +46,7 @@ test.describe('Analytics Dashboard', () => {
     await expect(page.locator('text=Nueva Venta')).toBeVisible();
   });
 
-  test('should be responsive on mobile', async ({ page }) => {
+  test('should be responsive on mobile', async ({ authenticatedPage: page }) => {
     // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
 
@@ -57,7 +57,7 @@ test.describe('Analytics Dashboard', () => {
     await expect(page.locator('text=Ingresos Totales')).toBeVisible();
   });
 
-  test('should display charts with data', async ({ page }) => {
+  test('should display charts with data', async ({ authenticatedPage: page }) => {
     // Wait for charts to render
     await page.waitForTimeout(2000);
 
@@ -69,7 +69,7 @@ test.describe('Analytics Dashboard', () => {
     expect(count).toBeGreaterThanOrEqual(3);
   });
 
-  test('should update metrics when date range changes', async ({ page }) => {
+  test('should update metrics when date range changes', async ({ authenticatedPage: page }) => {
     // Get revenue card locator
     const revenueCard = page.locator('text=Ingresos Totales').locator('..');
 
@@ -86,7 +86,7 @@ test.describe('Analytics Dashboard', () => {
     await expect(revenueCard).toBeVisible();
   });
 
-  test('should show loading states during data fetch', async ({ page }) => {
+  test('should show loading states during data fetch', async ({ authenticatedPage: page }) => {
     // Reload page to see initial loading
     await page.reload();
 

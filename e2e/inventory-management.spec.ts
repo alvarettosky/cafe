@@ -1,11 +1,11 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test.describe('Inventory Management', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ authenticatedPage: page }) => {
     await page.goto('/');
   });
 
-  test('should display inventory list', async ({ page }) => {
+  test('should display inventory list', async ({ authenticatedPage: page }) => {
     // Look for inventory section
     await expect(page.locator('text=Inventario Actual')).toBeVisible();
 
@@ -14,7 +14,7 @@ test.describe('Inventory Management', () => {
     await expect(inventoryItems).toBeVisible();
   });
 
-  test('should show low stock alerts', async ({ page }) => {
+  test('should show low stock alerts', async ({ authenticatedPage: page }) => {
     // Look for alert indicator
     const lowStockAlert = page.locator('text=Bajo Stock');
 
@@ -23,7 +23,7 @@ test.describe('Inventory Management', () => {
     expect(count).toBeGreaterThanOrEqual(0);
   });
 
-  test('should update inventory after sale', async ({ page }) => {
+  test('should update inventory after sale', async ({ authenticatedPage: page }) => {
     // Get initial inventory count for a product
     const productRow = page.locator('[data-testid="inventory-item"]').first();
     const initialText = await productRow.textContent();
@@ -46,7 +46,7 @@ test.describe('Inventory Management', () => {
     expect(newText).not.toBe(initialText);
   });
 
-  test('should display inventory metrics', async ({ page }) => {
+  test('should display inventory metrics', async ({ authenticatedPage: page }) => {
     // Check for inventory-related metrics
     const inventorySection = page.locator('text=Inventario Actual').locator('..');
     await expect(inventorySection).toBeVisible();
@@ -56,7 +56,7 @@ test.describe('Inventory Management', () => {
     await expect(page.locator('body')).toContainText(/gramos|libras|kg/i);
   });
 
-  test('should allow filtering or searching inventory (if implemented)', async ({ page }) => {
+  test('should allow filtering or searching inventory (if implemented)', async ({ authenticatedPage: page }) => {
     // This test is optional depending on implementation
     const searchInput = page.locator('input[placeholder*="buscar" i], input[placeholder*="search" i]');
 
@@ -72,7 +72,7 @@ test.describe('Inventory Management', () => {
     }
   });
 
-  test('should show product details', async ({ page }) => {
+  test('should show product details', async ({ authenticatedPage: page }) => {
     // Look for product information cards or rows
     const inventoryList = page.locator('text=Inventario Actual').locator('..');
     await expect(inventoryList).toBeVisible();
@@ -83,7 +83,7 @@ test.describe('Inventory Management', () => {
     expect(hasContent!.length).toBeGreaterThan(0);
   });
 
-  test('should handle empty inventory gracefully', async ({ page }) => {
+  test('should handle empty inventory gracefully', async ({ authenticatedPage: page }) => {
     // This test verifies the UI doesn't break with no inventory
     // Actual behavior depends on whether there's seed data
 
@@ -98,7 +98,7 @@ test.describe('Inventory Management', () => {
     expect(errors.length).toBe(0);
   });
 
-  test('should display cost and value information', async ({ page }) => {
+  test('should display cost and value information', async ({ authenticatedPage: page }) => {
     // Look for cost/value metrics
     const bodyText = await page.locator('body').textContent();
 

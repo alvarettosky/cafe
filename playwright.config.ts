@@ -24,10 +24,10 @@ export default defineConfig({
       testMatch: /smoke\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
-    // Setup for authenticated tests
+    // Setup for authenticated tests (uses mocked auth if no credentials)
     {
       name: 'setup',
-      testMatch: /.*\.setup\.ts/,
+      testMatch: /auth\.setup\.ts/,
     },
     // Authenticated tests
     {
