@@ -79,7 +79,7 @@ import CustomersPage from '../page';
 describe('CustomersPage', () => {
   // Mock the current date to 2026-01-23 so relative date tests are stable
   beforeEach(() => {
-    vi.useFakeTimers();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.setSystemTime(new Date('2026-01-23T12:00:00Z'));
   });
 
@@ -149,6 +149,7 @@ describe('CustomersPage', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   describe('Loading State', () => {
