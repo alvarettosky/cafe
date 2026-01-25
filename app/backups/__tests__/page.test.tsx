@@ -32,19 +32,12 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 // Mock framer-motion to avoid animation issues in tests
-vi.mock('framer-motion', () => {
-  const React = require('react');
-  return {
-    motion: {
-      div: React.forwardRef(({ children, ...props }: { children: React.ReactNode }, ref: React.Ref<HTMLDivElement>) =>
-        React.createElement('div', { ...props, ref }, children)
-      ),
-      button: React.forwardRef(({ children, ...props }: { children: React.ReactNode }, ref: React.Ref<HTMLButtonElement>) =>
-        React.createElement('button', { ...props, ref }, children)
-      ),
-    },
-  };
-});
+vi.mock('framer-motion', () => ({
+  motion: {
+    div: 'div',
+    button: 'button',
+  },
+}));
 
 // Mock ExportForm component
 vi.mock('@/components/export', () => ({
@@ -57,7 +50,8 @@ vi.mock('@/components/export', () => ({
 import BackupsPage from '../page';
 
 describe('BackupsPage', () => {
-  const mockBackups = [
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _mockBackups = [
     {
       id: 'backup-1',
       name: 'cafe-mirador-backup-2026-01-22.zip',

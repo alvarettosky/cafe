@@ -28,19 +28,12 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 // Mock framer-motion to avoid animation issues in tests
-vi.mock('framer-motion', () => {
-  const React = require('react');
-  return {
-    motion: {
-      div: React.forwardRef(({ children, ...props }: { children: React.ReactNode }, ref: React.Ref<HTMLDivElement>) =>
-        React.createElement('div', { ...props, ref }, children)
-      ),
-      button: React.forwardRef(({ children, ...props }: { children: React.ReactNode }, ref: React.Ref<HTMLButtonElement>) =>
-        React.createElement('button', { ...props, ref }, children)
-      ),
-    },
-  };
-});
+vi.mock('framer-motion', () => ({
+  motion: {
+    div: 'div',
+    button: 'button',
+  },
+}));
 
 // Mock chart components - these are complex and we just want to verify they render
 vi.mock('@/components/charts/revenue-chart', () => ({
@@ -50,7 +43,7 @@ vi.mock('@/components/charts/revenue-chart', () => ({
 }));
 
 vi.mock('@/components/charts/payment-chart', () => ({
-  PaymentChart: ({ data }: { data: unknown }) => (
+  PaymentChart: () => (
     <div data-testid="payment-chart">Payment Chart</div>
   ),
 }));

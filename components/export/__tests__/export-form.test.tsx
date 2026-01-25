@@ -201,11 +201,11 @@ describe('ExportForm', () => {
             const user = userEvent.setup();
             render(<ExportForm />);
 
-            const inventoryLabel = screen.getByText('Inventario').closest('label');
-            await user.click(inventoryLabel?.querySelector('input[type="checkbox"]')!);
+            const inventoryLabel = screen.getByText('Inventario').closest('label')!;
+            await user.click(inventoryLabel.querySelector('input[type="checkbox"]')!);
 
-            const clientesLabel = screen.getByText('Clientes').closest('label');
-            await user.click(clientesLabel?.querySelector('input[type="checkbox"]')!);
+            const clientesLabel = screen.getByText('Clientes').closest('label')!;
+            await user.click(clientesLabel.querySelector('input[type="checkbox"]')!);
 
             expect(screen.getByRole('button', { name: /Exportar \(2 tablas\)/i })).toBeInTheDocument();
         });
@@ -217,8 +217,8 @@ describe('ExportForm', () => {
             render(<ExportForm />);
 
             // Select inventory
-            const inventoryLabel = screen.getByText('Inventario').closest('label');
-            await user.click(inventoryLabel?.querySelector('input[type="checkbox"]')!);
+            const inventoryLabel = screen.getByText('Inventario').closest('label')!;
+            await user.click(inventoryLabel.querySelector('input[type="checkbox"]')!);
 
             // Click export
             await user.click(screen.getByRole('button', { name: /Exportar/i }));
@@ -232,8 +232,8 @@ describe('ExportForm', () => {
             const user = userEvent.setup();
             render(<ExportForm />);
 
-            const inventoryLabel = screen.getByText('Inventario').closest('label');
-            await user.click(inventoryLabel?.querySelector('input[type="checkbox"]')!);
+            const inventoryLabel = screen.getByText('Inventario').closest('label')!;
+            await user.click(inventoryLabel.querySelector('input[type="checkbox"]')!);
             await user.click(screen.getByRole('button', { name: /Exportar/i }));
 
             await waitFor(() => {
@@ -256,8 +256,8 @@ describe('ExportForm', () => {
 
             render(<ExportForm />);
 
-            const inventoryLabel = screen.getByText('Inventario').closest('label');
-            await user.click(inventoryLabel?.querySelector('input[type="checkbox"]')!);
+            const inventoryLabel = screen.getByText('Inventario').closest('label')!;
+            await user.click(inventoryLabel.querySelector('input[type="checkbox"]')!);
             await user.click(screen.getByRole('button', { name: /Exportar/i }));
 
             await waitFor(() => {

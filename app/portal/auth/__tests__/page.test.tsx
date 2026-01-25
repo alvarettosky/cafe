@@ -1,4 +1,3 @@
-import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -35,17 +34,9 @@ vi.mock('@/lib/supabase', () => ({
 // Mock framer-motion to avoid animation issues in tests
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => (
-      <div {...props}>{children}</div>
-    ),
-    p: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => (
-      <p {...props}>{children}</p>
-    ),
-    button: React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement>>(
-      ({ children, ...props }, ref) => (
-        <button ref={ref} {...props}>{children}</button>
-      )
-    ),
+    div: 'div',
+    p: 'p',
+    button: 'button',
   },
 }));
 
