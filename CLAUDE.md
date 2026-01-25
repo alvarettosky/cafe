@@ -92,8 +92,9 @@ Pre-commit automático (Husky + lint-staged):
 /login          → Autenticación con Supabase Auth
 /pendiente      → Pantalla de espera para usuarios no aprobados
 /analytics      → Dashboard analítico (gráficos de ventas, métricas)
-/clientes       → Gestión de clientes con recurrencia
+/clientes       → Gestión de clientes con recurrencia (incluye "Nuevo Cliente")
 /contactos      → Lista de contactos por recurrencia + Prospectos (integración WhatsApp)
+/inventario     → Gestión de inventario con Kardex de movimientos
 /precios        → Gestión de listas de precios diferenciados (solo admin)
 /backups        → Exportación de datos CSV/XLSX y gestión de backups (solo admin)
 
@@ -394,7 +395,7 @@ Sistema self-service para clientes. Autenticación sin contraseña mediante magi
 
 - `NewSaleModal` - Crear venta (incluye recurrencia). Soporta `initialData` para repetir ventas.
 - `NewCustomerModal` - Crear cliente
-- `CustomerModal` - Editar cliente (nombre, teléfono, email, dirección, recurrencia, última compra, tipo de cliente, zona de entrega)
+- `CustomerModal` - Editar cliente (nombre, teléfono, email, dirección, recurrencia, última compra, tipo de cliente, zona de entrega). Modal con scroll interno (max-h-[85vh]).
 - `ProductModal` - Editar inventario (solo admins)
 - `PendingUsersModal` - Aprobar/rechazar usuarios (solo admins)
 
@@ -427,7 +428,7 @@ Sistema self-service para clientes. Autenticación sin contraseña mediante magi
 
 **Fase 4 - Arquitectura POS Profesional**:
 
-- `InventoryMovements` - Modal de historial de movimientos (Kardex) por producto. Muestra entradas, salidas, ajustes con trazabilidad completa.
+- `InventoryMovements` - Modal de historial de movimientos (Kardex) por producto. Tipos soportados: reposición, devolución, merma, ajuste. Trazabilidad completa con razón obligatoria para mermas y devoluciones.
 - `ProductVariantSelector` - Selector de producto con variantes agrupadas por producto padre. Muestra SKU, presentación, tipo de molido y stock disponible.
 - `ProductVariantSelectCompact` - Versión compacta del selector de variantes para formularios.
 - `app/precios/page.tsx` - Página de gestión de listas de precios (solo admin). Integra `PriceListManager`.
