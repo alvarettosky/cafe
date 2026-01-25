@@ -33,7 +33,13 @@ jobs:
         run: npm ci
 
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps ${{ matrix.browser }}
+        run: |
+          # Install target browser for tests
+          npx playwright install --with-deps ${{ matrix.browser }}
+          # Also install chromium for auth setup project (no browser specified = defaults to chromium)
+          if [ "${{ matrix.browser }}" != "chromium" ]; then
+            npx playwright install chromium
+          fi
 
       - name: Run Playwright tests
         run: npx playwright test --project=${{ matrix.browser }}
