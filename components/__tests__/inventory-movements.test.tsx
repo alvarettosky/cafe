@@ -183,10 +183,11 @@ describe('InventoryMovements', () => {
 
         // Check options
         const options = within(select).getAllByRole('option');
-        expect(options).toHaveLength(3);
+        expect(options).toHaveLength(4);
         expect(options[0]).toHaveTextContent(/Reposición/i);
-        expect(options[1]).toHaveTextContent(/Merma/i);
-        expect(options[2]).toHaveTextContent(/Ajuste/i);
+        expect(options[1]).toHaveTextContent(/Devolución/i);
+        expect(options[2]).toHaveTextContent(/Merma/i);
+        expect(options[3]).toHaveTextContent(/Ajuste/i);
     });
 
     it('should show cost and batch fields for restock movement', async () => {
@@ -259,6 +260,57 @@ describe('InventoryMovements', () => {
         await waitFor(() => {
             const reasonLabel = screen.getByText(/Razón \/ Notas/i);
             expect(reasonLabel.parentElement).toContainHTML('*');
+        });
+    });
+
+    it('should require reason for return movement', async () => {
+        const user = userEvent.setup();
+        render(
+            <InventoryMovements
+                isOpen={true}
+                onClose={mockOnClose}
+                product={mockProduct}
+                onMovementAdded={mockOnMovementAdded}
+            />
+        );
+
+        // Open form and select return
+        const addButton = await screen.findByRole('button', { name: /Nuevo Movimiento/i });
+        await user.click(addButton);
+
+        const select = await screen.findByRole('combobox');
+        await user.selectOptions(select, 'return');
+
+        // Check that reason label shows required indicator
+        await waitFor(() => {
+            const reasonLabel = screen.getByText(/Razón \/ Notas/i);
+            expect(reasonLabel.parentElement).toContainHTML('*');
+        });
+    });
+
+    it('should hide cost and batch fields for return movement', async () => {
+        const user = userEvent.setup();
+        render(
+            <InventoryMovements
+                isOpen={true}
+                onClose={mockOnClose}
+                product={mockProduct}
+                onMovementAdded={mockOnMovementAdded}
+            />
+        );
+
+        // Open form
+        const addButton = await screen.findByRole('button', { name: /Nuevo Movimiento/i });
+        await user.click(addButton);
+
+        // Change to return
+        const select = await screen.findByRole('combobox');
+        await user.selectOptions(select, 'return');
+
+        // Cost and batch fields should not be visible (only for restock)
+        await waitFor(() => {
+            expect(screen.queryByText(/Costo por gramo/i)).not.toBeInTheDocument();
+            expect(screen.queryByText(/Número de lote/i)).not.toBeInTheDocument();
         });
     });
 

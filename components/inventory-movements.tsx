@@ -15,7 +15,8 @@ import {
     Package,
     AlertTriangle,
     RefreshCw,
-    Loader2
+    Loader2,
+    RotateCcw
 } from 'lucide-react';
 import {
     InventoryMovement,
@@ -49,7 +50,7 @@ export function InventoryMovements({
     const [addingMovement, setAddingMovement] = useState(false);
 
     // Form state for new movement
-    const [movementType, setMovementType] = useState<'restock' | 'loss' | 'adjustment'>('restock');
+    const [movementType, setMovementType] = useState<'restock' | 'loss' | 'adjustment' | 'return'>('restock');
     const [quantity, setQuantity] = useState('');
     const [reason, setReason] = useState('');
     const [unitCost, setUnitCost] = useState('');
@@ -120,6 +121,18 @@ export function InventoryMovements({
                     p_movement_type: 'adjustment',
                     p_quantity_grams: quantityGrams,
                     p_reason: reason || 'Ajuste de inventario'
+                });
+                if (error) throw error;
+            } else if (movementType === 'return') {
+                if (!reason) {
+                    alert('Se requiere una razón para registrar devolución');
+                    return;
+                }
+                const { error } = await supabase.rpc('register_inventory_movement', {
+                    p_product_id: product.product_id,
+                    p_movement_type: 'return',
+                    p_quantity_grams: quantityGrams,
+                    p_reason: reason
                 });
                 if (error) throw error;
             }
@@ -200,10 +213,11 @@ export function InventoryMovements({
                                 <Label className="text-sm">Tipo de Movimiento</Label>
                                 <select
                                     value={movementType}
-                                    onChange={(e) => setMovementType(e.target.value as 'restock' | 'loss' | 'adjustment')}
+                                    onChange={(e) => setMovementType(e.target.value as 'restock' | 'loss' | 'adjustment' | 'return')}
                                     className="w-full px-3 py-2 border rounded-md text-sm"
                                 >
                                     <option value="restock">Reposición (+)</option>
+                                    <option value="return">Devolución (+)</option>
                                     <option value="loss">Merma (-)</option>
                                     <option value="adjustment">Ajuste (+/-)</option>
                                 </select>
@@ -253,7 +267,7 @@ export function InventoryMovements({
                         <div className="space-y-1">
                             <Label className="text-sm">
                                 Razón / Notas
-                                {movementType === 'loss' && (
+                                {(movementType === 'loss' || movementType === 'return') && (
                                     <span className="text-red-500 ml-1">*</span>
                                 )}
                             </Label>
@@ -263,9 +277,11 @@ export function InventoryMovements({
                                 placeholder={
                                     movementType === 'loss'
                                         ? 'Ej: Café vencido, derrame, etc.'
-                                        : 'Ej: Compra a proveedor X'
+                                        : movementType === 'return'
+                                            ? 'Ej: Cliente devolvió por defecto, cambio de producto, etc.'
+                                            : 'Ej: Compra a proveedor X'
                                 }
-                                required={movementType === 'loss'}
+                                required={movementType === 'loss' || movementType === 'return'}
                             />
                         </div>
 
@@ -279,6 +295,8 @@ export function InventoryMovements({
                                 <>
                                     {movementType === 'restock' ? (
                                         <Plus className="w-4 h-4 mr-2" />
+                                    ) : movementType === 'return' ? (
+                                        <RotateCcw className="w-4 h-4 mr-2" />
                                     ) : movementType === 'loss' ? (
                                         <Minus className="w-4 h-4 mr-2" />
                                     ) : (
