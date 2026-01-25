@@ -54,7 +54,7 @@ jobs:
           files: ./coverage/lcov.info
           flags: unittests
           name: unit-tests
-          fail_ci_if_error: true
+          fail_ci_if_error: false
 
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4

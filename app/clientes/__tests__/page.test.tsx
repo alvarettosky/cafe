@@ -260,13 +260,13 @@ describe('CustomersPage', () => {
     it('should display customers with recurrence count', async () => {
       render(<CustomersPage />);
 
+      // Wait for both the label and the count to be rendered
       await waitFor(() => {
         expect(screen.getByText('Con Recurrencia')).toBeInTheDocument();
+        // Find the stat card and verify count (Juan and Pedro have recurrence)
+        const recurrenceCard = screen.getByText('Con Recurrencia').closest('div')?.parentElement;
+        expect(recurrenceCard?.textContent).toContain('2');
       });
-
-      // Find the stat card and verify count (Juan and Pedro have recurrence)
-      const recurrenceCard = screen.getByText('Con Recurrencia').closest('div')?.parentElement;
-      expect(recurrenceCard?.textContent).toContain('2');
     });
 
     it('should display active customers count', async () => {
