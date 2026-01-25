@@ -203,16 +203,11 @@ setup('authenticate', async ({ page }) => {
       localStorage.setItem(storageKey, JSON.stringify(session));
     }, MOCK_SESSION);
 
-    // Navigate to dashboard - the mocked routes will handle API calls
-    await page.goto('/');
-
-    // Wait for the dashboard to load with mocked data
-    await page.waitForLoadState('networkidle');
-
-    // Verify dashboard loaded (may show mocked data or fallback)
-    await expect(page.locator('text=Mirador Montañero').first()).toBeVisible({ timeout: 10000 });
+    // For mocked auth, we don't need to verify the dashboard here
+    // The authenticatedPage fixture in fixtures.ts handles mocking at context level
+    // Just save an empty storage state - the fixture will set up proper mocks
   }
 
-  // Save authentication state
+  // Save authentication state (empty for mocked auth, real for actual auth)
   await page.context().storageState({ path: authFile });
 });
