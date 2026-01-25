@@ -175,7 +175,7 @@ export function CustomerModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
@@ -194,142 +194,145 @@ export function CustomerModal({
         ) : error ? (
           <div className="py-4 text-center text-red-600">{error}</div>
         ) : customer ? (
-          <div className="space-y-6">
-            {/* Customer Info */}
-            <div className="grid grid-cols-1 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Nombre completo *
-                  </div>
-                </label>
-                <input
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Nombre del cliente"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+          <>
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto space-y-6 pr-2">
+              {/* Customer Info */}
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      Teléfono
+                      <User className="h-4 w-4" />
+                      Nombre completo *
                     </div>
                   </label>
                   <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="3001234567"
+                    placeholder="Nombre del cliente"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      Email
-                    </div>
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="cliente@ejemplo.com"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    Dirección
-                  </div>
-                </label>
-                <input
-                  type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Dirección del cliente"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    Fecha de última compra
-                  </div>
-                </label>
-                <input
-                  type="datetime-local"
-                  value={lastPurchaseDate ? new Date(lastPurchaseDate).toISOString().slice(0, 16) : ''}
-                  onChange={(e) => setLastPurchaseDate(e.target.value ? new Date(e.target.value).toISOString() : '')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Normalmente se actualiza automáticamente con las ventas
-                </p>
-              </div>
-
-              {/* Customer Type and Delivery Zone */}
-              <div className="grid grid-cols-2 gap-4">
-                <CustomerTypeSelect
-                  value={customerType}
-                  onChange={setCustomerType}
-                />
-                <DeliveryZoneSelect
-                  value={deliveryZoneId}
-                  onChange={setDeliveryZoneId}
-                />
-              </div>
-            </div>
-
-            {/* Recurrence Input */}
-            <div className="border-t pt-6">
-              <RecurrenceInput
-                value={recurrenceDays}
-                onChange={setRecurrenceDays}
-                suggestedValue={suggestedRecurrence}
-                showSuggestion={suggestedRecurrence !== null}
-                helperText="Configura cada cuántos días este cliente suele hacer compras"
-              />
-            </div>
-
-            {/* Purchase History Info */}
-            {customer.last_purchase_date && recurrenceDays && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <TrendingUp className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="font-medium text-blue-900">
-                      Próxima compra esperada
-                    </p>
-                    <p className="text-sm text-blue-700 mt-1">
-                      Aproximadamente{' '}
-                      {formatDate(
-                        new Date(
-                          new Date(customer.last_purchase_date).getTime() +
-                            recurrenceDays * 24 * 60 * 60 * 1000
-                        ).toISOString()
-                      )}
-                    </p>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        Teléfono
+                      </div>
+                    </label>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="3001234567"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4" />
+                        Email
+                      </div>
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="cliente@ejemplo.com"
+                    />
                   </div>
                 </div>
-              </div>
-            )}
 
-            {/* Actions */}
-            <div className="flex justify-end gap-3 pt-4 border-t">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      Dirección
+                    </div>
+                  </label>
+                  <input
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Dirección del cliente"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      Fecha de última compra
+                    </div>
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={lastPurchaseDate ? new Date(lastPurchaseDate).toISOString().slice(0, 16) : ''}
+                    onChange={(e) => setLastPurchaseDate(e.target.value ? new Date(e.target.value).toISOString() : '')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Normalmente se actualiza automáticamente con las ventas
+                  </p>
+                </div>
+
+                {/* Customer Type and Delivery Zone */}
+                <div className="grid grid-cols-2 gap-4">
+                  <CustomerTypeSelect
+                    value={customerType}
+                    onChange={setCustomerType}
+                  />
+                  <DeliveryZoneSelect
+                    value={deliveryZoneId}
+                    onChange={setDeliveryZoneId}
+                  />
+                </div>
+              </div>
+
+              {/* Recurrence Input */}
+              <div className="border-t pt-6">
+                <RecurrenceInput
+                  value={recurrenceDays}
+                  onChange={setRecurrenceDays}
+                  suggestedValue={suggestedRecurrence}
+                  showSuggestion={suggestedRecurrence !== null}
+                  helperText="Configura cada cuántos días este cliente suele hacer compras"
+                />
+              </div>
+
+              {/* Purchase History Info */}
+              {customer.last_purchase_date && recurrenceDays && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <TrendingUp className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-blue-900">
+                        Próxima compra esperada
+                      </p>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Aproximadamente{' '}
+                        {formatDate(
+                          new Date(
+                            new Date(customer.last_purchase_date).getTime() +
+                              recurrenceDays * 24 * 60 * 60 * 1000
+                          ).toISOString()
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Actions - Fixed at bottom */}
+            <div className="flex justify-end gap-3 pt-4 border-t mt-4 flex-shrink-0">
               <button
                 type="button"
                 onClick={onClose}
@@ -354,7 +357,7 @@ export function CustomerModal({
                 )}
               </button>
             </div>
-          </div>
+          </>
         ) : null}
       </DialogContent>
     </Dialog>
