@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Sistema Café Mirador CRM
 
-Sistema completo de gestión para cafetería: inventario, punto de venta (POS), gestión de clientes con recurrencia, y análisis de ventas. Desplegado en producción en Vercel con Supabase como backend.
+Sistema de gestión para venta de café por libras y medias libras, con tienda online, programa de referidos (voz a voz), gestión de clientes recurrentes y análisis de ventas. Desplegado en producción en Vercel con Supabase como backend.
 
 ### Estado de Implementación
 
@@ -628,6 +628,8 @@ const { data, error } = await supabase.rpc('process_coffee_sale', {
 
 ## Recursos Adicionales
 
+- **Ficha Técnica**: `FICHA_TECNICA.md` - Información del proyecto, cuentas, stack y métricas
+- **Instrucciones**: `INSTRUCCIONES.md` - Guía de inicio rápido
 - **Documentación completa**: `/docs/testing/` para guías de testing
 - **Roadmap de Mejoras**: `/docs/plans/2026-01-19-roadmap-mejoras-competitivas.md`
   - Fase 1: `/docs/plans/2026-01-19-fase1-maximizar-recurrencia.md`

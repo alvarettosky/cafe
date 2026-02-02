@@ -6,12 +6,14 @@
 
 ## 🎯 ¿Qué es este proyecto?
 
-Sistema completo de gestión para cafetería que incluye:
+Sistema de gestión para **venta de café por libras y medias libras** que incluye:
 
 - 📊 **Dashboard en tiempo real** - KPIs, inventario, ventas
-- ☕ **Punto de Venta (POS)** - Registro rápido de ventas
+- ☕ **Ventas** - Registro de ventas por libra (453.6g) y media libra (226.8g)
+- 🛒 **Tienda Online** - Portal self-service para clientes con pedidos y suscripciones
 - 👥 **CRM con IA** - Predicción de compras recurrentes por cliente
-- 📞 **Sistema de contactos** - Alertas para contactar clientes
+- 🗣️ **Voz a Voz** - Programa de referidos con códigos únicos
+- 📞 **Sistema de contactos** - Alertas WhatsApp para contactar clientes
 - 📈 **Analytics** - Gráficas y métricas de rendimiento
 
 **Producción**: https://cafe-pi-steel.vercel.app
@@ -671,6 +673,17 @@ Para bugs o sugerencias:
 
 ---
 
-**Última actualización**: 2026-01-18
+## 📚 Documentación Relacionada
+
+| Archivo                | Descripción                                                          |
+| ---------------------- | -------------------------------------------------------------------- |
+| `FICHA_TECNICA.md`     | Información del proyecto, cuentas, stack y métricas                  |
+| `CLAUDE.md`            | Guía técnica para Claude Code (arquitectura, comandos, convenciones) |
+| `SUPABASE_SETUP.md`    | Configuración y migraciones de base de datos                         |
+| `VERCEL_DEPLOYMENT.md` | Configuración de deploy en Vercel                                    |
+
+---
+
+**Última actualización**: 2026-02-02
 
 **Desarrollado con ❤️ para Mirador Montañero Café Selecto**
