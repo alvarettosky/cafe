@@ -36,7 +36,7 @@
 | **URL**      | https://inszvqzpxfqibkjsptsm.supabase.co |
 | **Región**   | Por confirmar                            |
 | **Plan**     | Free Tier                                |
-| **Correo**   | _Por documentar_                         |
+| **Correo**   | alvaroangelm@iepedacitodecielo.edu.co    |
 
 ### Vercel (Deploy)
 
