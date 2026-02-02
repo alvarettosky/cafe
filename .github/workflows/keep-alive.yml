@@ -1,0 +1,39 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    # Run every 5 days at 12:00 UTC (more frequent than 7-day pause threshold)
+    - cron: '0 12 */5 * *'
+  workflow_dispatch:
+    # Allow manual trigger to test
+
+jobs:
+  ping:
+    name: Ping Supabase
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Ping Supabase Database
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          # Simple health check query using the REST API
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${SUPABASE_URL}/rest/v1/" \
+            -H "apikey: ${SUPABASE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_KEY}")
+
+          echo "Supabase responded with HTTP $RESPONSE"
+
+          if [ "$RESPONSE" -ge 200 ] && [ "$RESPONSE" -lt 300 ]; then
+            echo "✅ Supabase is alive!"
+            exit 0
+          else
+            echo "❌ Supabase ping failed with status $RESPONSE"
+            exit 1
+          fi
+
+      - name: Log timestamp
+        run: echo "Keep-alive ping completed at $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
