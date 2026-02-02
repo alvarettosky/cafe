@@ -34,7 +34,7 @@
 | ------------ | ---------------------------------------- |
 | **Proyecto** | cafe-de-salento                          |
 | **URL**      | https://inszvqzpxfqibkjsptsm.supabase.co |
-| **Región**   | Por confirmar                            |
+| **Región**   | us-east-1 (North Virginia)               |
 | **Plan**     | Free Tier                                |
 | **Correo**   | alvaroangelm@iepedacitodecielo.edu.co    |
 
