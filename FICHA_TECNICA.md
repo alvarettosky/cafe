@@ -40,12 +40,13 @@
 
 ### Vercel (Deploy)
 
-| Campo                   | Valor                            |
-| ----------------------- | -------------------------------- |
-| **URL Producción**      | https://cafe-pi-steel.vercel.app |
-| **Dominio alternativo** | https://cafe-mirador.vercel.app  |
-| **Branch de deploy**    | main                             |
-| **Deploy automático**   | Sí (en cada push a main)         |
+| Campo                 | Valor                                 |
+| --------------------- | ------------------------------------- |
+| **Usuario**           | alvaroangelm-1068                     |
+| **Correo**            | alvaroangelm@iepedacitodecielo.edu.co |
+| **URL Producción**    | https://cafe-pi-steel.vercel.app      |
+| **Branch de deploy**  | main                                  |
+| **Deploy automático** | Sí (en cada push a main)              |
 
 ## Stack Tecnológico
 

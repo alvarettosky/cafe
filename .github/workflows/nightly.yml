@@ -54,7 +54,7 @@ jobs:
       - name: Run load tests
         run: k6 run tests/load/api-stress-test.js
         env:
-          BASE_URL: https://cafe-mirador.vercel.app
+          BASE_URL: https://cafe-pi-steel.vercel.app
 
       - name: Upload load test results
         if: always()
