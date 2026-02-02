@@ -20,18 +20,27 @@ jobs:
           SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           # Simple health check query using the REST API
+          # Use --max-time to avoid hanging, --retry for transient failures
           RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 30 \
+            --retry 3 \
+            --retry-delay 5 \
             "${SUPABASE_URL}/rest/v1/" \
             -H "apikey: ${SUPABASE_KEY}" \
-            -H "Authorization: Bearer ${SUPABASE_KEY}")
+            -H "Authorization: Bearer ${SUPABASE_KEY}" || echo "000")
 
           echo "Supabase responded with HTTP $RESPONSE"
 
           if [ "$RESPONSE" -ge 200 ] && [ "$RESPONSE" -lt 300 ]; then
-            echo "✅ Supabase is alive!"
+            echo "✅ Supabase is alive and responding!"
             exit 0
+          elif [ "$RESPONSE" = "000" ]; then
+            echo "❌ Could not connect to Supabase."
+            echo "   The project may be PAUSED. Please restore it at:"
+            echo "   https://supabase.com/dashboard"
+            exit 1
           else
-            echo "❌ Supabase ping failed with status $RESPONSE"
+            echo "❌ Supabase ping failed with HTTP status $RESPONSE"
             exit 1
           fi
 
