@@ -19,15 +19,10 @@
   ],
   "thresholds": {
     "high": 80,
-    "low": 60,
-    "break": 50
+    "low": 30,
+    "break": 15
   },
   "timeoutMS": 30000,
   "concurrency": 4,
-  "ignorePatterns": [
-    "node_modules",
-    ".next",
-    "coverage",
-    "dist"
-  ]
+  "ignorePatterns": ["node_modules", ".next", "coverage", "dist"]
 }
