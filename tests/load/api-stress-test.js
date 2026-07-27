@@ -10,11 +10,11 @@ export const options = {
     { duration: '3m', target: 10 }, // Stay at 10 users
     { duration: '1m', target: 50 }, // Spike to 50 users
     { duration: '2m', target: 50 }, // Stay at 50 users
-    { duration: '1m', target: 0 },  // Ramp down to 0 users
+    { duration: '1m', target: 0 }, // Ramp down to 0 users
   ],
   thresholds: {
     http_req_duration: ['p(95)<3000'], // 95% of requests must complete below 3s
-    errors: ['rate<0.1'],              // Error rate must be less than 10%
+    errors: ['rate<0.1'], // Error rate must be less than 10%
   },
 };
 
@@ -24,8 +24,8 @@ export default function () {
   // Test 1: Homepage SSR delivery (auth redirect is client-side, SSR returns 200)
   let res = http.get(`${BASE_URL}/`);
   check(res, {
-    'homepage status is 200': (r) => r.status === 200,
-    'homepage loads in <3s': (r) => r.timings.duration < 3000,
+    'homepage status is 200': r => r.status === 200,
+    'homepage loads in <3s': r => r.timings.duration < 3000,
   }) || errorRate.add(1);
 
   sleep(1);
@@ -33,8 +33,8 @@ export default function () {
   // Test 2: Login page - publicly accessible, always returns full content
   res = http.get(`${BASE_URL}/login`);
   check(res, {
-    'login page status is 200': (r) => r.status === 200,
-    'login page loads in <2s': (r) => r.timings.duration < 2000,
+    'login page status is 200': r => r.status === 200,
+    'login page loads in <2s': r => r.timings.duration < 2000,
   }) || errorRate.add(1);
 
   sleep(1);
@@ -53,8 +53,8 @@ export default function () {
   );
 
   check(res, {
-    'export API responds (401 without auth)': (r) => r.status === 401,
-    'export API responds in <1s': (r) => r.timings.duration < 1000,
+    'export API responds (401 without auth)': r => r.status === 401,
+    'export API responds in <1s': r => r.timings.duration < 1000,
   }) || errorRate.add(1);
 
   sleep(1);

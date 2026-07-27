@@ -431,7 +431,7 @@ describe('PortalPerfilPage', () => {
       const user = userEvent.setup();
 
       let savePromiseResolve: (value: { data: unknown; error: null }) => void;
-      const savePromise = new Promise<{ data: unknown; error: null }>((resolve) => {
+      const savePromise = new Promise<{ data: unknown; error: null }>(resolve => {
         savePromiseResolve = resolve;
       });
 

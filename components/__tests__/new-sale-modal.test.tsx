@@ -209,7 +209,9 @@ describe('NewSaleModal', () => {
 
       // First wait for modal to fully open
       await waitFor(() => {
-        expect(screen.getByRole('heading', { name: /registrar venta de café/i })).toBeInTheDocument();
+        expect(
+          screen.getByRole('heading', { name: /registrar venta de café/i })
+        ).toBeInTheDocument();
       });
 
       // Now check for Cliente label
@@ -240,7 +242,9 @@ describe('NewSaleModal', () => {
       await user.click(trigger);
 
       await waitFor(() => {
-        expect(screen.getByRole('heading', { name: /registrar venta de café/i })).toBeInTheDocument();
+        expect(
+          screen.getByRole('heading', { name: /registrar venta de café/i })
+        ).toBeInTheDocument();
       });
 
       // Find and modify price
@@ -274,7 +278,9 @@ describe('NewSaleModal', () => {
       await user.click(trigger);
 
       await waitFor(() => {
-        expect(screen.getByRole('heading', { name: /registrar venta de café/i })).toBeInTheDocument();
+        expect(
+          screen.getByRole('heading', { name: /registrar venta de café/i })
+        ).toBeInTheDocument();
       });
 
       // Set quantity to 2
@@ -302,7 +308,9 @@ describe('NewSaleModal', () => {
 
       // First wait for modal to fully open
       await waitFor(() => {
-        expect(screen.getByRole('heading', { name: /registrar venta de café/i })).toBeInTheDocument();
+        expect(
+          screen.getByRole('heading', { name: /registrar venta de café/i })
+        ).toBeInTheDocument();
       });
 
       // Now check all key fields exist

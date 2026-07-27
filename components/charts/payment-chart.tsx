@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PaymentBreakdown } from '@/types/analytics';
 
 interface PaymentChartProps {
@@ -11,12 +11,12 @@ interface PaymentChartProps {
 
 const COLORS = ['#f97316', '#22c55e', '#3b82f6', '#a855f7', '#eab308', '#ec4899', '#14b8a6'];
 
-export function PaymentChart({ data, title = "Métodos de Pago" }: PaymentChartProps) {
+export function PaymentChart({ data, title = 'Métodos de Pago' }: PaymentChartProps) {
   const chartData = Object.entries(data || {}).map(([method, values]) => ({
     name: method,
     value: values.total,
     count: values.count,
-    profit: values.profit
+    profit: values.profit,
   }));
 
   const formatCurrency = (value: number) => `$${value.toFixed(2)}`;
@@ -48,7 +48,7 @@ export function PaymentChart({ data, title = "Métodos de Pago" }: PaymentChartP
               contentStyle={{
                 backgroundColor: 'rgba(0, 0, 0, 0.8)',
                 border: '1px solid #333',
-                borderRadius: '8px'
+                borderRadius: '8px',
               }}
             />
             <Legend />

@@ -1,17 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
-import { MapPin, Loader2 } from "lucide-react";
-
-interface DeliveryZone {
-  id: string;
-  name: string;
-  description: string | null;
-  delivery_days: string[] | null;
-  color: string | null;
-  is_active: boolean;
-}
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import { MapPin, Loader2 } from 'lucide-react';
+import type { DeliveryZone } from '@/types/deliveries';
 
 interface DeliveryZoneSelectProps {
   value: string | null;
@@ -19,11 +11,7 @@ interface DeliveryZoneSelectProps {
   disabled?: boolean;
 }
 
-export function DeliveryZoneSelect({
-  value,
-  onChange,
-  disabled = false,
-}: DeliveryZoneSelectProps) {
+export function DeliveryZoneSelect({ value, onChange, disabled = false }: DeliveryZoneSelectProps) {
   const [zones, setZones] = useState<DeliveryZone[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -33,15 +21,15 @@ export function DeliveryZoneSelect({
       setIsLoading(true);
       try {
         const { data, error } = await supabase
-          .from("delivery_zones")
-          .select("*")
-          .eq("is_active", true)
-          .order("sort_order");
+          .from('delivery_zones')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order');
 
         if (error) throw error;
         setZones(data || []);
       } catch (err) {
-        console.error("Error fetching zones:", err);
+        console.error('Error fetching zones:', err);
       } finally {
         setIsLoading(false);
       }
@@ -50,28 +38,26 @@ export function DeliveryZoneSelect({
     fetchZones();
   }, []);
 
-  const selectedZone = zones.find((z) => z.id === value);
+  const selectedZone = zones.find(z => z.id === value);
 
   const getDaysLabel = (days: string[] | null) => {
-    if (!days || days.length === 0) return "";
+    if (!days || days.length === 0) return '';
     const dayMap: Record<string, string> = {
-      monday: "Lun",
-      tuesday: "Mar",
-      wednesday: "Mié",
-      thursday: "Jue",
-      friday: "Vie",
-      saturday: "Sáb",
-      sunday: "Dom",
+      monday: 'Lun',
+      tuesday: 'Mar',
+      wednesday: 'Mié',
+      thursday: 'Jue',
+      friday: 'Vie',
+      saturday: 'Sáb',
+      sunday: 'Dom',
     };
-    return days.map((d) => dayMap[d] || d).join(", ");
+    return days.map(d => dayMap[d] || d).join(', ');
   };
 
   if (isLoading) {
     return (
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
-          Zona de Entrega
-        </label>
+        <label className="block text-sm font-medium text-gray-700">Zona de Entrega</label>
         <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md">
           <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
           <span className="text-gray-500">Cargando zonas...</span>
@@ -82,9 +68,7 @@ export function DeliveryZoneSelect({
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
-        Zona de Entrega
-      </label>
+      <label className="block text-sm font-medium text-gray-700">Zona de Entrega</label>
       <div className="relative">
         <button
           type="button"
@@ -97,7 +81,7 @@ export function DeliveryZoneSelect({
               <>
                 <div
                   className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: selectedZone.color || "#9CA3AF" }}
+                  style={{ backgroundColor: selectedZone.color || '#9CA3AF' }}
                 />
                 <span className="font-medium">{selectedZone.name}</span>
                 {selectedZone.delivery_days && (
@@ -132,14 +116,14 @@ export function DeliveryZoneSelect({
                 setIsOpen(false);
               }}
               className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50 ${
-                !value ? "bg-gray-50" : ""
+                !value ? 'bg-gray-50' : ''
               }`}
             >
               <MapPin className="h-4 w-4 text-gray-400" />
               <span className="text-gray-500">Sin zona asignada</span>
             </button>
 
-            {zones.map((zone) => (
+            {zones.map(zone => (
               <button
                 key={zone.id}
                 type="button"
@@ -148,15 +132,17 @@ export function DeliveryZoneSelect({
                   setIsOpen(false);
                 }}
                 className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50 ${
-                  zone.id === value ? "bg-amber-50" : ""
+                  zone.id === value ? 'bg-amber-50' : ''
                 }`}
               >
                 <div
                   className="w-3 h-3 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: zone.color || "#9CA3AF" }}
+                  style={{ backgroundColor: zone.color || '#9CA3AF' }}
                 />
                 <div className="text-left flex-1">
-                  <p className={`font-medium ${zone.id === value ? "text-amber-700" : "text-gray-800"}`}>
+                  <p
+                    className={`font-medium ${zone.id === value ? 'text-amber-700' : 'text-gray-800'}`}
+                  >
                     {zone.name}
                   </p>
                   {zone.delivery_days && (
@@ -166,7 +152,11 @@ export function DeliveryZoneSelect({
                   )}
                 </div>
                 {zone.id === value && (
-                  <svg className="h-5 w-5 text-amber-600 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                  <svg
+                    className="h-5 w-5 text-amber-600 flex-shrink-0"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
                     <path
                       fillRule="evenodd"
                       d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"

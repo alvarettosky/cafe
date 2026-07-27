@@ -36,7 +36,9 @@ test.describe('Inventory Management', () => {
 
   test('should have history button for inventory items', async ({ authenticatedPage: page }) => {
     // The inventory list has a history button for each item
-    await expect(page.locator('button[title="Ver historial de movimientos"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('button[title="Ver historial de movimientos"]')).toBeVisible({
+      timeout: 10000,
+    });
   });
 
   test('should display inventory metrics', async ({ authenticatedPage: page }) => {

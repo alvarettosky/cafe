@@ -15,6 +15,7 @@
 ### Task 1: Enhance Vitest Configuration
 
 **Files:**
+
 - Modify: `frontend/vitest.config.mts`
 - Create: `frontend/vitest.setup.mts`
 - Modify: `frontend/package.json`
@@ -158,6 +159,7 @@ git commit -m "test: enhance vitest configuration with aggressive coverage thres
 ### Task 2: Install Additional Testing Dependencies
 
 **Files:**
+
 - Modify: `frontend/package.json`
 
 **Step 1: Install MSW (Mock Service Worker) for API mocking**
@@ -182,6 +184,7 @@ npm install -D @testing-library/user-event @testing-library/react-hooks @vitest/
 **Step 4: Verify installations**
 
 Check `package.json` includes:
+
 ```json
 {
   "devDependencies": {
@@ -206,6 +209,7 @@ git commit -m "test: install MSW, Playwright, and additional testing utilities"
 ### Task 3: Setup MSW for API Mocking
 
 **Files:**
+
 - Create: `frontend/__mocks__/handlers.ts`
 - Create: `frontend/__mocks__/server.ts`
 - Create: `frontend/__mocks__/browser.ts`
@@ -229,7 +233,7 @@ export const handlers = [
       sales_count: 25,
       avg_ticket: 600,
       payment_breakdown: {
-        'Efectivo': { count: 10, total: 6000, profit: 4000 },
+        Efectivo: { count: 10, total: 6000, profit: 4000 },
         'Transf. Davivienda': { count: 15, total: 9000, profit: 6000 },
       },
       pending_credits: 1500,
@@ -353,6 +357,7 @@ git commit -m "test: setup MSW for API mocking in tests"
 ### Task 4: Create Unit Tests for UI Components
 
 **Files:**
+
 - Create: `frontend/components/ui/__tests__/button.test.tsx`
 - Create: `frontend/components/ui/__tests__/card.test.tsx`
 - Create: `frontend/components/ui/__tests__/dialog.test.tsx`
@@ -540,6 +545,7 @@ git commit -m "test: add comprehensive unit tests for UI components"
 ### Task 5: Create Tests for Chart Components
 
 **Files:**
+
 - Create: `frontend/components/charts/__tests__/revenue-chart.test.tsx`
 - Create: `frontend/components/charts/__tests__/product-chart.test.tsx`
 - Create: `frontend/components/charts/__tests__/payment-chart.test.tsx`
@@ -709,6 +715,7 @@ git commit -m "test: add unit tests for all chart components"
 ### Task 6: Create Tests for Business Logic Components
 
 **Files:**
+
 - Create: `frontend/components/__tests__/new-sale-modal.test.tsx`
 - Create: `frontend/components/__tests__/auth-provider.test.tsx`
 - Create: `frontend/components/__tests__/date-range-selector.test.tsx`
@@ -894,6 +901,7 @@ git commit -m "test: add integration tests for business logic components"
 ### Task 7: Setup Playwright
 
 **Files:**
+
 - Create: `playwright.config.ts`
 - Create: `e2e/setup/auth.setup.ts`
 - Create: `.env.test`
@@ -1036,6 +1044,7 @@ git commit -m "test: setup Playwright for E2E testing"
 ### Task 8: Write E2E Tests for Critical Flows
 
 **Files:**
+
 - Create: `e2e/sales-flow.spec.ts`
 - Create: `e2e/analytics-dashboard.spec.ts`
 - Create: `e2e/inventory-management.spec.ts`
@@ -1252,6 +1261,7 @@ git commit -m "test: add comprehensive E2E tests for critical user flows"
 ### Task 9: Create GitHub Actions Workflow
 
 **Files:**
+
 - Create: `.github/workflows/ci.yml`
 - Create: `.github/workflows/e2e.yml`
 - Create: `.github/workflows/nightly.yml`
@@ -1533,6 +1543,7 @@ git commit -m "ci: add comprehensive GitHub Actions workflows for CI/CD"
 ### Task 10: Setup Pre-commit Hooks with Husky
 
 **Files:**
+
 - Create: `.husky/pre-commit`
 - Create: `.lintstagedrc.js`
 - Modify: `frontend/package.json`
@@ -1577,9 +1588,7 @@ module.exports = {
     () => 'tsc --noEmit', // Type check
   ],
   '*.{json,md,yml,yaml}': ['prettier --write'],
-  '*.{ts,tsx}': [
-    'vitest related --run --passWithNoTests',
-  ],
+  '*.{ts,tsx}': ['vitest related --run --passWithNoTests'],
 };
 ```
 
@@ -1620,6 +1629,7 @@ git commit -m "ci: setup pre-commit hooks with Husky and lint-staged"
 ### Task 11: Setup Mutation Testing with Stryker
 
 **Files:**
+
 - Create: `frontend/stryker.conf.json`
 - Modify: `frontend/package.json`
 
@@ -1660,12 +1670,7 @@ npm install -D @stryker-mutator/core @stryker-mutator/vitest-runner
   },
   "timeoutMS": 30000,
   "concurrency": 4,
-  "ignorePatterns": [
-    "node_modules",
-    ".next",
-    "coverage",
-    "dist"
-  ]
+  "ignorePatterns": ["node_modules", ".next", "coverage", "dist"]
 }
 ```
 
@@ -1699,6 +1704,7 @@ git commit -m "test: add mutation testing with Stryker"
 ### Task 12: Create Load/Stress Tests with k6
 
 **Files:**
+
 - Create: `tests/load/api-stress-test.js`
 - Create: `tests/load/spike-test.js`
 - Create: `tests/load/soak-test.js`
@@ -1719,11 +1725,11 @@ export const options = {
     { duration: '3m', target: 10 }, // Stay at 10 users
     { duration: '1m', target: 50 }, // Spike to 50 users
     { duration: '2m', target: 50 }, // Stay at 50 users
-    { duration: '1m', target: 0 },  // Ramp down to 0 users
+    { duration: '1m', target: 0 }, // Ramp down to 0 users
   ],
   thresholds: {
     http_req_duration: ['p(95)<2000'], // 95% of requests must complete below 2s
-    errors: ['rate<0.1'],               // Error rate must be less than 10%
+    errors: ['rate<0.1'], // Error rate must be less than 10%
   },
 };
 
@@ -1733,8 +1739,8 @@ export default function () {
   // Test 1: Load homepage
   let res = http.get(`${BASE_URL}/`);
   check(res, {
-    'homepage status is 200': (r) => r.status === 200,
-    'homepage loads in <2s': (r) => r.timings.duration < 2000,
+    'homepage status is 200': r => r.status === 200,
+    'homepage loads in <2s': r => r.timings.duration < 2000,
   }) || errorRate.add(1);
 
   sleep(1);
@@ -1742,8 +1748,8 @@ export default function () {
   // Test 2: Load analytics page
   res = http.get(`${BASE_URL}/analytics`);
   check(res, {
-    'analytics status is 200': (r) => r.status === 200,
-    'analytics loads in <3s': (r) => r.timings.duration < 3000,
+    'analytics status is 200': r => r.status === 200,
+    'analytics loads in <3s': r => r.timings.duration < 3000,
   }) || errorRate.add(1);
 
   sleep(2);
@@ -1755,15 +1761,11 @@ export default function () {
     },
   };
 
-  res = http.post(
-    `${BASE_URL}/api/metrics`,
-    JSON.stringify({ period: 'today' }),
-    params
-  );
+  res = http.post(`${BASE_URL}/api/metrics`, JSON.stringify({ period: 'today' }), params);
 
   check(res, {
-    'metrics API status is 200': (r) => r.status === 200,
-    'metrics API responds in <1s': (r) => r.timings.duration < 1000,
+    'metrics API status is 200': r => r.status === 200,
+    'metrics API responds in <1s': r => r.timings.duration < 1000,
   }) || errorRate.add(1);
 
   sleep(1);
@@ -1788,7 +1790,7 @@ export const options = {
   stages: [
     { duration: '10s', target: 100 }, // Fast ramp-up to a high point
     { duration: '30s', target: 100 }, // Stay at high point
-    { duration: '10s', target: 0 },   // Quick ramp-down to 0 users
+    { duration: '10s', target: 0 }, // Quick ramp-down to 0 users
   ],
   thresholds: {
     http_req_duration: ['p(99)<5000'], // 99% of requests must complete below 5s
@@ -1801,7 +1803,7 @@ export default function () {
   const res = http.get(`${BASE_URL}/`);
 
   check(res, {
-    'status is 200': (r) => r.status === 200,
+    'status is 200': r => r.status === 200,
   });
 
   sleep(0.5);
@@ -1817,9 +1819,9 @@ import { check, sleep } from 'k6';
 
 export const options = {
   stages: [
-    { duration: '2m', target: 20 },   // Ramp up to 20 users
-    { duration: '30m', target: 20 },  // Stay at 20 for 30 minutes
-    { duration: '2m', target: 0 },    // Ramp down to 0 users
+    { duration: '2m', target: 20 }, // Ramp up to 20 users
+    { duration: '30m', target: 20 }, // Stay at 20 for 30 minutes
+    { duration: '2m', target: 0 }, // Ramp down to 0 users
   ],
   thresholds: {
     http_req_duration: ['p(95)<2000'],
@@ -1858,6 +1860,7 @@ git commit -m "test: add k6 load, spike, and soak tests"
 ### Task 13: Add Database Testing Layer
 
 **Files:**
+
 - Create: `tests/database/seed-test-data.sql`
 - Create: `tests/database/db-integration.test.ts`
 - Create: `tests/database/rpc-functions.test.ts`
@@ -1923,10 +1926,7 @@ describe('Database Integration Tests', () => {
 
   describe('Inventory Table', () => {
     it('should fetch inventory with all columns', async () => {
-      const { data, error } = await supabase
-        .from('inventory')
-        .select('*')
-        .limit(1);
+      const { data, error } = await supabase.from('inventory').select('*').limit(1);
 
       expect(error).toBeNull();
       expect(data).toBeDefined();
@@ -1944,9 +1944,7 @@ describe('Database Integration Tests', () => {
 
     it('should respect RLS policies for anonymous users', async () => {
       // Anonymous users should be able to read
-      const { data, error } = await supabase
-        .from('inventory')
-        .select('*');
+      const { data, error } = await supabase.from('inventory').select('*');
 
       expect(error).toBeNull();
       expect(data).toBeDefined();
@@ -1955,10 +1953,7 @@ describe('Database Integration Tests', () => {
 
   describe('Sales Table', () => {
     it('should fetch sales with profit columns', async () => {
-      const { data, error } = await supabase
-        .from('sales')
-        .select('*')
-        .limit(1);
+      const { data, error } = await supabase.from('sales').select('*').limit(1);
 
       expect(error).toBeNull();
       expect(data).toBeDefined();
@@ -1979,7 +1974,7 @@ describe('Database Integration Tests', () => {
         .gt('total_amount', 0)
         .limit(10);
 
-      data?.forEach((sale) => {
+      data?.forEach(sale => {
         const calculatedProfit = sale.total_amount - sale.total_cost;
         expect(Math.abs(sale.total_profit - calculatedProfit)).toBeLessThan(0.01);
 
@@ -2106,7 +2101,7 @@ describe('RPC Functions Tests', () => {
         p_days_back: 30,
       });
 
-      data?.forEach((product) => {
+      data?.forEach(product => {
         if (product.revenue > 0) {
           const expectedMargin = (product.profit / product.revenue) * 100;
           expect(Math.abs(product.profit_margin - expectedMargin)).toBeLessThan(0.1);
@@ -2142,6 +2137,7 @@ git commit -m "test: add comprehensive database integration tests"
 ### Task 14: Setup Coverage Badges and Reports
 
 **Files:**
+
 - Create: `.github/workflows/coverage-report.yml`
 - Modify: `README.md`
 
@@ -2255,18 +2251,20 @@ git commit -m "docs: add coverage reporting and badges to README"
 ### Task 15: Create Test Documentation
 
 **Files:**
+
 - Create: `docs/testing/TESTING_GUIDE.md`
 - Create: `docs/testing/WRITING_TESTS.md`
 - Create: `docs/testing/CI_CD.md`
 
 **Step 1: Create testing guide**
 
-```markdown
+````markdown
 # Testing Guide
 
 ## Overview
 
 This project uses a comprehensive testing strategy covering:
+
 - Unit tests (Vitest + Testing Library)
 - Integration tests (MSW + Vitest)
 - E2E tests (Playwright)
@@ -2293,6 +2291,7 @@ npx playwright test
 # Run load tests
 npm run test:load
 ```
+````
 
 ### Running Specific Tests
 
@@ -2391,6 +2390,7 @@ npx playwright show-trace trace.zip
 ## CI/CD Integration
 
 All tests run automatically on:
+
 - Every push to `main` or `develop`
 - Every pull request
 - Nightly (mutation and load tests)
@@ -2412,7 +2412,8 @@ See `.github/workflows/` for CI configuration.
 
 **Issue**: MSW handlers not working
 **Solution**: Verify server is started in `beforeAll` and reset in `afterEach`
-```
+
+````
 
 **Step 2: Create writing tests guide**
 
@@ -2441,7 +2442,7 @@ describe('Button', () => {
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
 });
-```
+````
 
 ### Hook Tests
 
@@ -2558,7 +2559,7 @@ export const options = {
 export default function () {
   const res = http.get('https://example.com');
   check(res, {
-    'status is 200': (r) => r.status === 200,
+    'status is 200': r => r.status === 200,
   });
 }
 ```
@@ -2618,20 +2619,22 @@ it('test', () => {
 - [Testing Library Docs](https://testing-library.com)
 - [Playwright Docs](https://playwright.dev)
 - [k6 Documentation](https://k6.io/docs)
-```
+
+````
 
 **Step 3: Commit documentation**
 
 ```bash
 git add docs/testing/
 git commit -m "docs: add comprehensive testing documentation"
-```
+````
 
 ---
 
 ### Task 16: Final Integration and Verification
 
 **Files:**
+
 - Create: `scripts/run-all-tests.sh`
 - Create: `scripts/verify-coverage.sh`
 
@@ -2813,6 +2816,7 @@ git commit -m "test: add comprehensive test runner and verification scripts"
 ## Summary
 
 **Total Implementation:**
+
 - 16 comprehensive tasks
 - 6 phases covering all testing aspects
 - Unit, integration, E2E, load, mutation, and database tests
@@ -2821,6 +2825,7 @@ git commit -m "test: add comprehensive test runner and verification scripts"
 - Comprehensive documentation
 
 **Test Coverage:**
+
 - UI Components: 100% unit tested
 - Chart Components: 100% unit tested
 - Business Logic: Integration tested
@@ -2829,6 +2834,7 @@ git commit -m "test: add comprehensive test runner and verification scripts"
 - Performance: Load and stress tested
 
 **Automation:**
+
 - Pre-commit: lint, format, type-check, related tests
 - On Push: full CI pipeline
 - On PR: coverage reports and comments
@@ -2849,4 +2855,3 @@ git commit -m "test: add comprehensive test runner and verification scripts"
 ---
 
 **Estimated Time:** 12-16 hours for complete implementation
-

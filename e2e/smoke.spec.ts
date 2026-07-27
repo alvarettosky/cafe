@@ -52,8 +52,8 @@ test.describe('Smoke Tests (No Auth Required)', () => {
     await page.waitForLoadState('networkidle');
 
     // No critical failures
-    const criticalFailures = failedRequests.filter(url =>
-      !url.includes('favicon') && !url.includes('analytics')
+    const criticalFailures = failedRequests.filter(
+      url => !url.includes('favicon') && !url.includes('analytics')
     );
     expect(criticalFailures).toHaveLength(0);
   });

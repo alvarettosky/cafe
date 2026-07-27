@@ -39,7 +39,7 @@ export default function CustomersPage() {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        (customer) =>
+        customer =>
           customer.full_name.toLowerCase().includes(query) ||
           customer.phone?.toLowerCase().includes(query) ||
           customer.email?.toLowerCase().includes(query)
@@ -48,9 +48,7 @@ export default function CustomersPage() {
 
     // Filtrar por segmento
     if (segmentFilter !== 'all') {
-      filtered = filtered.filter(
-        (customer) => customer.segment === segmentFilter
-      );
+      filtered = filtered.filter(customer => customer.segment === segmentFilter);
     }
 
     setFilteredCustomers(filtered);
@@ -72,10 +70,12 @@ export default function CustomersPage() {
 
       if (!segmentError && segmentData) {
         // Si la vista existe, usar esos datos
-        setCustomers(segmentData.map(c => ({
-          ...c,
-          segment: c.segment as CustomerSegment
-        })));
+        setCustomers(
+          segmentData.map(c => ({
+            ...c,
+            segment: c.segment as CustomerSegment,
+          }))
+        );
       } else {
         // Fallback: obtener datos básicos de customers
         const { data, error } = await supabase
@@ -158,9 +158,7 @@ export default function CustomersPage() {
               />
             </div>
           </div>
-          <p className="text-gray-600">
-            Administra la información de recurrencia de tus clientes
-          </p>
+          <p className="text-gray-600">Administra la información de recurrencia de tus clientes</p>
         </motion.div>
 
         {/* Search and Filter */}
@@ -177,13 +175,13 @@ export default function CustomersPage() {
                 type="text"
                 placeholder="Buscar por nombre, teléfono o email..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
               />
             </div>
             <select
               value={segmentFilter}
-              onChange={(e) => setSegmentFilter(e.target.value)}
+              onChange={e => setSegmentFilter(e.target.value)}
               className="px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-gray-700"
             >
               <option value="all">Todos los segmentos</option>
@@ -225,7 +223,7 @@ export default function CustomersPage() {
               <div>
                 <p className="text-sm text-gray-600">Con Recurrencia</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {customers.filter((c) => c.typical_recurrence_days !== null).length}
+                  {customers.filter(c => c.typical_recurrence_days !== null).length}
                 </p>
               </div>
             </div>
@@ -239,7 +237,7 @@ export default function CustomersPage() {
               <div>
                 <p className="text-sm text-gray-600">Clientes Activos</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {customers.filter((c) => c.last_purchase_date !== null).length}
+                  {customers.filter(c => c.last_purchase_date !== null).length}
                 </p>
               </div>
             </div>
@@ -254,9 +252,7 @@ export default function CustomersPage() {
           className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
         >
           {loading ? (
-            <div className="py-12 text-center text-gray-500">
-              Cargando clientes...
-            </div>
+            <div className="py-12 text-center text-gray-500">Cargando clientes...</div>
           ) : filteredCustomers.length === 0 ? (
             <div className="py-12 text-center text-gray-500">
               {searchQuery
@@ -289,7 +285,7 @@ export default function CustomersPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {filteredCustomers.map((customer) => {
+                  {filteredCustomers.map(customer => {
                     return (
                       <tr key={customer.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">

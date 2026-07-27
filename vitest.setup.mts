@@ -1,31 +1,31 @@
-import '@testing-library/jest-dom'
-import { afterEach, beforeAll, afterAll } from 'vitest'
-import { cleanup } from '@testing-library/react'
-import { server } from './__mocks__/server'
+import '@testing-library/jest-dom';
+import { afterEach, beforeAll, afterAll } from 'vitest';
+import { cleanup } from '@testing-library/react';
+import { server } from './__mocks__/server';
 
 // Start MSW server before all tests
 beforeAll(() => {
-  server.listen({ onUnhandledRequest: 'error' })
-})
+  server.listen({ onUnhandledRequest: 'error' });
+});
 
 // Reset handlers after each test to ensure test isolation
 afterEach(() => {
-  server.resetHandlers()
-})
+  server.resetHandlers();
+});
 
 // Close MSW server after all tests
 afterAll(() => {
-  server.close()
-})
+  server.close();
+});
 
 // Cleanup after each test case (e.g. clearing jsdom)
 afterEach(() => {
-  cleanup()
-})
+  cleanup();
+});
 
 // Mock environment variables for Supabase
-process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
-process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
+process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -40,61 +40,61 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: () => {},
     dispatchEvent: () => true,
   }),
-})
+});
 
 // Mock IntersectionObserver
 class IntersectionObserverMock {
-  observe = () => null
-  disconnect = () => null
-  unobserve = () => null
+  observe = () => null;
+  disconnect = () => null;
+  unobserve = () => null;
 }
 
 Object.defineProperty(window, 'IntersectionObserver', {
   writable: true,
   configurable: true,
   value: IntersectionObserverMock,
-})
+});
 
 // Mock ResizeObserver
 class ResizeObserverMock {
-  observe = () => null
-  disconnect = () => null
-  unobserve = () => null
+  observe = () => null;
+  disconnect = () => null;
+  unobserve = () => null;
 }
 
 Object.defineProperty(window, 'ResizeObserver', {
   writable: true,
   configurable: true,
   value: ResizeObserverMock,
-})
+});
 
 // Mock PointerEvent for framer-motion compatibility
 class PointerEventMock extends MouseEvent {
   constructor(type: string, props: PointerEventInit = {}) {
-    super(type, props)
+    super(type, props);
   }
-  pointerId = 0
-  width = 0
-  height = 0
-  pressure = 0
-  tangentialPressure = 0
-  tiltX = 0
-  tiltY = 0
-  twist = 0
-  pointerType = 'mouse'
-  isPrimary = true
-  getCoalescedEvents = () => []
-  getPredictedEvents = () => []
+  pointerId = 0;
+  width = 0;
+  height = 0;
+  pressure = 0;
+  tangentialPressure = 0;
+  tiltX = 0;
+  tiltY = 0;
+  twist = 0;
+  pointerType = 'mouse';
+  isPrimary = true;
+  getCoalescedEvents = () => [];
+  getPredictedEvents = () => [];
 }
 
 Object.defineProperty(window, 'PointerEvent', {
   writable: true,
   configurable: true,
   value: PointerEventMock,
-})
+});
 
 Object.defineProperty(globalThis, 'PointerEvent', {
   writable: true,
   configurable: true,
   value: PointerEventMock,
-})
+});

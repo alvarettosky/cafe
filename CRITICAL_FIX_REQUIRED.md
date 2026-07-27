@@ -32,12 +32,14 @@ Ya que estamos en un entorno virtual, usa el script automático:
 ```
 
 Este script:
+
 - ✅ Instala nvm (Node Version Manager) sin permisos sudo
 - ✅ Instala Node.js v25 con npm/npx incluidos
 - ✅ Configura todo automáticamente
 - ✅ Funciona en cualquier entorno (no requiere permisos de administrador)
 
 **Después de ejecutar el script:**
+
 1. Cierra y abre tu terminal
 2. Verifica: `npm --version && npx --version`
 3. Continúa con los siguientes pasos
@@ -102,6 +104,7 @@ Una vez que npm/npx estén instalados, ejecuta en este orden:
 ```
 
 Esto:
+
 - Abre Supabase dashboard en tu navegador
 - Te guía para copiar la Service Role Key COMPLETA
 - Abre nano para editar `~/.config/claude/mcp.json`
@@ -114,6 +117,7 @@ Esto:
 ```
 
 Esto:
+
 - Copia el SQL a `/tmp/fix_analytics.sql`
 - Abre Supabase SQL Editor
 - Te guía para ejecutar el SQL
@@ -129,6 +133,7 @@ Esto:
 ```
 
 Di en Claude Code:
+
 > "Lista las tablas de mi base de datos usando Supabase MCP"
 
 Si funciona, verás las tablas → MCPs funcionando correctamente ✅
@@ -136,6 +141,7 @@ Si funciona, verás las tablas → MCPs funcionando correctamente ✅
 ### 5. Verificar que Analytics funciona
 
 Abre en tu navegador:
+
 ```
 https://cafe-pi-steel.vercel.app/analytics
 ```
@@ -147,6 +153,7 @@ Si la página carga con gráficos → ✅ TODO FUNCIONA
 Según `verify-all-fixes.sh`:
 
 ✅ **Pasando (10/14):**
+
 - Scripts creados y ejecutables
 - SQL fix existe
 - mcp.json configurado
@@ -155,6 +162,7 @@ Según `verify-all-fixes.sh`:
 - Node.js instalado
 
 ❌ **Fallando (4/14):**
+
 1. **CRÍTICO**: npm no instalado → **ARREGLA ESTO PRIMERO**
 2. **CRÍTICO**: npx no disponible → **ARREGLA ESTO PRIMERO**
 3. Service Role Key truncada (42 chars en vez de 200+)

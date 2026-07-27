@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from 'react';
 import {
   Crown,
   Heart,
@@ -10,17 +10,17 @@ import {
   Ghost,
   User,
   Loader2,
-} from "lucide-react";
-import { supabase } from "@/lib/supabase";
+} from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export type CustomerSegment =
-  | "champion"
-  | "loyal"
-  | "potential"
-  | "new"
-  | "at_risk"
-  | "lost"
-  | "prospect";
+  | 'champion'
+  | 'loyal'
+  | 'potential'
+  | 'new'
+  | 'at_risk'
+  | 'lost'
+  | 'prospect';
 
 interface SegmentConfig {
   label: string;
@@ -33,67 +33,67 @@ interface SegmentConfig {
 
 const SEGMENT_CONFIG: Record<CustomerSegment, SegmentConfig> = {
   champion: {
-    label: "Champion",
-    color: "text-yellow-700",
-    bgColor: "bg-yellow-50",
-    borderColor: "border-yellow-300",
+    label: 'Champion',
+    color: 'text-yellow-700',
+    bgColor: 'bg-yellow-50',
+    borderColor: 'border-yellow-300',
     icon: Crown,
-    description: "Cliente frecuente y de alto valor",
+    description: 'Cliente frecuente y de alto valor',
   },
   loyal: {
-    label: "Leal",
-    color: "text-blue-700",
-    bgColor: "bg-blue-50",
-    borderColor: "border-blue-300",
+    label: 'Leal',
+    color: 'text-blue-700',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-300',
     icon: Heart,
-    description: "Compra regularmente dentro de su ciclo",
+    description: 'Compra regularmente dentro de su ciclo',
   },
   potential: {
-    label: "Potencial",
-    color: "text-purple-700",
-    bgColor: "bg-purple-50",
-    borderColor: "border-purple-300",
+    label: 'Potencial',
+    color: 'text-purple-700',
+    bgColor: 'bg-purple-50',
+    borderColor: 'border-purple-300',
     icon: Sparkles,
-    description: "Pocas compras pero reciente, potencial de crecimiento",
+    description: 'Pocas compras pero reciente, potencial de crecimiento',
   },
   new: {
-    label: "Nuevo",
-    color: "text-green-700",
-    bgColor: "bg-green-50",
-    borderColor: "border-green-300",
+    label: 'Nuevo',
+    color: 'text-green-700',
+    bgColor: 'bg-green-50',
+    borderColor: 'border-green-300',
     icon: UserPlus,
-    description: "Primera compra reciente",
+    description: 'Primera compra reciente',
   },
   at_risk: {
-    label: "En Riesgo",
-    color: "text-orange-700",
-    bgColor: "bg-orange-50",
-    borderColor: "border-orange-300",
+    label: 'En Riesgo',
+    color: 'text-orange-700',
+    bgColor: 'bg-orange-50',
+    borderColor: 'border-orange-300',
     icon: AlertTriangle,
-    description: "Pasó su fecha de recurrencia, contactar pronto",
+    description: 'Pasó su fecha de recurrencia, contactar pronto',
   },
   lost: {
-    label: "Perdido",
-    color: "text-red-700",
-    bgColor: "bg-red-50",
-    borderColor: "border-red-300",
+    label: 'Perdido',
+    color: 'text-red-700',
+    bgColor: 'bg-red-50',
+    borderColor: 'border-red-300',
     icon: Ghost,
-    description: "Mucho tiempo sin comprar",
+    description: 'Mucho tiempo sin comprar',
   },
   prospect: {
-    label: "Prospecto",
-    color: "text-gray-600",
-    bgColor: "bg-gray-50",
-    borderColor: "border-gray-300",
+    label: 'Prospecto',
+    color: 'text-gray-600',
+    bgColor: 'bg-gray-50',
+    borderColor: 'border-gray-300',
     icon: User,
-    description: "Registrado pero sin compras",
+    description: 'Registrado pero sin compras',
   },
 };
 
 interface CustomerSegmentBadgeProps {
   segment?: CustomerSegment;
   customerId?: string;
-  size?: "sm" | "md" | "lg";
+  size?: 'sm' | 'md' | 'lg';
   showIcon?: boolean;
   showTooltip?: boolean;
   className?: string;
@@ -102,10 +102,10 @@ interface CustomerSegmentBadgeProps {
 export function CustomerSegmentBadge({
   segment: propSegment,
   customerId,
-  size = "sm",
+  size = 'sm',
   showIcon = true,
   showTooltip = true,
-  className = "",
+  className = '',
 }: CustomerSegmentBadgeProps) {
   const [segment, setSegment] = useState<CustomerSegment | null>(propSegment || null);
   const [isLoading, setIsLoading] = useState(false);
@@ -116,9 +116,9 @@ export function CustomerSegmentBadge({
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from("customer_segments")
-        .select("segment")
-        .eq("id", customerId)
+        .from('customer_segments')
+        .select('segment')
+        .eq('id', customerId)
         .single();
 
       if (error) throw error;
@@ -127,7 +127,7 @@ export function CustomerSegmentBadge({
         setSegment(data.segment as CustomerSegment);
       }
     } catch (err) {
-      console.error("Error fetching segment:", err);
+      console.error('Error fetching segment:', err);
     } finally {
       setIsLoading(false);
     }
@@ -158,15 +158,15 @@ export function CustomerSegmentBadge({
   const Icon = config.icon;
 
   const sizeClasses = {
-    sm: "px-2 py-0.5 text-xs",
-    md: "px-2.5 py-1 text-sm",
-    lg: "px-3 py-1.5 text-base",
+    sm: 'px-2 py-0.5 text-xs',
+    md: 'px-2.5 py-1 text-sm',
+    lg: 'px-3 py-1.5 text-base',
   };
 
   const iconSizes = {
-    sm: "h-3 w-3",
-    md: "h-4 w-4",
-    lg: "h-5 w-5",
+    sm: 'h-3 w-3',
+    md: 'h-4 w-4',
+    lg: 'h-5 w-5',
   };
 
   return (
@@ -190,7 +190,7 @@ interface SegmentStatsProps {
   className?: string;
 }
 
-export function CustomerSegmentStats({ className = "" }: SegmentStatsProps) {
+export function CustomerSegmentStats({ className = '' }: SegmentStatsProps) {
   const [stats, setStats] = useState<
     Array<{ segment: CustomerSegment; count: number; total_value: number; avg_value: number }>
   >([]);
@@ -202,7 +202,7 @@ export function CustomerSegmentStats({ className = "" }: SegmentStatsProps) {
 
   const fetchStats = async () => {
     try {
-      const { data, error } = await supabase.rpc("get_customer_segment_stats");
+      const { data, error } = await supabase.rpc('get_customer_segment_stats');
 
       if (error) throw error;
 
@@ -210,7 +210,7 @@ export function CustomerSegmentStats({ className = "" }: SegmentStatsProps) {
         setStats(data);
       }
     } catch (err) {
-      console.error("Error fetching segment stats:", err);
+      console.error('Error fetching segment stats:', err);
     } finally {
       setIsLoading(false);
     }
@@ -234,7 +234,7 @@ export function CustomerSegmentStats({ className = "" }: SegmentStatsProps) {
       </div>
 
       <div className="space-y-2">
-        {stats.map((stat) => {
+        {stats.map(stat => {
           const config = SEGMENT_CONFIG[stat.segment];
           const Icon = config.icon;
           const percentage = totalCustomers > 0 ? (stat.count / totalCustomers) * 100 : 0;
@@ -253,7 +253,7 @@ export function CustomerSegmentStats({ className = "" }: SegmentStatsProps) {
                 {/* Barra de progreso */}
                 <div className="mt-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                   <div
-                    className={`h-full ${config.color.replace("text-", "bg-").replace("-700", "-500")}`}
+                    className={`h-full ${config.color.replace('text-', 'bg-').replace('-700', '-500')}`}
                     style={{ width: `${percentage}%` }}
                   />
                 </div>

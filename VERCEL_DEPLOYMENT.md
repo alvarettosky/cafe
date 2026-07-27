@@ -12,6 +12,7 @@
 ## 📋 Configuración Actual
 
 ### Estructura del Proyecto
+
 ```
 cafe-mirador/
 ├── app/              # Next.js App Router (raíz del proyecto)
@@ -72,6 +73,7 @@ Si necesitas hacer un deployment manual:
 **Causa:** El proyecto no existe o fue eliminado.
 
 **Solución:**
+
 1. Reimporta el proyecto desde GitHub
 2. Asegúrate de dar permisos a Vercel en GitHub
 3. URL: https://github.com/settings/installations
@@ -81,6 +83,7 @@ Si necesitas hacer un deployment manual:
 **Causa:** Dependencias con versiones incompatibles.
 
 **Solución:**
+
 1. Verifica que `package.json` tenga versiones válidas
 2. Revisa los Build Logs en Vercel para ver qué paquete falló
 3. Arregla la versión y haz push
@@ -90,6 +93,7 @@ Si necesitas hacer un deployment manual:
 **Causa:** Errores de tipo en el código.
 
 **Solución:**
+
 1. Ejecuta localmente: `npx tsc --noEmit`
 2. Corrige los errores de TypeScript
 3. Haz push de los cambios
@@ -99,6 +103,7 @@ Si necesitas hacer un deployment manual:
 **Causa:** Variables de entorno no configuradas en Vercel.
 
 **Solución:**
+
 1. Ve a Settings → Environment Variables
 2. Agrega las variables necesarias
 3. Redeploy el proyecto

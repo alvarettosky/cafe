@@ -3,6 +3,7 @@
 ## Overview
 
 This project uses a comprehensive testing strategy covering:
+
 - Unit tests (Vitest + Testing Library)
 - Integration tests (MSW + Vitest)
 - E2E tests (Playwright)
@@ -128,6 +129,7 @@ npx playwright show-trace trace.zip
 ## CI/CD Integration
 
 All tests run automatically on:
+
 - Every push to `main` or `develop`
 - Every pull request
 - Nightly (mutation and load tests)

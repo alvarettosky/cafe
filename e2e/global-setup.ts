@@ -46,7 +46,7 @@ async function globalSetup(config: FullConfig) {
   const context = await browser.newContext();
 
   // Setup route mocks before any navigation
-  await context.route('**/supabase.co/**', async (route) => {
+  await context.route('**/supabase.co/**', async route => {
     const url = route.request().url();
 
     if (url.includes('/auth/v1/')) {
@@ -82,7 +82,7 @@ async function globalSetup(config: FullConfig) {
   await page.goto(baseURL + '/login');
 
   // Inject mock session into localStorage
-  await page.evaluate((session) => {
+  await page.evaluate(session => {
     localStorage.setItem('sb-inszvqzpxfqibkjsptsm-auth-token', JSON.stringify(session));
   }, MOCK_SESSION);
 

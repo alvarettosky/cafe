@@ -25,11 +25,11 @@
 
 ## 🔗 Quick Links
 
-| Resource | URL |
-|----------|-----|
-| **Production App** | https://cafe-pi-steel.vercel.app |
-| **GitHub Repo** | https://github.com/alvarettosky/cafe |
-| **Vercel Dashboard** | https://vercel.com/alvaros-projects-0e720e49/cafe |
+| Resource               | URL                                                         |
+| ---------------------- | ----------------------------------------------------------- |
+| **Production App**     | https://cafe-pi-steel.vercel.app                            |
+| **GitHub Repo**        | https://github.com/alvarettosky/cafe                        |
+| **Vercel Dashboard**   | https://vercel.com/alvaros-projects-0e720e49/cafe           |
 | **Supabase Dashboard** | https://supabase.com/dashboard/project/inszvqzpxfqibkjsptsm |
 
 ---
@@ -91,6 +91,7 @@ cafe-mirador/
 ✅ **Auto-deploy habilitado** en Vercel
 
 Cada push a `main` automáticamente:
+
 1. Clona el repositorio
 2. Instala dependencias
 3. Ejecuta build de Next.js
@@ -109,6 +110,7 @@ Cada push a `main` automáticamente:
 ### Pre-commit Hooks
 
 ✅ Husky + lint-staged configurados:
+
 - ESLint (auto-fix)
 - Prettier (auto-format)
 - TypeScript check
@@ -127,35 +129,39 @@ Cada push a `main` automáticamente:
 
 ### Test Suite
 
-| Test Type | Tool | Coverage |
-|-----------|------|----------|
-| **Unit Tests** | Vitest + Testing Library | Components, utils |
-| **Integration Tests** | Vitest + MSW | API mocking |
-| **E2E Tests** | Playwright | User flows (3 browsers) |
-| **Mutation Tests** | Stryker | Test quality |
-| **Load Tests** | k6 | Performance |
-| **Database Tests** | Vitest + Supabase | RPC functions |
+| Test Type             | Tool                     | Coverage                |
+| --------------------- | ------------------------ | ----------------------- |
+| **Unit Tests**        | Vitest + Testing Library | Components, utils       |
+| **Integration Tests** | Vitest + MSW             | API mocking             |
+| **E2E Tests**         | Playwright               | User flows (3 browsers) |
+| **Mutation Tests**    | Stryker                  | Test quality            |
+| **Load Tests**        | k6                       | Performance             |
+| **Database Tests**    | Vitest + Supabase        | RPC functions           |
 
 ---
 
 ## 📝 Key Features Deployed
 
 ✅ **Dashboard Principal**
+
 - KPI cards (Total Inventario, Ventas Hoy, Café Tostado, Alertas)
 - Inventario en tiempo real
 - Lista de ventas recientes
 
 ✅ **Sistema de Ventas**
+
 - Modal de nueva venta
 - Gestión de clientes
 - Múltiples métodos de pago
 
 ✅ **Analytics Dashboard**
+
 - Gráficos de revenue/profit (Recharts)
 - Análisis de productos
 - Breakdown de métodos de pago
 
 ✅ **Gestión de Inventario**
+
 - CRUD de productos
 - Alertas de stock bajo
 - Tracking en tiempo real
@@ -190,12 +196,14 @@ Cada push a `main` automáticamente:
 ## 📊 Deployment Metrics
 
 **Last Successful Build:**
+
 - **Duration:** 1m 4s
 - **Build Time:** 12.8s (Next.js compilation)
 - **Status:** ✅ Ready
 - **Deployment ID:** `eD424A1YX`
 
 **Build Machine:**
+
 - CPU: 4 vCPUs
 - Memory: 8 GB
 - Region: Washington D.C. (iad1)
@@ -204,14 +212,14 @@ Cada push a `main` automáticamente:
 
 ## 📚 Documentation
 
-| Document | Purpose |
-|----------|---------|
-| `README.md` | Project overview & setup |
-| `VERCEL_DEPLOYMENT.md` | Vercel deployment guide |
-| `MIGRATION_NOTES.md` | Frontend→Root migration notes |
-| `docs/testing/TESTING_GUIDE.md` | Testing guide |
-| `docs/testing/CI_CD.md` | CI/CD pipeline docs |
-| `docs/testing/WRITING_TESTS.md` | How to write tests |
+| Document                        | Purpose                       |
+| ------------------------------- | ----------------------------- |
+| `README.md`                     | Project overview & setup      |
+| `VERCEL_DEPLOYMENT.md`          | Vercel deployment guide       |
+| `MIGRATION_NOTES.md`            | Frontend→Root migration notes |
+| `docs/testing/TESTING_GUIDE.md` | Testing guide                 |
+| `docs/testing/CI_CD.md`         | CI/CD pipeline docs           |
+| `docs/testing/WRITING_TESTS.md` | How to write tests            |
 
 ---
 
@@ -233,6 +241,7 @@ Cada push a `main` automáticamente:
 **Monitoring:** Vercel Dashboard + GitHub Actions
 
 **For issues:**
+
 1. Check Vercel Build Logs
 2. Review GitHub Actions runs
 3. Consult documentation in `/docs`

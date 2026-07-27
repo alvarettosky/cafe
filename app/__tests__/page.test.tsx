@@ -68,7 +68,7 @@ describe('Dashboard Page', () => {
     {
       id: 'sale-1',
       created_at: '2026-01-23T10:30:00Z',
-      total_amount: 150.00,
+      total_amount: 150.0,
       payment_method: 'cash',
       customers: {
         full_name: 'Juan Perez',
@@ -79,7 +79,7 @@ describe('Dashboard Page', () => {
     {
       id: 'sale-2',
       created_at: '2026-01-23T09:15:00Z',
-      total_amount: 75.50,
+      total_amount: 75.5,
       payment_method: 'credit',
       customers: null,
     },
@@ -299,16 +299,12 @@ describe('Dashboard Page', () => {
       await waitFor(() => {
         // Find logout button by its icon (LogOut)
         const buttons = screen.getAllByRole('button');
-        const logoutButton = buttons.find(btn =>
-          btn.querySelector('svg.lucide-log-out') !== null
-        );
+        const logoutButton = buttons.find(btn => btn.querySelector('svg.lucide-log-out') !== null);
         expect(logoutButton).toBeInTheDocument();
       });
 
       const buttons = screen.getAllByRole('button');
-      const logoutButton = buttons.find(btn =>
-        btn.querySelector('svg.lucide-log-out') !== null
-      );
+      const logoutButton = buttons.find(btn => btn.querySelector('svg.lucide-log-out') !== null);
       await user.click(logoutButton!);
 
       expect(mockSignOut).toHaveBeenCalled();
@@ -327,7 +323,10 @@ describe('Dashboard Page', () => {
 
       await waitFor(() => {
         expect(screen.getByRole('link', { name: /nueva venta/i })).toBeInTheDocument();
-        expect(screen.getByRole('link', { name: /nueva venta/i })).toHaveAttribute('href', '/ventas/nueva');
+        expect(screen.getByRole('link', { name: /nueva venta/i })).toHaveAttribute(
+          'href',
+          '/ventas/nueva'
+        );
       });
     });
   });
@@ -383,7 +382,7 @@ describe('Dashboard Page', () => {
         if (functionName === 'get_pending_users') {
           return Promise.resolve({
             data: [{ id: '1' }, { id: '2' }],
-            error: null
+            error: null,
           });
         }
         return Promise.resolve({ data: null, error: null });
@@ -415,7 +414,7 @@ describe('Dashboard Page', () => {
         if (functionName === 'get_pending_users') {
           return Promise.resolve({
             data: [{ id: '1' }],
-            error: null
+            error: null,
           });
         }
         return Promise.resolve({ data: null, error: null });
@@ -452,8 +451,8 @@ describe('Dashboard Page', () => {
       await waitFor(() => {
         // Find refresh button by its icon
         const buttons = screen.getAllByRole('button');
-        const refreshButton = buttons.find(btn =>
-          btn.querySelector('svg.lucide-refresh-ccw') !== null
+        const refreshButton = buttons.find(
+          btn => btn.querySelector('svg.lucide-refresh-ccw') !== null
         );
         expect(refreshButton).toBeInTheDocument();
       });
@@ -463,8 +462,8 @@ describe('Dashboard Page', () => {
       mockSupabaseFrom.mockClear();
 
       const buttons = screen.getAllByRole('button');
-      const refreshButton = buttons.find(btn =>
-        btn.querySelector('svg.lucide-refresh-ccw') !== null
+      const refreshButton = buttons.find(
+        btn => btn.querySelector('svg.lucide-refresh-ccw') !== null
       );
       await user.click(refreshButton!);
 
@@ -509,7 +508,7 @@ describe('Dashboard Page', () => {
         if (functionName === 'get_dashboard_stats') {
           return Promise.resolve({
             data: { ...mockStats, sales_today: 0 },
-            error: null
+            error: null,
           });
         }
         if (functionName === 'get_pending_users') {
@@ -560,7 +559,7 @@ describe('Dashboard Page', () => {
           order: vi.fn().mockReturnValue({
             limit: vi.fn().mockResolvedValue({
               data: null,
-              error: { message: 'Database error' }
+              error: { message: 'Database error' },
             }),
           }),
         }),

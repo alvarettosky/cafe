@@ -188,7 +188,9 @@ describe('PortalPedidosPage', () => {
       render(<PortalPedidosPage />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Historial completo de tus pedidos \(2 pedidos\)/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/Historial completo de tus pedidos \(2 pedidos\)/i)
+        ).toBeInTheDocument();
       });
     });
 
@@ -302,7 +304,9 @@ describe('PortalPedidosPage', () => {
       });
 
       // Click on the first order to expand it
-      const firstOrder = screen.getByText(/15 de enero de 2026/i).closest('div[class*="cursor-pointer"]');
+      const firstOrder = screen
+        .getByText(/15 de enero de 2026/i)
+        .closest('div[class*="cursor-pointer"]');
       if (firstOrder) {
         await user.click(firstOrder);
       }
@@ -321,7 +325,9 @@ describe('PortalPedidosPage', () => {
         expect(screen.getByText(/15 de enero de 2026/i)).toBeInTheDocument();
       });
 
-      const firstOrder = screen.getByText(/15 de enero de 2026/i).closest('div[class*="cursor-pointer"]');
+      const firstOrder = screen
+        .getByText(/15 de enero de 2026/i)
+        .closest('div[class*="cursor-pointer"]');
       if (firstOrder) {
         await user.click(firstOrder);
       }
@@ -340,7 +346,9 @@ describe('PortalPedidosPage', () => {
         expect(screen.getByText(/15 de enero de 2026/i)).toBeInTheDocument();
       });
 
-      const firstOrder = screen.getByText(/15 de enero de 2026/i).closest('div[class*="cursor-pointer"]');
+      const firstOrder = screen
+        .getByText(/15 de enero de 2026/i)
+        .closest('div[class*="cursor-pointer"]');
       if (firstOrder) {
         await user.click(firstOrder);
       }
@@ -359,7 +367,9 @@ describe('PortalPedidosPage', () => {
         expect(screen.getByText(/15 de enero de 2026/i)).toBeInTheDocument();
       });
 
-      const firstOrder = screen.getByText(/15 de enero de 2026/i).closest('div[class*="cursor-pointer"]');
+      const firstOrder = screen
+        .getByText(/15 de enero de 2026/i)
+        .closest('div[class*="cursor-pointer"]');
       if (firstOrder) {
         // Click to expand
         await user.click(firstOrder);
@@ -388,8 +398,12 @@ describe('PortalPedidosPage', () => {
         expect(screen.getByText(/1 de enero de 2026/i)).toBeInTheDocument();
       });
 
-      const firstOrder = screen.getByText(/15 de enero de 2026/i).closest('div[class*="cursor-pointer"]');
-      const secondOrder = screen.getByText(/1 de enero de 2026/i).closest('div[class*="cursor-pointer"]');
+      const firstOrder = screen
+        .getByText(/15 de enero de 2026/i)
+        .closest('div[class*="cursor-pointer"]');
+      const secondOrder = screen
+        .getByText(/1 de enero de 2026/i)
+        .closest('div[class*="cursor-pointer"]');
 
       if (firstOrder && secondOrder) {
         // Click first order
@@ -689,7 +703,9 @@ describe('PortalPedidosPage', () => {
         expect(screen.getByText(/1 de enero de 2026/i)).toBeInTheDocument();
       });
 
-      const orderCard = screen.getByText(/1 de enero de 2026/i).closest('div[class*="cursor-pointer"]');
+      const orderCard = screen
+        .getByText(/1 de enero de 2026/i)
+        .closest('div[class*="cursor-pointer"]');
       if (orderCard) {
         await user.click(orderCard);
       }

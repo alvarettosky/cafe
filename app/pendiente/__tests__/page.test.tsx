@@ -128,8 +128,12 @@ describe('PendingApprovalPage', () => {
     it('should render informational text about admin review', () => {
       render(<PendingApprovalPage />);
 
-      expect(screen.getByText(/El administrador revisar[aá] tu solicitud pronto/i)).toBeInTheDocument();
-      expect(screen.getByText(/Recibir[aá]s acceso una vez que tu cuenta sea aprobada/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/El administrador revisar[aá] tu solicitud pronto/i)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/Recibir[aá]s acceso una vez que tu cuenta sea aprobada/i)
+      ).toBeInTheDocument();
     });
 
     it('should display user email', () => {

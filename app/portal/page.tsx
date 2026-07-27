@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import { useCustomerPortal } from "@/context/customer-portal-context";
-import { motion } from "framer-motion";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { useCustomerPortal } from '@/context/customer-portal-context';
+import { motion } from 'framer-motion';
 import {
   Coffee,
   Loader2,
@@ -20,10 +20,10 @@ import {
   AlertCircle,
   Users,
   Gift,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Link from "next/link";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
 
 interface DashboardData {
   customer: {
@@ -55,7 +55,7 @@ interface DashboardData {
     total_amount: number;
     items_summary: string;
   }>;
-  status: "new" | "ok" | "soon" | "due";
+  status: 'new' | 'ok' | 'soon' | 'due';
   has_subscription: boolean;
   subscription: {
     id: string;
@@ -76,7 +76,7 @@ export default function PortalDashboard() {
   useEffect(() => {
     // Redirigir si no está autenticado (después de cargar)
     if (!authLoading && !isAuthenticated) {
-      router.push("/portal/auth");
+      router.push('/portal/auth');
       return;
     }
 
@@ -85,14 +85,13 @@ export default function PortalDashboard() {
       if (!customer) return;
 
       try {
-        const { data, error: fetchError } = await supabase.rpc(
-          "get_customer_portal_dashboard",
-          { p_customer_id: customer.customer_id }
-        );
+        const { data, error: fetchError } = await supabase.rpc('get_customer_portal_dashboard', {
+          p_customer_id: customer.customer_id,
+        });
 
         if (fetchError) {
-          console.error("Dashboard fetch error:", fetchError);
-          setError("Error al cargar datos");
+          console.error('Dashboard fetch error:', fetchError);
+          setError('Error al cargar datos');
           return;
         }
 
@@ -103,8 +102,8 @@ export default function PortalDashboard() {
 
         setDashboardData(data);
       } catch (err) {
-        console.error("Dashboard error:", err);
-        setError("Error de conexión");
+        console.error('Dashboard error:', err);
+        setError('Error de conexión');
       } finally {
         setIsLoading(false);
       }
@@ -117,32 +116,29 @@ export default function PortalDashboard() {
 
   const handleLogout = async () => {
     await logout();
-    router.push("/portal/auth");
+    router.push('/portal/auth');
   };
 
   const handleRepeatLastOrder = () => {
     if (dashboardData?.last_sale) {
       // Almacenar datos para el formulario de nuevo pedido
-      sessionStorage.setItem(
-        "repeat_order",
-        JSON.stringify(dashboardData.last_sale.items)
-      );
-      router.push("/portal/nuevo-pedido?repeat=true");
+      sessionStorage.setItem('repeat_order', JSON.stringify(dashboardData.last_sale.items));
+      router.push('/portal/nuevo-pedido?repeat=true');
     }
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("es-CO", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
+    return new Date(dateStr).toLocaleDateString('es-CO', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
     });
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
       minimumFractionDigits: 0,
     }).format(amount);
   };
@@ -179,17 +175,17 @@ export default function PortalDashboard() {
   }
 
   const statusColors = {
-    new: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-    ok: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-    soon: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
-    due: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+    new: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+    ok: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+    soon: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+    due: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
   };
 
   const statusLabels = {
-    new: "Nuevo cliente",
-    ok: "Todo bien",
-    soon: "Pedido pronto",
-    due: "Es hora de pedir",
+    new: 'Nuevo cliente',
+    ok: 'Todo bien',
+    soon: 'Pedido pronto',
+    due: 'Es hora de pedir',
   };
 
   return (
@@ -199,9 +195,7 @@ export default function PortalDashboard() {
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Coffee className="h-8 w-8 text-amber-600" />
-            <span className="font-bold text-lg text-gray-900 dark:text-white">
-              Cafe Mirador
-            </span>
+            <span className="font-bold text-lg text-gray-900 dark:text-white">Cafe Mirador</span>
           </div>
           <div className="flex items-center gap-2">
             <Link href="/portal/perfil">
@@ -219,10 +213,7 @@ export default function PortalDashboard() {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Welcome */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Hola, {dashboardData?.customer.name || customer?.customer_name}!
           </h1>
@@ -260,8 +251,8 @@ export default function PortalDashboard() {
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-300 truncate">
                     {dashboardData.last_sale.items
-                      ?.map((i) => `${i.quantity} ${i.unit} ${i.product_name}`)
-                      .join(", ")}
+                      ?.map(i => `${i.quantity} ${i.unit} ${i.product_name}`)
+                      .join(', ')}
                   </p>
                   <p className="text-amber-600 font-semibold mt-1">
                     {formatCurrency(dashboardData.last_sale.total_amount)}
@@ -297,12 +288,11 @@ export default function PortalDashboard() {
                     {dashboardData.days_until_next > 0
                       ? `en ~${dashboardData.days_until_next} dias`
                       : dashboardData.days_until_next === 0
-                      ? "Hoy!"
-                      : `hace ${Math.abs(dashboardData.days_until_next)} dias`}
+                        ? 'Hoy!'
+                        : `hace ${Math.abs(dashboardData.days_until_next)} dias`}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Recurrencia: cada{" "}
-                    {dashboardData.customer.typical_recurrence_days || 15} dias
+                    Recurrencia: cada {dashboardData.customer.typical_recurrence_days || 15} dias
                   </p>
                 </>
               ) : (
@@ -334,13 +324,11 @@ export default function PortalDashboard() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-900 dark:text-white">
-                  Pedido automatico cada{" "}
-                  <strong>{dashboardData.subscription.frequency_days}</strong>{" "}
-                  dias
+                  Pedido automatico cada{' '}
+                  <strong>{dashboardData.subscription.frequency_days}</strong> dias
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Proximo:{" "}
-                  {formatDate(dashboardData.subscription.next_order_date)}
+                  Proximo: {formatDate(dashboardData.subscription.next_order_date)}
                 </p>
                 <div className="mt-3 flex gap-2">
                   <Link href="/portal/suscripcion">
@@ -402,7 +390,11 @@ export default function PortalDashboard() {
                   </div>
                 </div>
                 <Link href="/portal/referidos">
-                  <Button variant="outline" size="sm" className="border-purple-300 text-purple-700 hover:bg-purple-100">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-purple-300 text-purple-700 hover:bg-purple-100"
+                  >
                     <Users className="h-4 w-4 mr-2" />
                     Ver mas
                   </Button>
@@ -431,10 +423,9 @@ export default function PortalDashboard() {
               </Link>
             </CardHeader>
             <CardContent>
-              {dashboardData?.recent_sales &&
-              dashboardData.recent_sales.length > 0 ? (
+              {dashboardData?.recent_sales && dashboardData.recent_sales.length > 0 ? (
                 <div className="space-y-3">
-                  {dashboardData.recent_sales.map((sale) => (
+                  {dashboardData.recent_sales.map(sale => (
                     <div
                       key={sale.id}
                       className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-zinc-700 last:border-0"
@@ -454,9 +445,7 @@ export default function PortalDashboard() {
                   ))}
                 </div>
               ) : (
-                <p className="text-center text-gray-500 py-4">
-                  No tienes pedidos aun
-                </p>
+                <p className="text-center text-gray-500 py-4">No tienes pedidos aun</p>
               )}
             </CardContent>
           </Card>
@@ -473,9 +462,7 @@ export default function PortalDashboard() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <MessageCircle className="h-5 w-5 text-green-600" />
-                  <span className="text-gray-900 dark:text-white">
-                    Necesitas ayuda?
-                  </span>
+                  <span className="text-gray-900 dark:text-white">Necesitas ayuda?</span>
                 </div>
                 <a
                   href="https://wa.me/573001234567?text=Hola,%20tengo%20una%20pregunta%20sobre%20mi%20pedido"

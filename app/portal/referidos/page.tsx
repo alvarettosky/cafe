@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import { useCustomerPortal } from "@/context/customer-portal-context";
-import { motion } from "framer-motion";
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { useCustomerPortal } from '@/context/customer-portal-context';
+import { motion } from 'framer-motion';
 import {
   Users,
   Share2,
@@ -16,34 +16,11 @@ import {
   Loader2,
   Home,
   ArrowLeft,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Link from "next/link";
-
-interface Referral {
-  id: string;
-  code: string;
-  status: string;
-  referred_phone: string;
-  created_at: string;
-  completed_at: string | null;
-  expires_at: string;
-  reward_claimed: boolean;
-  reward_value: number;
-}
-
-interface ReferralStats {
-  total: number;
-  completed: number;
-  pending: number;
-  this_month: number;
-}
-
-interface ReferralData {
-  referrals: Referral[] | null;
-  stats: ReferralStats;
-}
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
+import type { PortalReferralData } from '@/types/referrals';
 
 interface GeneratedCode {
   success: boolean;
@@ -60,7 +37,7 @@ export default function ReferidosPage() {
   const router = useRouter();
   const { customer, isLoading: authLoading, isAuthenticated } = useCustomerPortal();
 
-  const [referralData, setReferralData] = useState<ReferralData | null>(null);
+  const [referralData, setReferralData] = useState<PortalReferralData | null>(null);
   const [generatedCode, setGeneratedCode] = useState<GeneratedCode | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -72,7 +49,7 @@ export default function ReferidosPage() {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.rpc('get_my_referrals', {
-        p_customer_id: customer.customer_id
+        p_customer_id: customer.customer_id,
       });
 
       if (error) throw error;
@@ -101,7 +78,7 @@ export default function ReferidosPage() {
     setIsGenerating(true);
     try {
       const { data, error } = await supabase.rpc('generate_referral_code', {
-        p_customer_id: customer.customer_id
+        p_customer_id: customer.customer_id,
       });
 
       if (error) throw error;
@@ -343,15 +320,13 @@ export default function ReferidosPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {referralData.referrals.map((referral) => (
+                  {referralData.referrals.map(referral => (
                     <div
                       key={referral.id}
                       className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                     >
                       <div>
-                        <p className="font-medium text-gray-800">
-                          Código: {referral.code}
-                        </p>
+                        <p className="font-medium text-gray-800">Código: {referral.code}</p>
                         <p className="text-xs text-gray-500">
                           {referral.referred_phone || 'Sin usar'} -{' '}
                           {new Date(referral.created_at).toLocaleDateString()}

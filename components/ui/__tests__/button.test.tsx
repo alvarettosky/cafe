@@ -40,7 +40,11 @@ describe('Button', () => {
       const handleClick = vi.fn();
       const user = userEvent.setup();
 
-      render(<Button onClick={handleClick} disabled>Click me</Button>);
+      render(
+        <Button onClick={handleClick} disabled>
+          Click me
+        </Button>
+      );
       const button = screen.getByRole('button');
 
       await user.click(button);
@@ -52,7 +56,11 @@ describe('Button', () => {
       const handleClick = vi.fn();
       const user = userEvent.setup();
 
-      render(<Button onClick={handleClick} isLoading>Click me</Button>);
+      render(
+        <Button onClick={handleClick} isLoading>
+          Click me
+        </Button>
+      );
       const button = screen.getByRole('button');
 
       await user.click(button);
@@ -164,7 +172,11 @@ describe('Button', () => {
     });
 
     it('applies icon size classes', () => {
-      render(<Button size="icon" aria-label="Icon button">X</Button>);
+      render(
+        <Button size="icon" aria-label="Icon button">
+          X
+        </Button>
+      );
       const button = screen.getByRole('button');
       expect(button).toHaveClass('h-9');
       expect(button).toHaveClass('w-9');
@@ -239,7 +251,11 @@ describe('Button', () => {
 
   describe('Combination Scenarios', () => {
     it('combines variant and size correctly', () => {
-      render(<Button variant="outline" size="lg">Large Outline</Button>);
+      render(
+        <Button variant="outline" size="lg">
+          Large Outline
+        </Button>
+      );
       const button = screen.getByRole('button');
       expect(button).toHaveClass('border');
       expect(button).toHaveClass('h-10');

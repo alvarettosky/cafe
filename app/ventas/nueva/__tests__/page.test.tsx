@@ -47,13 +47,10 @@ vi.mock('@/components/recurrence-input', () => ({
         type="number"
         data-testid="recurrence-input-field"
         value={value || ''}
-        onChange={(e) => onChange(e.target.value ? parseInt(e.target.value) : null)}
+        onChange={e => onChange(e.target.value ? parseInt(e.target.value) : null)}
       />
       {showSuggestion && suggestedValue && (
-        <button
-          data-testid="accept-suggestion"
-          onClick={() => onChange(suggestedValue)}
-        >
+        <button data-testid="accept-suggestion" onClick={() => onChange(suggestedValue)}>
           Aceptar sugerencia ({suggestedValue} dias)
         </button>
       )}
@@ -620,17 +617,20 @@ describe('NuevaVentaPage', () => {
       await user.click(screen.getByText('Confirmar Venta'));
 
       await waitFor(() => {
-        expect(mockSupabaseRpc).toHaveBeenCalledWith('process_coffee_sale', expect.objectContaining({
-          p_items: expect.arrayContaining([
-            expect.objectContaining({
-              product_id: 'prod-1',
-              unit: 'libra',
-              quantity: 1,
-              price: 10,
-            }),
-          ]),
-          p_payment_method: 'Efectivo',
-        }));
+        expect(mockSupabaseRpc).toHaveBeenCalledWith(
+          'process_coffee_sale',
+          expect.objectContaining({
+            p_items: expect.arrayContaining([
+              expect.objectContaining({
+                product_id: 'prod-1',
+                unit: 'libra',
+                quantity: 1,
+                price: 10,
+              }),
+            ]),
+            p_payment_method: 'Efectivo',
+          })
+        );
       });
     });
 
@@ -758,9 +758,12 @@ describe('NuevaVentaPage', () => {
       await user.click(screen.getByText('Confirmar Venta'));
 
       await waitFor(() => {
-        expect(mockSupabaseRpc).toHaveBeenCalledWith('process_coffee_sale', expect.objectContaining({
-          p_customer_id: '00000000-0000-0000-0000-000000000000',
-        }));
+        expect(mockSupabaseRpc).toHaveBeenCalledWith(
+          'process_coffee_sale',
+          expect.objectContaining({
+            p_customer_id: '00000000-0000-0000-0000-000000000000',
+          })
+        );
       });
     });
   });
@@ -836,9 +839,12 @@ describe('NuevaVentaPage', () => {
       await user.click(screen.getByText('Confirmar Venta'));
 
       await waitFor(() => {
-        expect(mockSupabaseRpc).toHaveBeenCalledWith('process_coffee_sale', expect.objectContaining({
-          p_created_at: undefined,
-        }));
+        expect(mockSupabaseRpc).toHaveBeenCalledWith(
+          'process_coffee_sale',
+          expect.objectContaining({
+            p_created_at: undefined,
+          })
+        );
       });
     });
 
@@ -864,9 +870,12 @@ describe('NuevaVentaPage', () => {
       await user.click(screen.getByText('Confirmar Venta'));
 
       await waitFor(() => {
-        expect(mockSupabaseRpc).toHaveBeenCalledWith('process_coffee_sale', expect.objectContaining({
-          p_created_at: expect.stringContaining('2026-01-20'),
-        }));
+        expect(mockSupabaseRpc).toHaveBeenCalledWith(
+          'process_coffee_sale',
+          expect.objectContaining({
+            p_created_at: expect.stringContaining('2026-01-20'),
+          })
+        );
       });
     });
   });

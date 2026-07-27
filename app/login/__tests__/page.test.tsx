@@ -205,7 +205,7 @@ describe('LoginPage', () => {
     it('should show error message on login failure', async () => {
       const loginError = new Error('Invalid login credentials');
       mockSignInWithPassword.mockResolvedValue({
-        error: loginError
+        error: loginError,
       });
 
       const user = userEvent.setup();
@@ -227,7 +227,7 @@ describe('LoginPage', () => {
     it('should not redirect on login failure', async () => {
       const loginError = new Error('Invalid login credentials');
       mockSignInWithPassword.mockResolvedValue({
-        error: loginError
+        error: loginError,
       });
 
       const user = userEvent.setup();
@@ -272,8 +272,8 @@ describe('LoginPage', () => {
           options: {
             data: {
               full_name: 'newuser',
-            }
-          }
+            },
+          },
         });
       });
     });
@@ -331,7 +331,7 @@ describe('LoginPage', () => {
     it('should show error message on signup failure', async () => {
       const signupError = new Error('Email already registered');
       mockSignUp.mockResolvedValue({
-        error: signupError
+        error: signupError,
       });
 
       const user = userEvent.setup();
@@ -423,7 +423,7 @@ describe('LoginPage', () => {
     it('should display error in styled error box', async () => {
       const networkError = new Error('Network error');
       mockSignInWithPassword.mockResolvedValue({
-        error: networkError
+        error: networkError,
       });
 
       const user = userEvent.setup();
@@ -584,8 +584,8 @@ describe('LoginPage', () => {
             options: {
               data: {
                 full_name: 'john.doe',
-              }
-            }
+              },
+            },
           })
         );
       });
