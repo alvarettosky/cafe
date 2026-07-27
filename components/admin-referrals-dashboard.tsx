@@ -40,7 +40,7 @@ export function AdminReferralsDashboard() {
         .select(
           `
           *,
-          referrer:customers!referrals_referrer_id_fkey(full_name),
+          referrer:customers!referrals_referrer_customer_id_fkey(full_name),
           referred:customers!referrals_referred_customer_id_fkey(full_name)
         `
         )
@@ -51,18 +51,18 @@ export function AdminReferralsDashboard() {
 
       const formattedReferrals = (referralsData || []).map((r: AdminReferralRow) => ({
         id: r.id,
-        code: r.code,
+        code: r.referrer_code,
         status: r.status,
-        referrer_id: r.referrer_id,
+        referrer_id: r.referrer_customer_id,
         referrer_name: r.referrer?.full_name || 'Desconocido',
         referred_phone: r.referred_phone,
         referred_customer_name: r.referred?.full_name || null,
         created_at: r.created_at,
         expires_at: r.expires_at,
         completed_at: r.completed_at,
-        referrer_reward_percent: r.referrer_reward_percent,
-        referred_reward_percent: r.referred_reward_percent,
-        reward_claimed: r.reward_claimed,
+        referrer_reward_value: r.referrer_reward_value,
+        referred_reward_value: r.referred_reward_value,
+        reward_claimed: r.referrer_reward_claimed,
       }));
 
       setReferrals(formattedReferrals);
@@ -113,6 +113,15 @@ export function AdminReferralsDashboard() {
         {style.label}
       </span>
     );
+  };
+
+  const formatReward = (amount: number | null) => {
+    if (amount === null) return '—';
+    return `+${new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+    }).format(amount)}`;
   };
 
   if (isLoading) {
@@ -283,9 +292,13 @@ export function AdminReferralsDashboard() {
                     </td>
                     <td className="px-4 py-3">{getStatusBadge(referral.status)}</td>
                     <td className="px-4 py-3">
-                      <span className="text-green-600">+{referral.referrer_reward_percent}%</span>
+                      <span className="text-green-600">
+                        {formatReward(referral.referrer_reward_value)}
+                      </span>
                       {' / '}
-                      <span className="text-blue-600">+{referral.referred_reward_percent}%</span>
+                      <span className="text-blue-600">
+                        {formatReward(referral.referred_reward_value)}
+                      </span>
                       {referral.reward_claimed && (
                         <CheckCircle className="inline h-4 w-4 ml-1 text-green-500" />
                       )}

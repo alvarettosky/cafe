@@ -37,7 +37,12 @@ export async function GET(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    if (profileError) {
+    // PGRST116 = `.single()` no encontro fila. No es una averia: es un usuario
+    // autenticado sin perfil (registro a medias, fila borrada). La respuesta
+    // correcta ahi es 403 «no autorizado», que es lo que devolvia antes de que
+    // se anadiera este manejo de error. Solo los demas codigos son fallos
+    // reales del servidor.
+    if (profileError && profileError.code !== 'PGRST116') {
       console.error('Error fetching profile for backups list:', profileError);
       return NextResponse.json({ error: 'Error al verificar permisos' }, { status: 500 });
     }

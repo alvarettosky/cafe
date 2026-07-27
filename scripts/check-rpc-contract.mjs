@@ -84,27 +84,45 @@ function walk(dir, out = []) {
 // de nada — se limita a mirar hacia otro lado. Y `.rpc()` acepta el string que
 // sea: si alguien escribe camelCase, la RPC no existira y el fallo es
 // exactamente el que este script deberia cazar.
+// `\s` incluye el salto de linea, y se recorre el archivo ENTERO en vez de
+// linea a linea.
+//
+// La version anterior hacia `.split('\n').forEach(...)`, asi que una llamada
+// partida en dos —que es justo como prettier formatea las largas—
+//
+//     const { data } = await supabase.rpc(
+//       'get_customer_portal_dashboard',
+//       { p_customer_id: id }
+//     );
+//
+// no la veia. Y lo peor: tampoco la contaba como dinamica, de modo que
+// desaparecia del informe sin dejar rastro y el script anunciaba «todas las RPC
+// existen» habiendo mirado menos de las que hay. Es el mismo modo de fallo que
+// ya se corrigio para los nombres con mayusculas: **descartar en silencio lo
+// que no encaja con la idea que el extractor tiene de una llamada valida**.
 const RPC_RE = /\.rpc\(\s*['"`]([A-Za-z0-9_]+)['"`]/g;
 
-// Contador independiente para detectar llamadas dinamicas — `.rpc(nombre)` con
-// una variable — que este script NO puede resolver. Callarlas seria fingir una
-// cobertura que no se tiene.
-const DINAMICA_RE = /\.rpc\(\s*[^'"`\s)]/g;
+// Llamadas con nombre dinamico — `.rpc(nombre)` con una variable — que este
+// script NO puede resolver. Callarlas seria fingir una cobertura que no se
+// tiene, asi que se cuentan y se declaran aparte.
+const DINAMICA_RE = /\.rpc\(\s*(?!['"`])[^\s)]/g;
+
+/** Numero de linea (1-indexado) de un desplazamiento dentro del texto. */
+const lineaDe = (texto, offset) => texto.slice(0, offset).split('\n').length;
 
 const llamadas = new Map(); // nombre -> [archivo:linea]
 const dinamicas = [];
 
 for (const archivo of DIRS.flatMap(d => walk(d))) {
-  readFileSync(archivo, 'utf8')
-    .split('\n')
-    .forEach((linea, i) => {
-      for (const m of linea.matchAll(RPC_RE)) {
-        if (!llamadas.has(m[1])) llamadas.set(m[1], []);
-        llamadas.get(m[1]).push(`${archivo}:${i + 1}`);
-      }
-      if (DINAMICA_RE.test(linea)) dinamicas.push(`${archivo}:${i + 1}`);
-      DINAMICA_RE.lastIndex = 0;
-    });
+  const texto = readFileSync(archivo, 'utf8');
+
+  for (const m of texto.matchAll(RPC_RE)) {
+    if (!llamadas.has(m[1])) llamadas.set(m[1], []);
+    llamadas.get(m[1]).push(`${archivo}:${lineaDe(texto, m.index)}`);
+  }
+  for (const m of texto.matchAll(DINAMICA_RE)) {
+    dinamicas.push(`${archivo}:${lineaDe(texto, m.index)}`);
+  }
 }
 
 if (llamadas.size === 0) {

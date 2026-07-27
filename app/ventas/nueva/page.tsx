@@ -164,11 +164,16 @@ export default function NuevaVentaPage() {
         finalCustomerId = '00000000-0000-0000-0000-000000000000';
         recurrenceToSave = null;
       } else if (showRecurrenceInput && customerRecurrence) {
-        // Update customer's recurrence if it was set during this sale
-        await supabase.rpc('update_customer_recurrence', {
+        // Update customer's recurrence if it was set during this sale.
+        // No se lanza el error: la venta ya es valida sin esto, y abortarla
+        // por un fallo al guardar la recurrencia seria peor que registrarlo.
+        const { error: recurrenceError } = await supabase.rpc('update_customer_recurrence', {
           p_customer_id: finalCustomerId,
           p_recurrence_days: customerRecurrence,
         });
+        if (recurrenceError) {
+          console.error('Error updating customer recurrence:', recurrenceError);
+        }
       }
 
       // Call RPC with recurrence

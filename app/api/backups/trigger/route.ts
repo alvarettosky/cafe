@@ -33,7 +33,9 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    if (profileError) {
+    // PGRST116 = `.single()` no encontro fila: usuario autenticado sin perfil.
+    // Eso es un 403, no un 500. Ver la nota en `app/api/backups/list/route.ts`.
+    if (profileError && profileError.code !== 'PGRST116') {
       console.error('Error fetching profile for backups trigger:', profileError);
       return NextResponse.json({ error: 'Error al verificar permisos' }, { status: 500 });
     }

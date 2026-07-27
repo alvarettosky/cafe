@@ -17,6 +17,53 @@ Sustituye a `.claude/TODO.md`, que queda como puntero.
 
 ---
 
+## ✅ P0-SEC-3 — Lo que 027 dejó abierto. Cerrado el 2026-07-27 (`029`)
+
+Una revisión de código sobre las propias migraciones 027 y 028 encontró que
+**cerrar el acceso anónimo a nivel de tabla no cerraba el acceso**.
+
+| Qué                                         | Medido antes                                  | Después de `029`         |
+| ------------------------------------------- | --------------------------------------------- | ------------------------ |
+| Políticas de `sales` que ignoran `approved` | **2** de 3                                    | 0                        |
+| Funciones ejecutables por `anon`            | **62**                                        | 13 (solo las del portal) |
+| Corte del día para «Ventas Hoy»             | UTC → se reiniciaba a las 19:00 hora Colombia | `America/Bogota`         |
+| «Stock bajo»: dashboard vs Analytics        | **5 vs 2** con los mismos datos               | 5 y 5                    |
+
+**Las dos primeras son agujeros de autorización reales.** Cualquiera podía
+registrarse —el registro es abierto y toda cuenta nace con `approved = false`—,
+confirmar el correo y leer el historial de ventas entero, porque dos políticas
+heredadas de `011` seguían vivas y las permisivas se combinan con **OR**. Y con
+solo la clave publishable del bundle, `get_advanced_metrics` devolvía ingresos,
+costes y beneficio del negocio a cualquiera: Postgres concede `EXECUTE` a
+`PUBLIC` por defecto y `SECURITY DEFINER` se salta RLS por definición.
+
+### Las tres lecciones
+
+**1. La lección de 027 se aplicó a medias.** Su propio texto dice que «añadir la
+política buena no sirve si no se retira la mala». Se hizo en `customers` e
+`inventory` y se pasó por alto en `sales`, porque ahí el trabajo _parecía_ ser
+«activar RLS» y no «revisar qué políticas quedan vivas al activarlo».
+
+**2. Un verificador solo prueba lo que mira.** El bloque de verificación de 027
+consultaba las cinco tablas y salía en verde — mientras los mismos datos seguían
+siendo legibles por la puerta de las RPC, que no consultaba.
+
+**3. Arreglar una pantalla y no la otra es peor que no arreglar ninguna.** 028
+cambió el umbral de stock bajo solo en el dashboard. Antes las dos pantallas
+estaban igual de mal pero coincidían; después se contradecían, y el usuario no
+tenía forma de saber cuál creer.
+
+⚠️ **`029` no puede revocar en bloque.** El portal de clientes no usa Supabase
+Auth —se autentica con un token propio en `localStorage`— así que sus llamadas
+llegan como `anon`. Sus 13 RPC van en lista blanca explícita dentro de la
+migración: **si se añade una llamada nueva al portal hay que añadirla ahí**, o
+fallará con «permission denied».
+
+**Riesgo residual, no cerrado:** esas 13 reciben `p_customer_id` como parámetro y
+son `SECURITY DEFINER`. Habría que comprobar si validan el token de sesión por
+dentro; si no lo hacen, cualquiera con un UUID de cliente podría leer su portal.
+Queda fuera del alcance de esta corrección porque exige rediseño, no un permiso.
+
 ## 🔴 P0-SEC-2 — Un token personal de Supabase, 188 días en el repo público
 
 **Requiere una acción que solo puede hacer el dueño de la cuenta.**
@@ -312,20 +359,21 @@ dejaron como estaban — ya caían dentro de la franja y su horario es indiferen
 
 ## A — Automatizable ahora
 
-| #   | Pendiente                                                   | Notas                                                                                                                                                                                                                                          |
-| --- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A1  | Warnings de accesibilidad en `Dialog` (falta `Description`) | Radix los emite en consola; 10 warnings de ESLint conviven aparte                                                                                                                                                                              |
-| A2  | Modo oscuro/claro con toggle                                | Hoy el dark es fijo (`<html className="dark">`)                                                                                                                                                                                                |
-| A3  | Accesibilidad: etiquetas ARIA y navegación por teclado      |                                                                                                                                                                                                                                                |
-| A4  | Caché de consultas frecuentes                               | El dashboard reconsulta en cada montaje                                                                                                                                                                                                        |
-| A5  | Lazy loading de componentes pesados                         | `app/portal/suscripcion/page.tsx` son 707 líneas                                                                                                                                                                                               |
-| A6  | Optimización de imágenes                                    |                                                                                                                                                                                                                                                |
-| A7  | Service Worker / PWA                                        |                                                                                                                                                                                                                                                |
-| A8  | Dashboard de métricas de recurrencia                        | Los datos ya existen (`customer_segments`)                                                                                                                                                                                                     |
-| A9  | Gráficas de predicción de ventas basadas en recurrencia     | Depende de A8 para no duplicar consultas                                                                                                                                                                                                       |
-| A10 | Animaciones de transición                                   | framer-motion ya está en el proyecto                                                                                                                                                                                                           |
-| A11 | Etiqueta «Ver en Drive» en `/backups`                       | **Es un fósil**: el almacenamiento es Supabase Storage desde la migración; ya no hay Drive. Cambiar el texto y su aserción en el test                                                                                                          |
-| A14 | Zona de entrega sin color se pinta transparente             | `delivery-zones-manager.tsx` no aplica `background-color` cuando `color` es null; el componente hermano `delivery-zone-select.tsx` usa gris `#9CA3AF`. Unificar en el gris es un cambio de producto, no de tipos: por eso se dejó fuera de A12 |
+| #   | Pendiente                                                   | Notas                                                                                                                                                                                                                                                                                                                                          |
+| --- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A1  | Warnings de accesibilidad en `Dialog` (falta `Description`) | Radix los emite en consola; 10 warnings de ESLint conviven aparte                                                                                                                                                                                                                                                                              |
+| A2  | Modo oscuro/claro con toggle                                | Hoy el dark es fijo (`<html className="dark">`)                                                                                                                                                                                                                                                                                                |
+| A3  | Accesibilidad: etiquetas ARIA y navegación por teclado      |                                                                                                                                                                                                                                                                                                                                                |
+| A4  | Caché de consultas frecuentes                               | El dashboard reconsulta en cada montaje                                                                                                                                                                                                                                                                                                        |
+| A5  | Lazy loading de componentes pesados                         | `app/portal/suscripcion/page.tsx` son 707 líneas                                                                                                                                                                                                                                                                                               |
+| A6  | Optimización de imágenes                                    |                                                                                                                                                                                                                                                                                                                                                |
+| A7  | Service Worker / PWA                                        |                                                                                                                                                                                                                                                                                                                                                |
+| A8  | Dashboard de métricas de recurrencia                        | Los datos ya existen (`customer_segments`)                                                                                                                                                                                                                                                                                                     |
+| A9  | Gráficas de predicción de ventas basadas en recurrencia     | Depende de A8 para no duplicar consultas                                                                                                                                                                                                                                                                                                       |
+| A10 | Animaciones de transición                                   | framer-motion ya está en el proyecto                                                                                                                                                                                                                                                                                                           |
+| A11 | Etiqueta «Ver en Drive» en `/backups`                       | **Es un fósil**: el almacenamiento es Supabase Storage desde la migración; ya no hay Drive. Cambiar el texto y su aserción en el test                                                                                                                                                                                                          |
+| A15 | **`get_products_for_customer_order` devuelve SQL inválido** | HTTP 400 · `42803: column "inventory.product_name" must appear in the GROUP BY clause`. La página de nuevo pedido del portal **no puede listar productos**: es un `json_agg(...)` con `ORDER BY product_name` sin agrupar. Preexistente; se descubrió el 2026-07-27 al probar los permisos de las RPC del portal, no por un reporte de usuario |
+| A14 | Zona de entrega sin color se pinta transparente             | `delivery-zones-manager.tsx` no aplica `background-color` cuando `color` es null; el componente hermano `delivery-zone-select.tsx` usa gris `#9CA3AF`. Unificar en el gris es un cambio de producto, no de tipos: por eso se dejó fuera de A12                                                                                                 |
 
 ## B — Requiere fuente externa
 

@@ -25,8 +25,26 @@ const PATRONES = [
   },
   { nombre: 'clave secreta de Supabase', re: /\bsb_secret_[A-Za-z0-9_-]{10,}/ },
   { nombre: 'personal access token de Supabase', re: /\bsbp_[a-f0-9]{40,}/ },
-  { nombre: 'token de GitHub', re: /\bgh[pousr]_[A-Za-z0-9]{30,}/ },
-  { nombre: 'clave de API de OpenAI', re: /\bsk-[A-Za-z0-9]{32,}/ },
+  // Los dos patrones de abajo cubren formatos *clasicos*. Los actuales llevan
+  // separadores intermedios que rompen una clase de caracteres continua, y se
+  // colaban enteros: `gh[pousr]_` exige exactamente dos letras antes del guion
+  // bajo, asi que no veia `github_pat_…` (el formato de grano fino que GitHub
+  // genera por defecto desde 2022); y `sk-[A-Za-z0-9]{32,}` exige 32 seguidos,
+  // pero en `sk-proj-…` solo hay cuatro (`proj`) antes del siguiente guion.
+  // Tampoco caian en el patron generico de asignacion, porque prettier parte
+  // las lineas largas y deja el nombre de la variable y el valor separados.
+  { nombre: 'token clasico de GitHub', re: /\bgh[pousr]_[A-Za-z0-9]{30,}/ },
+  { nombre: 'token de grano fino de GitHub', re: /\bgithub_pat_[A-Za-z0-9_]{50,}/ },
+  { nombre: 'clave de API de OpenAI (clasica)', re: /\bsk-[A-Za-z0-9]{32,}/ },
+  {
+    nombre: 'clave de API de OpenAI (proyecto)',
+    re: /\bsk-(proj|svcacct|admin)-[A-Za-z0-9_-]{20,}/,
+  },
+  { nombre: 'clave de API de Anthropic', re: /\bsk-ant-[A-Za-z0-9_-]{20,}/ },
+  { nombre: 'clave de API de Resend', re: /\bre_[A-Za-z0-9]{20,}/ },
+  { nombre: 'token de Vercel', re: /\b(vercel_blob_rw_)[A-Za-z0-9_]{20,}/ },
+  { nombre: 'clave de servicio de Google', re: /"type"\s*:\s*"service_account"/ },
+  { nombre: 'URL de Postgres con contrasena', re: /postgres(ql)?:\/\/[^:\s]+:[^@\s]{8,}@/ },
   { nombre: 'clave privada PEM', re: /-----BEGIN (RSA |EC |OPENSSH |PGP )?PRIVATE KEY-----/ },
   {
     nombre: 'credencial asignada en codigo',

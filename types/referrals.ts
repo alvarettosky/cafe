@@ -46,8 +46,10 @@ export interface AdminReferralStats {
  */
 export interface AdminReferral {
   id: string;
+  /** Aplanado de la columna `referrer_code`. */
   code: string;
   status: string;
+  /** Aplanado de la columna `referrer_customer_id`. */
   referrer_id: string;
   /** Aplanado de `referrer.full_name`. `'Desconocido'` si el join no resolvio. */
   referrer_name: string;
@@ -57,8 +59,17 @@ export interface AdminReferral {
   created_at: string;
   expires_at: string;
   completed_at: string | null;
-  referrer_reward_percent: number;
-  referred_reward_percent: number;
+  /**
+   * VALOR de la recompensa en pesos, no un porcentaje.
+   *
+   * Se llamaban `*_reward_percent` y la tabla los pintaba como `+{n}%`: una
+   * recompensa de 5000 pesos se mostraba como «+5000 %». La columna real es
+   * `referrer_reward_value`, y `referral_program_config` guarda aparte el
+   * tipo (`percentage` | `fixed`). null mientras no se haya asignado.
+   */
+  referrer_reward_value: number | null;
+  referred_reward_value: number | null;
+  /** Aplanado de `referrer_reward_claimed`. */
   reward_claimed: boolean;
 }
 
@@ -73,39 +84,53 @@ export interface AdminReferral {
  */
 export interface AdminReferralRow {
   id: string;
-  code: string;
+  /** Columna `referrer_code`. NO existe una columna `code`. */
+  referrer_code: string;
   status: string;
-  referrer_id: string;
+  referrer_customer_id: string;
   referrer: { full_name: string } | null;
   referred: { full_name: string } | null;
   referred_phone: string | null;
   created_at: string;
   expires_at: string;
   completed_at: string | null;
-  referrer_reward_percent: number;
-  referred_reward_percent: number;
-  reward_claimed: boolean;
+  /** Valor absoluto de la recompensa, NO un porcentaje. */
+  referrer_reward_value: number | null;
+  referred_reward_value: number | null;
+  referrer_reward_claimed: boolean;
 }
 
 /**
  * Un referido tal y como lo ve el cliente que lo genero, dentro del portal.
  *
  * Recortado respecto de `AdminReferral`: el cliente no ve quien es el referidor
- * (es el mismo) ni los porcentajes de ambas partes, y en cambio recibe
- * `reward_value` ya calculado. `referred_phone` no es nullable aqui porque la
- * RPC solo devuelve codigos ya aplicados.
+ * (es el mismo) ni los datos de la otra parte.
+ *
+ * ⚠️ `referred_phone` y `reward_value` SON NULLABLES. La primera version de
+ * este tipo los declaraba obligatorios con la justificacion de que «la RPC solo
+ * devuelve codigos ya aplicados». **Era falso**: `get_my_referrals` filtra solo
+ * por `WHERE r.referrer_customer_id = p_customer_id`, sin mirar el estado, asi
+ * que devuelve tambien los `pending` — codigos generados y aun sin usar, donde
+ * `referred_phone` es NULL y no hay recompensa asignada. Y el enmascarado
+ * `LEFT(NULL,3) || '****' || RIGHT(NULL,2)` evalua a NULL, no a `'****'`.
+ *
+ * El propio codigo ya lo sabia: `app/portal/referidos/page.tsx` tiene la guarda
+ * `{referral.referred_phone || 'Sin usar'}`. Solo el tipo no se habia enterado
+ * — el mismo defecto que `types/deliveries.ts` documenta y corrige para las
+ * zonas de entrega, reintroducido en el archivo hermano del mismo commit.
  */
 export interface PortalReferral {
   id: string;
   code: string;
   status: string;
-  referred_phone: string;
+  /** null mientras el codigo no se haya usado (`status = 'pending'`). */
+  referred_phone: string | null;
   created_at: string;
   completed_at: string | null;
   expires_at: string;
   reward_claimed: boolean;
-  /** Valor de la recompensa ya resuelto por la RPC, no un porcentaje. */
-  reward_value: number;
+  /** Valor de la recompensa, no un porcentaje. null si aun no se asigno. */
+  reward_value: number | null;
 }
 
 /**
