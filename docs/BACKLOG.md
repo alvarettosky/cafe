@@ -17,7 +17,27 @@ Sustituye a `.claude/TODO.md`, que queda como puntero.
 
 ---
 
-## 🚨 P0 — La base de datos de producción se congela el ~2026-07-29
+## ✅ P0 — RESUELTO el 2026-07-27 (dos días antes de la congelación)
+
+| Acción                                     | Resultado                                                                                                                                                    |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| P0.1 Restaurar el proyecto                 | ✅ `POST /v1/projects/inszvqzpxfqibkjsptsm/restore` → HTTP 200. `INACTIVE` → `COMING_UP` → **`ACTIVE_HEALTHY` en ~200 s**. DNS resuelve otra vez             |
+| P0.2 Verificar que la app sigue sirviendo  | ✅ La anon key desplegada **no fue rotada**: `GET /rest/v1/inventory?select=product_id&limit=0` → HTTP 200 `[]` (RLS devolviendo vacío al anónimo, correcto) |
+| P0.3 Reactivar los workflows               | ✅ Los 6 en `active`. Antes había 4 en `disabled_inactivity`                                                                                                 |
+| P0.4 Romper la circularidad del keep-alive | ⬜ **Sigue abierto** — ver abajo                                                                                                                             |
+| P0.5 Backup fuera de Supabase              | ⬜ Sigue abierto                                                                                                                                             |
+
+**Por qué P0.4 sigue abierto pese a todo lo anterior.** Reactivar los workflows devuelve el
+keep-alive a la vida, pero no arregla el fallo de diseño: GitHub los volverá a deshabilitar tras
+60 días sin actividad en el repositorio, y entonces el ciclo se repite. El keep-alive solo
+sobrevive mientras alguien commitea, que es justo cuando no hace falta. Necesita un disparador
+que no dependa de la actividad del repo: cron externo, plan Pro de Supabase, o un job programado
+en otra plataforma.
+
+<details>
+<summary>Diagnóstico original del incidente (se conserva por la causa raíz)</summary>
+
+## 🚨 P0 — La base de datos de producción se congelaba el ~2026-07-29
 
 **Estado verificado el 2026-07-27.** El proyecto Supabase **`cafe-de-salento`**
 (`inszvqzpxfqibkjsptsm`) lleva ~85 días pausado. Supabase avisó por correo el
@@ -59,6 +79,8 @@ existe copia externa más reciente.
 | P0.3 | Reactivar los 4 workflows (`gh workflow enable`)                                       | **[B]** | Bloqueado: la cuenta autenticada es `alvaretto` y el repo es de `alvarettosky` (403)                                                                      |
 | P0.4 | Romper la circularidad del keep-alive                                                  | **[C]** | Opciones: disparador externo a GitHub (cron propio, cron-job.org), plan Pro de Supabase (sin pausa por inactividad), o un commit programado. Decidir cuál |
 | P0.5 | Que el backup deje una copia **fuera** de Supabase                                     | **[C]** | Un backup alojado en el sistema del que protege no protege de la pérdida de ese sistema                                                                   |
+
+</details>
 
 ## A — Automatizable ahora
 
