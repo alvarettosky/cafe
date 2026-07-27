@@ -210,9 +210,11 @@ export function ProductVariantSelectCompact({
         const { data, error } = await supabase.rpc('get_variants_for_sale');
         if (error) {
           // Fallback a inventory
-          const { data: invData } = await supabase
+          const { data: invData, error: invError } = await supabase
             .from('inventory')
             .select('product_id, product_name');
+
+          if (invError) console.error('Error fetching inventory fallback:', invError);
 
           setVariants(
             (invData || []).map(inv => ({

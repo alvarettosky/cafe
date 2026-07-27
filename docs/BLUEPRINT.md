@@ -12,7 +12,15 @@ el **qué** está en [`../CLAUDE.md`](../CLAUDE.md) y el **cuándo** en
 ## 1. Qué es este sistema
 
 Un CRM para un negocio de café de origen en Salento (Colombia) que vende libra
-(453,6 g) y media libra (226,8 g) directo al consumidor. **No es una cafetería.**
+(**500 g**) y media libra (**250 g**) directo al consumidor. **No es una cafetería.**
+
+> **Sobre el gramaje.** Este documento decía 453,6 g y 226,8 g —la libra
+> avoirdupois— hasta el 2026-07-27. Es falso: `process_coffee_sale` usa
+> `v_grams_per_unit := 500` y `:= 250`, que es lo que realmente descuenta del
+> inventario. El negocio vende en **libra comercial de 500 g**. La cifra
+> equivocada llevaba propagándose a `CLAUDE.md` y al manual de usuario, y el
+> comentario de `004_dashboard_stats.sql` llegó a contradecir a su propio código
+> (decía `/453.59` mientras dividía por `500.0`). Corregido en los cuatro sitios.
 
 Tiene **dos superficies sobre una sola app Next.js**:
 

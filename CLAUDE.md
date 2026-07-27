@@ -16,8 +16,8 @@ Sistema de gestión para venta de café por libras y medias libras, con tienda o
 | 4    | Arquitectura POS Profesional   | ✅ Completado |
 
 **Testing** (medido 2026-07-27 con `npm test` y `npm run test:coverage`):
-865 tests unitarios en 38 archivos, todos en verde. Cobertura: líneas 93,79 % ·
-sentencias 92,1 % · ramas 88,22 % · funciones 89,01 % (umbral exigido: 80 % en
+876 tests unitarios en 39 archivos, todos en verde. Cobertura: líneas 93,23 % ·
+sentencias 91,46 % · ramas 87,83 % · funciones 88,76 % (umbral exigido: 80 % en
 las cuatro).
 
 **E2E** (medido el 2026-07-27 en el CI de GitHub, al mergear): **23 tests de
@@ -37,6 +37,57 @@ Antes de proponer un cambio, leer en este orden:
 | [`docs/SYLLABUS.md`](docs/SYLLABUS.md)                               | Ruta de lectura para entrar al proyecto sin contexto                                                |
 | [`manual-de-usuario-no-tecnico.md`](manual-de-usuario-no-tecnico.md) | Cómo **usar** el sistema. Para quien vende, no para quien programa                                  |
 
+### Orquestadores — qué hay en `.claude/` y cómo se relaciona con esto
+
+| Archivo                                                                                                             | Qué es                                                                                                                                           |
+| ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`.claude/commands/validate.md`](.claude/commands/validate.md)                                                      | El comando **`/validate`**: 7 fases en orden, con su línea base medida y §«El hueco que queda»                                                   |
+| [`.claude/TODO.md`](.claude/TODO.md)                                                                                | **Puntero, no lista.** Los pendientes vivos están en [`docs/BACKLOG.md`](docs/BACKLOG.md). No lo reactives: dos listas garantizan que una mienta |
+| [`.claude/MCP_SETUP_INSTRUCTIONS.md`](.claude/MCP_SETUP_INSTRUCTIONS.md) · [`setup-mcps.sh`](.claude/setup-mcps.sh) | Configuración de los MCP que este proyecto usa                                                                                                   |
+| [`.claude/skills/enable-required-mcps.md`](.claude/skills/enable-required-mcps.md)                                  | Skill de activación de MCP                                                                                                                       |
+
+### La regla de sincronización de cifras
+
+Cuando cambie una cifra medida —tests, cobertura, rutas del build— hay que
+tocarla en **seis archivos**, o quedará mintiendo en cinco:
+
+```
+CLAUDE.md · README.md · FICHA_TECNICA.md · INSTRUCCIONES.md
+docs/ROADMAP.md §«Estado actual, medido» · .claude/commands/validate.md
+```
+
+Para localizarlas todas antes de tocar nada:
+
+```bash
+grep -rn "<cifra vieja>" CLAUDE.md README.md FICHA_TECNICA.md \
+  INSTRUCCIONES.md docs/ROADMAP.md .claude/commands/validate.md
+```
+
+**Seis, no tres.** Esta nota decía «tres sitios» hasta que, al subir de 865 a 876
+tests, el `grep` devolvió **9 ocurrencias en 6 archivos**. La regla que describe
+el problema tenía el mismo problema que describe.
+
+Es el precio de repetir la línea base allí donde se consulta, y la razón por la
+que «854 tests» y «7 tests E2E» sobrevivieron meses: nadie que corrigiera uno
+sabía cuántos más había.
+
+### Verificadores propios del repositorio
+
+| Script                                                             | Comando                 | Contra qué protege                                                                                          |
+| ------------------------------------------------------------------ | ----------------------- | ----------------------------------------------------------------------------------------------------------- |
+| [`scripts/check-rpc-contract.mjs`](scripts/check-rpc-contract.mjs) | `npm run check:rpc`     | Que el código llame a una RPC que no existe en la base. Cazó `get_dashboard_stats` (404 en producción)      |
+| [`scripts/check-secrets.mjs`](scripts/check-secrets.mjs)           | `npm run check:secrets` | Credenciales commiteadas. Cazó una `service_role` de 189 días y un PAT de 188, ambos en un repo **público** |
+
+**Dónde corre cada uno, y por qué no en el mismo sitio:**
+
+- `check-secrets` va en **pre-commit** (`.lintstagedrc.js`, patrón `'*'`): es
+  local, instantáneo y sin red. Ahí es donde hay que parar un secreto — una vez
+  commiteado y empujado, ya está publicado.
+- `check-rpc` va **solo en CI**: necesita red y `SUPABASE_SERVICE_ROLE_KEY`.
+  Ponerlo en pre-commit rompería cada commit hecho sin conexión o sin secretos, y
+  un hook que falla por motivos ajenos al cambio acaba desactivado con
+  `--no-verify`, que es peor que no tenerlo.
+
 ## Comandos Esenciales
 
 ### Desarrollo Local
@@ -52,7 +103,7 @@ npm start                # Servidor producción local
 
 > **Sobre `setup_env.sh`.** Este archivo creaba un entorno Node aislado en
 > `.node_env/` y durante un tiempo fue obligatorio activarlo en cada terminal.
-> Ya no lo es: el directorio `.node_env/` no existe, y lint, `tsc`, los 865
+> Ya no lo es: el directorio `.node_env/` no existe, y lint, `tsc`, los 876
 > tests y el build pasan con el Node del sistema (verificado con v26.4.0 el
 > 2026-07-27). El script se conserva por si hace falta fijar la versión en una
 > máquina con un Node antiguo.
@@ -265,7 +316,11 @@ Pre-commit automático (Husky + lint-staged):
 
 - Productos tienen `stock_kg` y `stock_units` separados
 - `min_stock_threshold` para alertas de stock bajo
-- Ventas en "libra" (453.6g) o "media libra" (226.8g) descuentan de `stock_kg`
+- Ventas en "libra" (**500 g**) o "media libra" (**250 g**) descuentan de `stock_kg`.
+  Verificado el 2026-07-27 leyendo `process_coffee_sale` en producción:
+  `v_grams_per_unit := 500` / `:= 250`. Este documento decía 453,6 g y 226,8 g —
+  la libra avoirdupois— pero el negocio usa la **libra comercial de 500 g**, y es
+  la que descuenta el inventario
 - Solo admins pueden editar inventario (`ProductModal`)
 - Dashboard muestra alertas de stock bajo
 

@@ -27,11 +27,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role, approved')
       .eq('id', user.id)
       .single();
+
+    if (profileError) {
+      console.error('Error fetching profile for backups trigger:', profileError);
+      return NextResponse.json({ error: 'Error al verificar permisos' }, { status: 500 });
+    }
 
     if (!profile?.approved || profile.role !== 'admin') {
       return NextResponse.json(

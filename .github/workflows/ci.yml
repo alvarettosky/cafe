@@ -81,6 +81,41 @@ jobs:
       - name: Run TypeScript type check
         run: npx tsc --noEmit
 
+  # Las cuatro puertas de arriba pasaron en verde el 2026-07-27 mientras
+  # `app/page.tsx` llamaba a una RPC que no existia en la base (HTTP 404,
+  # PGRST202) y los KPIs del dashboard mostraban `...` en produccion.
+  #
+  # Ninguna podia verlo: una RPC es un string, y ninguna habla con la base.
+  # Un chequeo contra supabase/migrations/ tampoco habria servido —
+  # 004_dashboard_stats.sql SI definia la funcion, pero nunca se aplico.
+  contract-check:
+    name: Contract & Secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Sin red ni secretos. Recorre TODO lo versionado, no solo el diff:
+      # lo que ya esta publicado es lo que importa.
+      - name: Credenciales en archivos versionados
+        run: git ls-files | xargs node scripts/check-secrets.mjs
+
+      # Con secretos, compara las RPC invocadas contra las que la base expone.
+      # Sin ellos el script avisa y sale con 0; el aviso no es un aprobado.
+      - name: Contrato de RPC contra la base real
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run check:rpc
+
   build:
     name: Build
     runs-on: ubuntu-latest

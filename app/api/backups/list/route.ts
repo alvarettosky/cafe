@@ -31,11 +31,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role, approved')
       .eq('id', user.id)
       .single();
+
+    if (profileError) {
+      console.error('Error fetching profile for backups list:', profileError);
+      return NextResponse.json({ error: 'Error al verificar permisos' }, { status: 500 });
+    }
 
     if (!profile?.approved || profile.role !== 'admin') {
       return NextResponse.json(
@@ -85,9 +90,13 @@ export async function GET(request: NextRequest) {
     const backups: BackupFile[] = [];
     for (const file of files || []) {
       if (file.name) {
-        const { data: urlData } = await supabaseAdmin.storage
+        const { data: urlData, error: urlError } = await supabaseAdmin.storage
           .from(BUCKET_NAME)
           .createSignedUrl(file.name, 60 * 60); // 1 hour
+
+        if (urlError) {
+          console.error(`Error creating signed URL for backup ${file.name}:`, urlError);
+        }
 
         backups.push({
           id: file.id || file.name,

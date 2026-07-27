@@ -1086,6 +1086,74 @@ describe('PortalSuscripcionPage', () => {
       });
     });
 
+    it('should log the products fetch error on initial load without blocking the page', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const productsError = { message: 'Database error' };
+
+      mockSupabaseRpc.mockImplementation((rpcName: string) => {
+        if (rpcName === 'get_customer_subscription') {
+          return Promise.resolve({ data: mockSubscription, error: null });
+        }
+        if (rpcName === 'get_products_for_customer_order') {
+          return Promise.resolve({ data: null, error: productsError });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      render(<PortalSuscripcionPage />);
+
+      // The page still renders normally with the subscription that did load
+      await waitFor(() => {
+        expect(screen.getByText('Estado')).toBeInTheDocument();
+      });
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Fetch error:', productsError);
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should log the refresh error but keep the success message after a successful action', async () => {
+      // Sitio 122: si el refetch posterior a una accion exitosa falla, el fallo debe
+      // quedar registrado SIN convertir el "pause" que si funciono en un mensaje de error.
+      const user = userEvent.setup();
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const refreshError = { message: 'Refresh failed' };
+      let subscriptionCalls = 0;
+
+      mockSupabaseRpc.mockImplementation((rpcName: string) => {
+        if (rpcName === 'get_customer_subscription') {
+          subscriptionCalls += 1;
+          if (subscriptionCalls === 1) {
+            return Promise.resolve({ data: mockSubscription, error: null });
+          }
+          return Promise.resolve({ data: null, error: refreshError });
+        }
+        if (rpcName === 'get_products_for_customer_order') {
+          return Promise.resolve({ data: mockProducts, error: null });
+        }
+        if (rpcName === 'toggle_subscription_status') {
+          return Promise.resolve({ data: { success: true }, error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      render(<PortalSuscripcionPage />);
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /pausar suscripcion/i })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('button', { name: /pausar suscripcion/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText('Suscripcion pausada')).toBeInTheDocument();
+      });
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error refreshing subscription:', refreshError);
+
+      consoleErrorSpy.mockRestore();
+    });
+
     it('should show error when save fails', async () => {
       const user = userEvent.setup();
 

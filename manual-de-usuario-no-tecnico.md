@@ -41,7 +41,7 @@ Es la tarea más frecuente. Desde la pantalla principal, botón de **Nueva Venta
 
 1. **Elige el cliente.** Si es alguien nuevo, puedes crearlo ahí mismo sin salir.
    Si es una venta suelta a alguien de paso, existe el cliente **«Venta Rápida»**.
-2. **Elige el producto y la cantidad**, en libra o media libra.
+2. **Elige el producto y la cantidad**, en libra (**500 g**) o media libra (**250 g**).
 3. **Indica el método de pago** y, si la venta no es de hoy, cambia la fecha.
 4. Confirma.
 

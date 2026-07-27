@@ -68,9 +68,10 @@ export default function NuevaVentaPage() {
       }
     };
     const fetchCustomers = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('customers')
         .select('id, full_name, typical_recurrence_days');
+      if (error) console.error('Error fetching customers:', error);
       if (data) setCustomers(data);
     };
     fetchProducts();

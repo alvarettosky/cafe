@@ -17,6 +17,36 @@ Sustituye a `.claude/TODO.md`, que queda como puntero.
 
 ---
 
+## 🔴 P0-SEC-2 — Un token personal de Supabase, 188 días en el repo público
+
+**Requiere una acción que solo puede hacer el dueño de la cuenta.**
+
+`exec-sql-direct.py` entró el **2026-01-19** (`d39823e`, el mismo commit que
+`execute-sql-node.js`) con un **Personal Access Token** de Supabase incrustado:
+`sbp_8099…`, el llamado **`cafedesalento`**.
+
+Un PAT es peor que la `service_role`. No da acceso a una base: da acceso **a la
+cuenta entera** — crear y borrar proyectos, leer todas las claves de cualquiera
+de ellos, pausar, restaurar. Comprobado el 2026-07-27: **seguía siendo válido**
+(`GET /v1/projects` → HTTP 200).
+
+El archivo ya se eliminó del repositorio, y con él `VERCEL_QUICK_FIX.html`, que
+llevaba una `anon` legacy (esa ya estaba muerta: la mató desactivar las legacy).
+**Pero borrarlos no cierra nada.** El token sigue en la historia de git y en
+cualquier fork.
+
+| Acción                                                                                                         | Clase   |
+| -------------------------------------------------------------------------------------------------------------- | ------- |
+| **Revocar `cafedesalento` (`sbp_8099…`)** en <https://supabase.com/dashboard/account/tokens> — cuenta del café | **[B]** |
+
+Cómo distinguirlo de los demás: es el que la cuenta del café lista como
+`cafedesalento`, sin usar desde hace 5 meses. **No revoques `cafe-julio-2026`
+(`sbp_3f61…`)**: ese es el que usan el espejo de backups y el mantenimiento.
+
+**Lo encontró `scripts/check-secrets.mjs`**, el verificador escrito ese mismo día
+para la fuga anterior, al pasarlo sobre todo lo versionado en vez de solo sobre
+el diff. Sin él nadie lo habría mirado: nadie audita un `.py` suelto en la raíz.
+
 ## ✅ P0-SEC — La base estaba abierta a internet. Cerrado el 2026-07-27
 
 Aparecieron **dos fallos independientes** al preparar un commit de formato. Ambos
@@ -299,12 +329,12 @@ dejaron como estaban — ya caían dentro de la franja y su horario es indiferen
 
 ## B — Requiere fuente externa
 
-| #   | Pendiente                                       | Qué falta exactamente                                                                                                                                                                 |
-| --- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| B1  | Integración con WhatsApp Business API           | Cuenta de WhatsApp Business + aprobación de Meta. Hoy la integración son enlaces `wa.me` generados                                                                                    |
-| B2  | Monitoreo de errores con Sentry                 | Cuenta + DSN                                                                                                                                                                          |
-| B3  | Analytics de producto (GA o Plausible)          | Cuenta + decidir cuál                                                                                                                                                                 |
-| B4  | Verificación automática del contrato de las RPC | Necesita `.env.local` con credenciales de Supabase para generar tipos desde el esquema (`supabase gen types`). Ver [BLUEPRINT §3](BLUEPRINT.md#3-contratos-que-typescript-no-protege) |
+| #   | Pendiente                                       | Qué falta exactamente                                                                                                                                                                                                                                                                                                                        |
+| --- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| B1  | Integración con WhatsApp Business API           | Cuenta de WhatsApp Business + aprobación de Meta. Hoy la integración son enlaces `wa.me` generados                                                                                                                                                                                                                                           |
+| B2  | Monitoreo de errores con Sentry                 | Cuenta + DSN                                                                                                                                                                                                                                                                                                                                 |
+| B3  | Analytics de producto (GA o Plausible)          | Cuenta + decidir cuál                                                                                                                                                                                                                                                                                                                        |
+| B4  | Verificación automática del contrato de las RPC | 🚧 **La mitad ya está hecha.** `npm run check:rpc` (fase 6 de `/validate`, y job `contract-check` en CI) comprueba que **existan** las RPC invocadas — eso ya no puede repetirse. Falta lo otro: que sus **parámetros** cuadren, y eso sí exige `supabase gen types`. Ver [BLUEPRINT §3](BLUEPRINT.md#3-contratos-que-typescript-no-protege) |
 
 ## C — Requiere juicio humano
 
@@ -335,6 +365,9 @@ dejaron como estaban — ya caían dentro de la franja y su horario es indiferen
 | A13 — repositorio sin formatear (137 archivos)                      | 2026-07-27 (`256f7d0`) | Formateado entero en un commit aislado. Se agregó `.prettierignore`, que no existía: sin él prettier reescribía 4 `.html`, tres de ellos derivados de un `.md`. `format:check` en verde por primera vez                                                                                                                                  |
 | A12 — homonimia `Referral`, `ReferralStats`, `DeliveryZone`         | 2026-07-27 (`3988e52`) | Eran **tres** declaraciones por forma, no dos: había una copia anónima inline en cada `.map()`. Nombres propios en `types/referrals.ts` y `types/deliveries.ts`. Detalle en §«La mentira de nulabilidad»                                                                                                                                 |
 | B5 — ejecutar la suite E2E de Playwright                            | 2026-07-27 (`0599045`) | Corrió en el CI al mergear: **23 tests en verde en los tres navegadores** (chromium 54,7 s · firefox 1,1 min · webkit 1,7 min). No hacía falta ninguna fuente externa — el workflow ya existía y ya instalaba los navegadores; estaba en §B por una suposición, no por una comprobación. Y no eran 7 tests como decían los docs, sino 23 |
+| `get_dashboard_stats` devolvía 404 en producción                    | 2026-07-27             | La RPC **no estaba desplegada**: `004_dashboard_stats.sql` existía pero nunca se aplicó. Los 4 KPIs del dashboard mostraban `...`. Restaurada y corregida en `028`, con fase 6 de `/validate` para que no vuelva a pasar inadvertido                                                                                                     |
+| «libra = 453,6 g» en CLAUDE.md, BLUEPRINT y el manual               | 2026-07-27             | `process_coffee_sale` usa **500 g** (y 250 la media). La libra avoirdupois no es la que descuenta el inventario. El comentario de `004` llegó a contradecir a su propio código: decía `/453.59` dividiendo por `500.0`                                                                                                                   |
+| Errores de Supabase descartados en 13 sitios                        | 2026-07-27             | `const { data } = await supabase…` sin capturar `error`: un 404 y una respuesta vacía eran indistinguibles. Es lo que mantuvo invisible el bug del dashboard. Corregidos los 13, con 11 tests nuevos que lo fijan                                                                                                                        |
 
 ---
 

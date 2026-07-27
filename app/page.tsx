@@ -64,11 +64,12 @@ export default function Dashboard() {
 
     const fetchData = async () => {
       // Fetch Stats
-      const { data: statsData } = await supabase.rpc('get_dashboard_stats');
+      const { data: statsData, error: statsError } = await supabase.rpc('get_dashboard_stats');
+      if (statsError) console.error('Error fetching dashboard stats:', statsError);
       if (statsData) setStats(statsData);
 
       // Fetch Recent Sales with customer info
-      const { data: salesData } = await supabase
+      const { data: salesData, error: salesError } = await supabase
         .from('sales')
         .select(
           `
@@ -83,11 +84,13 @@ export default function Dashboard() {
         .order('created_at', { ascending: false })
         .limit(5);
 
+      if (salesError) console.error('Error fetching recent sales:', salesError);
       if (salesData) setRecentSales(salesData);
 
       // Fetch pending users count (solo admin)
       if (isAdmin) {
-        const { data: pendingData } = await supabase.rpc('get_pending_users');
+        const { data: pendingData, error: pendingError } = await supabase.rpc('get_pending_users');
+        if (pendingError) console.error('Error fetching pending users:', pendingError);
         if (pendingData) setPendingCount(pendingData.length);
       }
     };

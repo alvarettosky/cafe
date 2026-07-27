@@ -81,7 +81,10 @@ export default function PortalSuscripcionPage() {
         }
 
         // Fetch products for editing
-        const { data: prodData } = await supabase.rpc('get_products_for_customer_order');
+        const { data: prodData, error: prodError } = await supabase.rpc(
+          'get_products_for_customer_order'
+        );
+        if (prodError) throw prodError;
         setProducts(prodData || []);
       } catch (err) {
         console.error('Fetch error:', err);
@@ -119,10 +122,11 @@ export default function PortalSuscripcionPage() {
       }
 
       // Refresh subscription
-      const { data: subData } = await supabase.rpc('get_customer_subscription', {
+      const { data: subData, error: subError } = await supabase.rpc('get_customer_subscription', {
         p_customer_id: customer.customer_id,
       });
 
+      if (subError) console.error('Error refreshing subscription:', subError);
       if (subData && !subData.error) {
         setSubscription(subData);
       }
@@ -219,10 +223,11 @@ export default function PortalSuscripcionPage() {
       }
 
       // Refresh subscription
-      const { data: subData } = await supabase.rpc('get_customer_subscription', {
+      const { data: subData, error: subError } = await supabase.rpc('get_customer_subscription', {
         p_customer_id: customer.customer_id,
       });
 
+      if (subError) console.error('Error refreshing subscription:', subError);
       if (subData && !subData.error) {
         setSubscription(subData);
       }

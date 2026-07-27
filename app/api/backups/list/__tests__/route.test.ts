@@ -229,6 +229,36 @@ describe('Backups List API Route', () => {
       expect(response.status).toBe(403);
       expect(data.error).toBe('Solo administradores pueden ver backups');
     });
+
+    it('should return 500 (not 403) when the profile fetch itself fails', async () => {
+      // Un fallo transitorio al leer profiles no debe disfrazarse de "no es admin":
+      // eso convertiria un error de infraestructura en una denegacion silenciosa.
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const profileError = { message: 'Connection timeout' };
+      mockSingle.mockResolvedValue({
+        data: null,
+        error: profileError,
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/backups/list', {
+        method: 'GET',
+        headers: {
+          authorization: 'Bearer valid-token',
+        },
+      });
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.error).toBe('Error al verificar permisos');
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Error fetching profile for backups list:',
+        profileError
+      );
+
+      consoleErrorSpy.mockRestore();
+    });
   });
 
   describe('Service Role Key Configuration', () => {
@@ -458,6 +488,50 @@ describe('Backups List API Route', () => {
       expect(response.status).toBe(200);
       expect(data.backups).toHaveLength(1);
       expect(data.backups[0].downloadUrl).toBe('');
+    });
+
+    it('should log (without failing the request) when signed URL generation returns an error', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const mockFiles = [
+        {
+          id: 'file-1',
+          name: 'backup-2024-01-15.zip',
+          created_at: '2024-01-15T10:00:00Z',
+          metadata: { size: 1024 },
+        },
+      ];
+
+      mockStorageList.mockResolvedValue({
+        data: mockFiles,
+        error: null,
+      });
+
+      const signError = { message: 'Signing failed' };
+      mockCreateSignedUrl.mockResolvedValue({
+        data: null,
+        error: signError,
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/backups/list', {
+        method: 'GET',
+        headers: {
+          authorization: 'Bearer valid-token',
+        },
+      });
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      // El listado sigue en 200: un fallo puntual de firma no debe tumbar toda la lista
+      expect(response.status).toBe(200);
+      expect(data.backups).toHaveLength(1);
+      expect(data.backups[0].downloadUrl).toBe('');
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Error creating signed URL for backup backup-2024-01-15.zip:',
+        signError
+      );
+
+      consoleErrorSpy.mockRestore();
     });
 
     it('should handle null data from storage list', async () => {

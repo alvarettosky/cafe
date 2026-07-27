@@ -1,8 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { http, HttpResponse } from 'msw';
+import { server } from '@/__mocks__/server';
 import { ProductVariantSelector, ProductVariantSelectCompact } from '../product-variant-selector';
 import type { VariantForSale } from '@/types/products';
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://test.supabase.co';
 
 describe('ProductVariantSelector', () => {
   const mockOnChange = vi.fn();
@@ -286,5 +290,32 @@ describe('ProductVariantSelectCompact', () => {
       const select = screen.getByRole('combobox');
       expect(select).toHaveClass('my-custom-class');
     });
+  });
+
+  it('should log an error when both the RPC and the inventory fallback fail', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    server.use(
+      http.post(`${SUPABASE_URL}/rest/v1/rpc/get_variants_for_sale`, () => {
+        return HttpResponse.json({ message: 'RPC not found' }, { status: 404 });
+      }),
+      http.get(`${SUPABASE_URL}/rest/v1/inventory`, () => {
+        return HttpResponse.json({ message: 'Database error' }, { status: 500 });
+      })
+    );
+
+    render(<ProductVariantSelectCompact onChange={mockOnChange} />);
+
+    await waitFor(() => {
+      const select = screen.getByRole('combobox');
+      expect(select).not.toHaveTextContent('Cargando');
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Error fetching inventory fallback:',
+      expect.anything()
+    );
+
+    consoleErrorSpy.mockRestore();
   });
 });

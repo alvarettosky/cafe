@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { http, HttpResponse } from 'msw';
+import { server } from '@/__mocks__/server';
 import { NewSaleModal } from '../new-sale-modal';
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://test.supabase.co';
 
 describe('NewSaleModal', () => {
   const mockOnSaleComplete = vi.fn();
@@ -37,6 +41,34 @@ describe('NewSaleModal', () => {
     await waitFor(() => {
       expect(screen.getByText(/seleccionar café/i)).toBeInTheDocument();
     });
+  });
+
+  it('should log an error when customers fail to load, without blocking the modal', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    server.use(
+      http.get(`${SUPABASE_URL}/rest/v1/customers`, () => {
+        return HttpResponse.json({ message: 'Database error' }, { status: 500 });
+      })
+    );
+
+    const user = userEvent.setup();
+    render(<NewSaleModal onSaleComplete={mockOnSaleComplete} />);
+
+    const trigger = screen.getByRole('button', { name: /nueva venta/i });
+    await user.click(trigger);
+
+    // The modal must still render normally (guest customer + products still load)
+    await waitFor(() => {
+      expect(screen.getByText('Cliente General (Anónimo)')).toBeInTheDocument();
+      expect(screen.getByText(/seleccionar café/i)).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching customers:', expect.anything());
+    });
+
+    consoleErrorSpy.mockRestore();
   });
 
   it('should show error when submitting without product selection', async () => {

@@ -536,9 +536,11 @@ describe('Dashboard Page', () => {
     });
 
     it('should handle stats fetch error gracefully', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const statsError = { message: 'Database error', code: 'PGRST202' };
       mockSupabaseRpc.mockImplementation((functionName: string) => {
         if (functionName === 'get_dashboard_stats') {
-          return Promise.resolve({ data: null, error: { message: 'Database error' } });
+          return Promise.resolve({ data: null, error: statsError });
         }
         return Promise.resolve({ data: null, error: null });
       });
@@ -551,15 +553,25 @@ describe('Dashboard Page', () => {
         // Stats should show "..." when not loaded
         expect(screen.getAllByText('...')).toHaveLength(4);
       });
+
+      // The failure must leave a trace instead of passing unnoticed (bug real: RPC
+      // ausente devolvia 404 y los KPIs se quedaban en "..." sin que nadie se enterara)
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching dashboard stats:', statsError);
+      });
+
+      consoleErrorSpy.mockRestore();
     });
 
     it('should handle sales fetch error gracefully', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const salesError = { message: 'Database error' };
       mockSupabaseFrom.mockReturnValue({
         select: vi.fn().mockReturnValue({
           order: vi.fn().mockReturnValue({
             limit: vi.fn().mockResolvedValue({
               data: null,
-              error: { message: 'Database error' },
+              error: salesError,
             }),
           }),
         }),
@@ -572,6 +584,44 @@ describe('Dashboard Page', () => {
         expect(screen.getByText('Ventas Recientes')).toBeInTheDocument();
         expect(screen.getByText('No hay ventas recientes')).toBeInTheDocument();
       });
+
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching recent sales:', salesError);
+      });
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should handle pending users fetch error gracefully for admins', async () => {
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        isLoading: false,
+        isAdmin: true,
+        signOut: mockSignOut,
+      });
+
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const pendingError = { message: 'Database error' };
+      mockSupabaseRpc.mockImplementation((functionName: string) => {
+        if (functionName === 'get_dashboard_stats') {
+          return Promise.resolve({ data: mockStats, error: null });
+        }
+        if (functionName === 'get_pending_users') {
+          return Promise.resolve({ data: null, error: pendingError });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
+
+      render(<Dashboard />);
+
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching pending users:', pendingError);
+      });
+
+      // No pending badge should render since data never arrived
+      expect(screen.queryByRole('button', { name: /pendientes/i })).not.toBeInTheDocument();
+
+      consoleErrorSpy.mockRestore();
     });
   });
 });

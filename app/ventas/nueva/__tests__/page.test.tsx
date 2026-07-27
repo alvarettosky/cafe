@@ -346,6 +346,40 @@ describe('NuevaVentaPage', () => {
         expect(screen.getByText(/Error cargando productos/)).toBeInTheDocument();
       });
     });
+
+    it('should log an error when customers fail to load, without blocking the form', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const customersError = { message: 'Error loading customers' };
+
+      mockSupabaseFrom.mockImplementation((table: string) => {
+        if (table === 'inventory') {
+          return {
+            select: vi.fn().mockResolvedValue({ data: mockProducts, error: null }),
+          };
+        }
+        if (table === 'customers') {
+          return {
+            select: vi.fn().mockReturnValue({
+              data: null,
+              error: customersError,
+            }),
+          };
+        }
+        return { select: vi.fn().mockResolvedValue({ data: [], error: null }) };
+      });
+
+      render(<NuevaVentaPage />);
+
+      // The form must still be usable (guest customer + products still load)
+      await waitFor(() => {
+        expect(screen.getByText('Cliente General (Anónimo)')).toBeInTheDocument();
+        expect(screen.getByText('Cafe Especial')).toBeInTheDocument();
+      });
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching customers:', customersError);
+
+      consoleErrorSpy.mockRestore();
+    });
   });
 
   describe('Quantity and Unit Selection', () => {

@@ -22,6 +22,8 @@
     "prepare": "husky install .husky",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "check:rpc": "node scripts/check-rpc-contract.mjs",
+    "check:secrets": "git ls-files | xargs node scripts/check-secrets.mjs",
     "backup": "npx tsx scripts/backup/run-backup.ts"
   },
   "dependencies": {

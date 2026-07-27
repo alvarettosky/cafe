@@ -22,8 +22,9 @@ export function InventoryList() {
 
   const fetchInventory = async () => {
     setLoading(true);
-    const { data } = await supabase.from('inventory').select('*').order('product_name');
+    const { data, error } = await supabase.from('inventory').select('*').order('product_name');
 
+    if (error) console.error('Error fetching inventory:', error);
     if (data) setProducts(data);
     setLoading(false);
   };
