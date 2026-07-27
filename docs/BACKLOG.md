@@ -24,15 +24,47 @@ Sustituye a `.claude/TODO.md`, que queda como puntero.
 | P0.1 Restaurar el proyecto                 | ✅ `POST /v1/projects/inszvqzpxfqibkjsptsm/restore` → HTTP 200. `INACTIVE` → `COMING_UP` → **`ACTIVE_HEALTHY` en ~200 s**. DNS resuelve otra vez             |
 | P0.2 Verificar que la app sigue sirviendo  | ✅ La anon key desplegada **no fue rotada**: `GET /rest/v1/inventory?select=product_id&limit=0` → HTTP 200 `[]` (RLS devolviendo vacío al anónimo, correcto) |
 | P0.3 Reactivar los workflows               | ✅ Los 6 en `active`. Antes había 4 en `disabled_inactivity`                                                                                                 |
-| P0.4 Romper la circularidad del keep-alive | ⬜ **Sigue abierto** — ver abajo                                                                                                                             |
+| P0.4 Romper la circularidad del keep-alive | ✅ Timer de systemd **fuera de GitHub** — ver abajo                                                                                                          |
 | P0.5 Backup fuera de Supabase              | ⬜ Sigue abierto                                                                                                                                             |
 
-**Por qué P0.4 sigue abierto pese a todo lo anterior.** Reactivar los workflows devuelve el
-keep-alive a la vida, pero no arregla el fallo de diseño: GitHub los volverá a deshabilitar tras
-60 días sin actividad en el repositorio, y entonces el ciclo se repite. El keep-alive solo
-sobrevive mientras alguien commitea, que es justo cuando no hace falta. Necesita un disparador
-que no dependa de la actividad del repo: cron externo, plan Pro de Supabase, o un job programado
-en otra plataforma.
+### P0.4 — Keep-alive externo a GitHub (resuelto 2026-07-27)
+
+Reactivar los workflows devolvió el keep-alive a la vida, pero no arreglaba el fallo de diseño:
+GitHub los vuelve a deshabilitar tras 60 días sin actividad en el repositorio, y el ciclo se
+repite. **El guardián solo sobrevivía mientras alguien commiteaba, que es justo cuando no hace
+falta que corra.**
+
+Ahora hay un segundo disparador que no depende de GitHub, del repo ni de Vercel — un timer de
+systemd de usuario en la máquina del desarrollador:
+
+| Pieza                 | Ruta                                                    |
+| --------------------- | ------------------------------------------------------- |
+| Script                | `~/.local/bin/cafe-mirador-keepalive.sh`                |
+| Servicio              | `~/.config/systemd/user/cafe-mirador-keepalive.service` |
+| Timer                 | `~/.config/systemd/user/cafe-mirador-keepalive.timer`   |
+| Clave (anon, pública) | `~/.config/cafe-mirador/anon.key` (modo 600)            |
+| Log                   | `~/.local/state/cafe-mirador/keepalive.log`             |
+
+Tres decisiones que importan:
+
+- **`OnCalendar=daily`, no cada 5 días.** Supabase pausa a los 7. Diario deja 6 días de margen
+  para que la máquina esté apagada; el cron de GitHub dejaba 2.
+- **`Persistent=true`.** Sin esto, un equipo apagado a la hora del disparo pierde la ejecución
+  sin más — así es como se llega a 7 días sin ping sin enterarse. Con `Persistent`, systemd la
+  ejecuta al arrancar. `Linger=yes` ya estaba activo, así que corre sin sesión abierta.
+- **Usa la anon key, no la service role.** Es pública por diseño (viaja en el bundle de
+  producción, protegida por RLS): genera tráfico de API sin poner un secreto en el disco.
+
+Verificado el 2026-07-27 en las dos direcciones: ejecución real → `Result=success` y log
+`OK HTTP 200 - proyecto despierto`; y la rama de alerta comprobada como alcanzable de verdad
+(una clave inválida devuelve 401, no es código muerto). El script distingue los tres modos de
+fallo: proyecto pausado (sin DNS pero con internet), clave rotada (401/403) y máquina sin red.
+
+**Riesgo residual, explícito:** si esta máquina pasa **más de 7 días seguidos apagada**, el timer
+no alcanza a disparar y el proyecto se vuelve a pausar. Cerrarlo del todo exige un disparador que
+no dependa de un equipo personal: el plan Pro de Supabase (sin pausa por inactividad), un cron en
+un servidor siempre encendido, o un segundo ping desde otro dispositivo. El keep-alive de GitHub
+sigue activo como respaldo, con su límite conocido de 60 días.
 
 <details>
 <summary>Diagnóstico original del incidente (se conserva por la causa raíz)</summary>
@@ -72,13 +104,13 @@ existe copia externa más reciente.
 
 ### Acciones
 
-| #    | Acción                                                                                 | Clase   | Notas                                                                                                                                                     |
-| ---- | -------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| P0.1 | **Restaurar el proyecto desde <https://supabase.com/dashboard>** antes del 29-jul-2026 | **[B]** | Requiere la sesión de Supabase del dueño. Es la única acción con fecha límite                                                                             |
-| P0.2 | Descargar los datos como respaldo externo, restaure o no                               | **[B]** | Ídem                                                                                                                                                      |
-| P0.3 | Reactivar los 4 workflows (`gh workflow enable`)                                       | **[B]** | Bloqueado: la cuenta autenticada es `alvaretto` y el repo es de `alvarettosky` (403)                                                                      |
-| P0.4 | Romper la circularidad del keep-alive                                                  | **[C]** | Opciones: disparador externo a GitHub (cron propio, cron-job.org), plan Pro de Supabase (sin pausa por inactividad), o un commit programado. Decidir cuál |
-| P0.5 | Que el backup deje una copia **fuera** de Supabase                                     | **[C]** | Un backup alojado en el sistema del que protege no protege de la pérdida de ese sistema                                                                   |
+| #    | Acción                                                                                 | Clase   | Notas                                                                                                    |
+| ---- | -------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
+| P0.1 | **Restaurar el proyecto desde <https://supabase.com/dashboard>** antes del 29-jul-2026 | **[B]** | Requiere la sesión de Supabase del dueño. Es la única acción con fecha límite                            |
+| P0.2 | Descargar los datos como respaldo externo, restaure o no                               | **[B]** | Ídem                                                                                                     |
+| P0.3 | Reactivar los 4 workflows (`gh workflow enable`)                                       | **[B]** | Bloqueado: la cuenta autenticada es `alvaretto` y el repo es de `alvarettosky` (403)                     |
+| P0.4 | Romper la circularidad del keep-alive                                                  | **✅**  | Resuelto 2026-07-27 con un timer de systemd de usuario, externo a GitHub. Ver la sección P0.4 más arriba |
+| P0.5 | Que el backup deje una copia **fuera** de Supabase                                     | **[C]** | Un backup alojado en el sistema del que protege no protege de la pérdida de ese sistema                  |
 
 </details>
 
