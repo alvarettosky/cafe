@@ -42,7 +42,23 @@ significa que productor y consumidor estén de acuerdo.
 npm run format:check
 ```
 
-**Pasa si:** sin archivos listados. Si falla: `npm run format`.
+**Esta fase está en rojo desde antes de existir**, y conviene saberlo en vez de
+descubrirlo: el repositorio nunca se formateó por completo. Línea base
+2026-07-27: **137 archivos** con diferencias de estilo.
+
+**Pasa si:** ningún archivo **que tú hayas tocado** aparece en la lista. Para
+comprobarlo:
+
+```bash
+npm run format:check 2>&1 | grep '^\[warn\]' | sed 's/\[warn\] //' | sort > /tmp/fmt.txt
+for f in $(git diff --name-only main...HEAD); do grep -qx "$f" /tmp/fmt.txt && echo "FALLA: $f"; done
+```
+
+Si sale alguno: `npx prettier --write <esos archivos>`. **No corras
+`npm run format` sobre todo el repo** dentro de un cambio funcional: 137
+archivos reformateados sepultan el diff que de verdad importa. Formatear el
+repo entero es un trabajo aparte, con su propio commit — ver
+[`docs/BACKLOG.md`](../../docs/BACKLOG.md) A13.
 
 ## Fase 4 — Tests unitarios y de integración
 

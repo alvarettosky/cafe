@@ -34,6 +34,16 @@ Sustituye a `.claude/TODO.md`, que queda como puntero.
 | A11 | Etiqueta «Ver en Drive» en `/backups`                             | **Es un fósil**: el almacenamiento es Supabase Storage desde la migración; ya no hay Drive. Cambiar el texto y su aserción en el test            |
 | A12 | Homonimia pendiente: `Referral`, `ReferralStats` y `DeliveryZone` | Cada uno declarado 2 veces **con formas distintas** (portal vs admin). Mismo patrón que causó el bug `5ce639e`. Darles nombre propio en `types/` |
 
+### A13 — Formatear el repositorio completo
+
+`npm run format:check` reporta **137 archivos** con diferencias de estilo
+(medido 2026-07-27 sobre `main`). El repo nunca se formateó entero: prettier
+solo corre sobre los archivos que toca cada commit, vía lint-staged.
+
+No es cosmético del todo: mientras siga así, la fase 3 de `/validate` nace en
+rojo y hay que verificarla a mano archivo por archivo. Cerrarlo es un commit
+propio, aislado, que no mezcle reformateo con cambios de comportamiento.
+
 ## B — Requiere fuente externa
 
 | #   | Pendiente                                       | Qué falta exactamente                                                                                                                                                                 |

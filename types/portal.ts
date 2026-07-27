@@ -14,7 +14,7 @@
  * Lo consumen /portal/nuevo-pedido y /portal/suscripcion.
  */
 export interface PortalProductOption {
-    id: string;
-    name: string;
-    available: boolean;
+  id: string;
+  name: string;
+  available: boolean;
 }

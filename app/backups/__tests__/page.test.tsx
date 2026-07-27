@@ -41,9 +41,7 @@ vi.mock('framer-motion', () => ({
 
 // Mock ExportForm component
 vi.mock('@/components/export', () => ({
-  ExportForm: () => (
-    <div data-testid="export-form">Export Form Mock</div>
-  ),
+  ExportForm: () => <div data-testid="export-form">Export Form Mock</div>,
 }));
 
 // Import after mocks
@@ -196,7 +194,9 @@ describe('BackupsPage', () => {
       render(<BackupsPage />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Gestiona backups automaticos y exporta datos manualmente/)).toBeInTheDocument();
+        expect(
+          screen.getByText(/Gestiona backups automaticos y exporta datos manualmente/)
+        ).toBeInTheDocument();
       });
     });
 

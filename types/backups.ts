@@ -9,12 +9,12 @@
  * dos tipos eran independientes.
  */
 export interface BackupFile {
-    id: string;
-    name: string;
-    /** ISO 8601. Fecha de creacion del objeto en Supabase Storage. */
-    createdTime: string;
-    /** Tamano en bytes, como string. */
-    size: string;
-    /** URL firmada de descarga. Cadena vacia si la firma fallo. */
-    downloadUrl: string;
+  id: string;
+  name: string;
+  /** ISO 8601. Fecha de creacion del objeto en Supabase Storage. */
+  createdTime: string;
+  /** Tamano en bytes, como string. */
+  size: string;
+  /** URL firmada de descarga. Cadena vacia si la firma fallo. */
+  downloadUrl: string;
 }

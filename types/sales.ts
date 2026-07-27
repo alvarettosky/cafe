@@ -14,7 +14,7 @@
  * compras registradas y la recurrencia no se ha calculado.
  */
 export interface SaleCustomerOption {
-    id: string;
-    full_name: string;
-    typical_recurrence_days: number | null;
+  id: string;
+  full_name: string;
+  typical_recurrence_days: number | null;
 }
