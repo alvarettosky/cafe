@@ -139,7 +139,7 @@ export const options = {
 export default function () {
   const res = http.get('https://example.com');
   check(res, {
-    'status is 200': (r) => r.status === 200,
+    'status is 200': r => r.status === 200,
   });
 }
 ```

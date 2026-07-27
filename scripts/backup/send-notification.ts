@@ -5,44 +5,44 @@
 import { Resend } from 'resend';
 
 interface BackupStats {
-    timestamp: string;
-    tablesExported: number;
-    totalRows: number;
-    errors: number;
-    fileSize?: string;
-    storagePath?: string;
+  timestamp: string;
+  tablesExported: number;
+  totalRows: number;
+  errors: number;
+  fileSize?: string;
+  storagePath?: string;
 }
 
 interface NotificationResult {
-    success: boolean;
-    messageId?: string;
-    error?: string;
+  success: boolean;
+  messageId?: string;
+  error?: string;
 }
 
 export async function sendBackupNotification(
-    stats: BackupStats,
-    isSuccess: boolean
+  stats: BackupStats,
+  isSuccess: boolean
 ): Promise<NotificationResult> {
-    const apiKey = process.env.RESEND_API_KEY;
-    const recipientEmail = process.env.NOTIFICATION_EMAIL;
+  const apiKey = process.env.RESEND_API_KEY;
+  const recipientEmail = process.env.NOTIFICATION_EMAIL;
 
-    if (!apiKey) {
-        console.warn('RESEND_API_KEY not configured, skipping notification');
-        return { success: true, error: 'Notifications not configured' };
-    }
+  if (!apiKey) {
+    console.warn('RESEND_API_KEY not configured, skipping notification');
+    return { success: true, error: 'Notifications not configured' };
+  }
 
-    if (!recipientEmail) {
-        console.warn('NOTIFICATION_EMAIL not configured, skipping notification');
-        return { success: true, error: 'Recipient not configured' };
-    }
+  if (!recipientEmail) {
+    console.warn('NOTIFICATION_EMAIL not configured, skipping notification');
+    return { success: true, error: 'Recipient not configured' };
+  }
 
-    const resend = new Resend(apiKey);
+  const resend = new Resend(apiKey);
 
-    const status = isSuccess ? 'Completado' : 'Fallido';
-    const statusEmoji = isSuccess ? '✅' : '❌';
-    const subject = `${statusEmoji} Backup Cafe Mirador - ${status} (${stats.timestamp})`;
+  const status = isSuccess ? 'Completado' : 'Fallido';
+  const statusEmoji = isSuccess ? '✅' : '❌';
+  const subject = `${statusEmoji} Backup Cafe Mirador - ${status} (${stats.timestamp})`;
 
-    const htmlContent = `
+  const htmlContent = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -79,22 +79,22 @@ export async function sendBackupNotification(
             <span class="value" style="color: ${stats.errors > 0 ? '#ef4444' : '#10b981'};">${stats.errors}</span>
           </div>
           ${
-              stats.fileSize
-                  ? `
+            stats.fileSize
+              ? `
           <div class="stat">
             <span class="label">Tamaño archivo</span>
             <span class="value">${stats.fileSize}</span>
           </div>`
-                  : ''
+              : ''
           }
           ${
-              stats.storagePath
-                  ? `
+            stats.storagePath
+              ? `
           <div class="stat">
             <span class="label">Ubicación</span>
             <span class="value">Supabase Storage: ${stats.storagePath}</span>
           </div>`
-                  : ''
+              : ''
           }
         </div>
         <div class="footer">
@@ -105,7 +105,7 @@ export async function sendBackupNotification(
     </html>
     `;
 
-    const textContent = `
+  const textContent = `
 Backup Cafe Mirador - ${status}
 ================================
 Fecha: ${stats.timestamp}
@@ -116,51 +116,51 @@ ${stats.fileSize ? `Tamaño: ${stats.fileSize}` : ''}
 ${stats.storagePath ? `Ubicación: Supabase Storage - ${stats.storagePath}` : ''}
     `.trim();
 
-    try {
-        console.log(`Sending notification email to ${recipientEmail}...`);
+  try {
+    console.log(`Sending notification email to ${recipientEmail}...`);
 
-        const { data, error } = await resend.emails.send({
-            from: 'Cafe Mirador <backups@resend.dev>',
-            to: [recipientEmail],
-            subject,
-            html: htmlContent,
-            text: textContent,
-        });
+    const { data, error } = await resend.emails.send({
+      from: 'Cafe Mirador <backups@resend.dev>',
+      to: [recipientEmail],
+      subject,
+      html: htmlContent,
+      text: textContent,
+    });
 
-        if (error) {
-            console.error('Email send error:', error);
-            return { success: false, error: error.message };
-        }
-
-        console.log(`  Email sent successfully: ${data?.id}`);
-        return { success: true, messageId: data?.id };
-    } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-        console.error('Email send exception:', errorMessage);
-        return { success: false, error: errorMessage };
+    if (error) {
+      console.error('Email send error:', error);
+      return { success: false, error: error.message };
     }
+
+    console.log(`  Email sent successfully: ${data?.id}`);
+    return { success: true, messageId: data?.id };
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    console.error('Email send exception:', errorMessage);
+    return { success: false, error: errorMessage };
+  }
 }
 
 // Run if called directly (for testing)
 if (require.main === module) {
-    const testStats: BackupStats = {
-        timestamp: new Date().toISOString(),
-        tablesExported: 20,
-        totalRows: 1500,
-        errors: 0,
-        fileSize: '2.5 MB',
-        storagePath: 'cafe-mirador-backup-2026-01-23.zip',
-    };
+  const testStats: BackupStats = {
+    timestamp: new Date().toISOString(),
+    tablesExported: 20,
+    totalRows: 1500,
+    errors: 0,
+    fileSize: '2.5 MB',
+    storagePath: 'cafe-mirador-backup-2026-01-23.zip',
+  };
 
-    sendBackupNotification(testStats, true)
-        .then((result) => {
-            console.log('Notification result:', result);
-            if (!result.success) {
-                process.exit(1);
-            }
-        })
-        .catch((err) => {
-            console.error('Notification failed:', err);
-            process.exit(1);
-        });
+  sendBackupNotification(testStats, true)
+    .then(result => {
+      console.log('Notification result:', result);
+      if (!result.success) {
+        process.exit(1);
+      }
+    })
+    .catch(err => {
+      console.error('Notification failed:', err);
+      process.exit(1);
+    });
 }

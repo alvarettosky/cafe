@@ -56,10 +56,11 @@ setup('authenticate', async ({ page }) => {
     console.log('🔐 No credentials found, using mocked authentication for E2E tests');
 
     // Get Supabase URL from env or use default
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://inszvqzpxfqibkjsptsm.supabase.co';
+    const supabaseUrl =
+      process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://inszvqzpxfqibkjsptsm.supabase.co';
 
     // Intercept Supabase auth session endpoint
-    await page.route(`${supabaseUrl}/auth/v1/token**`, async (route) => {
+    await page.route(`${supabaseUrl}/auth/v1/token**`, async route => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -68,7 +69,7 @@ setup('authenticate', async ({ page }) => {
     });
 
     // Intercept getSession calls
-    await page.route(`${supabaseUrl}/auth/v1/user`, async (route) => {
+    await page.route(`${supabaseUrl}/auth/v1/user`, async route => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -77,7 +78,7 @@ setup('authenticate', async ({ page }) => {
     });
 
     // Intercept profile fetch
-    await page.route(`${supabaseUrl}/rest/v1/profiles**`, async (route) => {
+    await page.route(`${supabaseUrl}/rest/v1/profiles**`, async route => {
       const url = route.request().url();
       if (url.includes('select=')) {
         await route.fulfill({
@@ -91,7 +92,7 @@ setup('authenticate', async ({ page }) => {
     });
 
     // Intercept dashboard stats
-    await page.route(`${supabaseUrl}/rest/v1/rpc/get_dashboard_stats`, async (route) => {
+    await page.route(`${supabaseUrl}/rest/v1/rpc/get_dashboard_stats`, async route => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -105,7 +106,7 @@ setup('authenticate', async ({ page }) => {
     });
 
     // Intercept pending users (admin)
-    await page.route(`${supabaseUrl}/rest/v1/rpc/get_pending_users`, async (route) => {
+    await page.route(`${supabaseUrl}/rest/v1/rpc/get_pending_users`, async route => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -114,7 +115,7 @@ setup('authenticate', async ({ page }) => {
     });
 
     // Intercept recent sales
-    await page.route(`${supabaseUrl}/rest/v1/sales**`, async (route) => {
+    await page.route(`${supabaseUrl}/rest/v1/sales**`, async route => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -135,7 +136,7 @@ setup('authenticate', async ({ page }) => {
     });
 
     // Intercept inventory
-    await page.route(`${supabaseUrl}/rest/v1/inventory**`, async (route) => {
+    await page.route(`${supabaseUrl}/rest/v1/inventory**`, async route => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -154,7 +155,7 @@ setup('authenticate', async ({ page }) => {
     });
 
     // Intercept customers
-    await page.route(`${supabaseUrl}/rest/v1/customers**`, async (route) => {
+    await page.route(`${supabaseUrl}/rest/v1/customers**`, async route => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -173,7 +174,7 @@ setup('authenticate', async ({ page }) => {
     });
 
     // Intercept product variants for sale
-    await page.route(`${supabaseUrl}/rest/v1/rpc/get_variants_for_sale`, async (route) => {
+    await page.route(`${supabaseUrl}/rest/v1/rpc/get_variants_for_sale`, async route => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -197,7 +198,7 @@ setup('authenticate', async ({ page }) => {
     await page.goto('/login');
 
     // Inject the mock session into localStorage before Supabase client initializes
-    await page.evaluate((session) => {
+    await page.evaluate(session => {
       // Supabase stores auth in localStorage with key pattern: sb-<project-ref>-auth-token
       const storageKey = 'sb-inszvqzpxfqibkjsptsm-auth-token';
       localStorage.setItem(storageKey, JSON.stringify(session));

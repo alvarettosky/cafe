@@ -11,17 +11,17 @@ vi.mock('@/lib/supabase', () => ({
       select: vi.fn(() => ({
         eq: vi.fn(() => ({
           single: vi.fn(),
-          order: vi.fn(() => Promise.resolve({ data: [], error: null }))
-        }))
+          order: vi.fn(() => Promise.resolve({ data: [], error: null })),
+        })),
       })),
       update: vi.fn(() => ({
         eq: vi.fn(() => ({
-          select: vi.fn()
-        }))
-      }))
+          select: vi.fn(),
+        })),
+      })),
     })),
-    rpc: vi.fn()
-  }
+    rpc: vi.fn(),
+  },
 }));
 
 describe('CustomerModal', () => {
@@ -38,7 +38,7 @@ describe('CustomerModal', () => {
     last_purchase_date: '2026-01-15T10:00:00Z',
     typical_recurrence_days: 7,
     created_at: '2025-01-01T00:00:00Z',
-    updated_at: '2026-01-15T10:00:00Z'
+    updated_at: '2026-01-15T10:00:00Z',
   };
 
   beforeEach(() => {
@@ -50,9 +50,9 @@ describe('CustomerModal', () => {
       const fromMock = vi.fn(() => ({
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
-            single: vi.fn(() => new Promise(() => {})) // Never resolves
-          }))
-        }))
+            single: vi.fn(() => new Promise(() => {})), // Never resolves
+          })),
+        })),
       }));
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -79,9 +79,9 @@ describe('CustomerModal', () => {
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
             single: vi.fn(() => Promise.resolve({ data: mockCustomer, error: null })),
-            order: vi.fn(() => Promise.resolve({ data: [], error: null }))
-          }))
-        }))
+            order: vi.fn(() => Promise.resolve({ data: [], error: null })),
+          })),
+        })),
       }));
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -146,14 +146,14 @@ describe('CustomerModal', () => {
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
             single: vi.fn(() => Promise.resolve({ data: mockCustomer, error: null })),
-            order: vi.fn(() => Promise.resolve({ data: [], error: null }))
-          }))
+            order: vi.fn(() => Promise.resolve({ data: [], error: null })),
+          })),
         })),
         update: vi.fn(() => ({
           eq: vi.fn(() => ({
-            select: vi.fn(() => Promise.resolve({ data: [mockCustomer], error: null }))
-          }))
-        }))
+            select: vi.fn(() => Promise.resolve({ data: [mockCustomer], error: null })),
+          })),
+        })),
       }));
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -238,14 +238,14 @@ describe('CustomerModal', () => {
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
             single: vi.fn(() => Promise.resolve({ data: mockCustomer, error: null })),
-            order: vi.fn(() => Promise.resolve({ data: [], error: null }))
-          }))
+            order: vi.fn(() => Promise.resolve({ data: [], error: null })),
+          })),
         })),
         update: vi.fn(() => ({
           eq: vi.fn(() => ({
-            select: vi.fn(() => Promise.resolve({ data: [mockCustomer], error: null }))
-          }))
-        }))
+            select: vi.fn(() => Promise.resolve({ data: [mockCustomer], error: null })),
+          })),
+        })),
       }));
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -315,9 +315,9 @@ describe('CustomerModal', () => {
       const fromMock = vi.fn(() => ({
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
-            single: vi.fn(() => Promise.resolve({ data: mockCustomer, error: null }))
-          }))
-        }))
+            single: vi.fn(() => Promise.resolve({ data: mockCustomer, error: null })),
+          })),
+        })),
       }));
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -367,12 +367,14 @@ describe('CustomerModal', () => {
       const fromMock = vi.fn(() => ({
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
-            single: vi.fn(() => Promise.resolve({
-              data: null,
-              error: { message: 'Database error' }
-            }))
-          }))
-        }))
+            single: vi.fn(() =>
+              Promise.resolve({
+                data: null,
+                error: { message: 'Database error' },
+              })
+            ),
+          })),
+        })),
       }));
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

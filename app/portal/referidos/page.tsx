@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import { useCustomerPortal } from "@/context/customer-portal-context";
-import { motion } from "framer-motion";
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { useCustomerPortal } from '@/context/customer-portal-context';
+import { motion } from 'framer-motion';
 import {
   Users,
   Share2,
@@ -16,10 +16,10 @@ import {
   Loader2,
   Home,
   ArrowLeft,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Link from "next/link";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
 
 interface Referral {
   id: string;
@@ -72,7 +72,7 @@ export default function ReferidosPage() {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.rpc('get_my_referrals', {
-        p_customer_id: customer.customer_id
+        p_customer_id: customer.customer_id,
       });
 
       if (error) throw error;
@@ -101,7 +101,7 @@ export default function ReferidosPage() {
     setIsGenerating(true);
     try {
       const { data, error } = await supabase.rpc('generate_referral_code', {
-        p_customer_id: customer.customer_id
+        p_customer_id: customer.customer_id,
       });
 
       if (error) throw error;
@@ -343,15 +343,13 @@ export default function ReferidosPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {referralData.referrals.map((referral) => (
+                  {referralData.referrals.map(referral => (
                     <div
                       key={referral.id}
                       className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                     >
                       <div>
-                        <p className="font-medium text-gray-800">
-                          Código: {referral.code}
-                        </p>
+                        <p className="font-medium text-gray-800">Código: {referral.code}</p>
                         <p className="text-xs text-gray-500">
                           {referral.referred_phone || 'Sin usar'} -{' '}
                           {new Date(referral.created_at).toLocaleDateString()}

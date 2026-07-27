@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { supabase } from "@/lib/supabase";
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { supabase } from '@/lib/supabase';
 
 // Tipos para el cliente del portal
 export interface CustomerPortalUser {
@@ -24,7 +24,7 @@ interface CustomerPortalContextType {
 
 const CustomerPortalContext = createContext<CustomerPortalContextType | undefined>(undefined);
 
-const SESSION_TOKEN_KEY = "cafe_portal_session";
+const SESSION_TOKEN_KEY = 'cafe_portal_session';
 
 export function CustomerPortalProvider({ children }: { children: ReactNode }) {
   const [customer, setCustomer] = useState<CustomerPortalUser | null>(null);
@@ -41,12 +41,12 @@ export function CustomerPortalProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        const { data, error } = await supabase.rpc("validate_customer_session", {
+        const { data, error } = await supabase.rpc('validate_customer_session', {
           p_session_token: sessionToken,
         });
 
         if (error) {
-          console.error("Error validating session:", error);
+          console.error('Error validating session:', error);
           localStorage.removeItem(SESSION_TOKEN_KEY);
           setIsLoading(false);
           return;
@@ -66,7 +66,7 @@ export function CustomerPortalProvider({ children }: { children: ReactNode }) {
           localStorage.removeItem(SESSION_TOKEN_KEY);
         }
       } catch (err) {
-        console.error("Session validation error:", err);
+        console.error('Session validation error:', err);
         localStorage.removeItem(SESSION_TOKEN_KEY);
       }
 
@@ -86,11 +86,11 @@ export function CustomerPortalProvider({ children }: { children: ReactNode }) {
 
     if (sessionToken) {
       try {
-        await supabase.rpc("logout_customer_session", {
+        await supabase.rpc('logout_customer_session', {
           p_session_token: sessionToken,
         });
       } catch (err) {
-        console.error("Logout error:", err);
+        console.error('Logout error:', err);
       }
     }
 
@@ -106,7 +106,7 @@ export function CustomerPortalProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const { data, error } = await supabase.rpc("validate_customer_session", {
+      const { data, error } = await supabase.rpc('validate_customer_session', {
         p_session_token: sessionToken,
       });
 
@@ -127,7 +127,7 @@ export function CustomerPortalProvider({ children }: { children: ReactNode }) {
 
       return true;
     } catch (err) {
-      console.error("Session refresh error:", err);
+      console.error('Session refresh error:', err);
       return false;
     }
   };
@@ -151,13 +151,13 @@ export function CustomerPortalProvider({ children }: { children: ReactNode }) {
 export function useCustomerPortal() {
   const context = useContext(CustomerPortalContext);
   if (context === undefined) {
-    throw new Error("useCustomerPortal must be used within a CustomerPortalProvider");
+    throw new Error('useCustomerPortal must be used within a CustomerPortalProvider');
   }
   return context;
 }
 
 // Helper para obtener el session token (para RPCs que lo necesiten)
 export function getCustomerSessionToken(): string | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === 'undefined') return null;
   return localStorage.getItem(SESSION_TOKEN_KEY);
 }

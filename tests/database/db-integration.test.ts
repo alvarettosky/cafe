@@ -7,9 +7,7 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 // Skip all tests if environment variables are not set
 const canConnect = Boolean(supabaseUrl && supabaseKey && !supabaseUrl.includes('undefined'));
 
-const supabase = canConnect
-  ? createClient(supabaseUrl!, supabaseKey!)
-  : null;
+const supabase = canConnect ? createClient(supabaseUrl!, supabaseKey!) : null;
 
 describe.skipIf(!canConnect)('Database Integration Tests', () => {
   beforeAll(async () => {
@@ -26,10 +24,7 @@ describe.skipIf(!canConnect)('Database Integration Tests', () => {
     it('should fetch inventory with all columns', async () => {
       if (!supabase) return;
 
-      const { data, error } = await supabase
-        .from('inventory')
-        .select('*')
-        .limit(1);
+      const { data, error } = await supabase.from('inventory').select('*').limit(1);
 
       expect(error).toBeNull();
       expect(data).toBeDefined();
@@ -47,9 +42,7 @@ describe.skipIf(!canConnect)('Database Integration Tests', () => {
       if (!supabase) return;
 
       // Anonymous users should be able to read
-      const { data, error } = await supabase
-        .from('inventory')
-        .select('*');
+      const { data, error } = await supabase.from('inventory').select('*');
 
       expect(error).toBeNull();
       expect(data).toBeDefined();
@@ -60,10 +53,7 @@ describe.skipIf(!canConnect)('Database Integration Tests', () => {
     it('should fetch sales with profit columns', async () => {
       if (!supabase) return;
 
-      const { data, error } = await supabase
-        .from('sales')
-        .select('*')
-        .limit(1);
+      const { data, error } = await supabase.from('sales').select('*').limit(1);
 
       expect(error).toBeNull();
       expect(data).toBeDefined();
@@ -80,10 +70,7 @@ describe.skipIf(!canConnect)('Database Integration Tests', () => {
     it('should fetch sales data', async () => {
       if (!supabase) return;
 
-      const { data, error } = await supabase
-        .from('sales')
-        .select('*')
-        .limit(10);
+      const { data, error } = await supabase.from('sales').select('*').limit(10);
 
       expect(error).toBeNull();
       // Just verify we can fetch sales data

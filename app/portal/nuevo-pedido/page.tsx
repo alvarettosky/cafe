@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import { useCustomerPortal } from "@/context/customer-portal-context";
-import { motion } from "framer-motion";
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { useCustomerPortal } from '@/context/customer-portal-context';
+import { motion } from 'framer-motion';
 import {
   Coffee,
   Loader2,
@@ -14,17 +14,17 @@ import {
   Trash2,
   ShoppingBag,
   CheckCircle,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Link from "next/link";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
 
-import type { PortalProductOption as Product } from "@/types/portal";
+import type { PortalProductOption as Product } from '@/types/portal';
 interface CartItem {
   product_id: string;
   product_name: string;
   quantity: number;
-  unit_type: "libra" | "media_libra";
+  unit_type: 'libra' | 'media_libra';
 }
 
 interface RepeatOrderItem {
@@ -41,26 +41,26 @@ function NuevoPedidoContent() {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isRepeat = searchParams.get("repeat") === "true";
+  const isRepeat = searchParams.get('repeat') === 'true';
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push("/portal/auth");
+      router.push('/portal/auth');
       return;
     }
 
     const fetchProducts = async () => {
       try {
-        const { data, error } = await supabase.rpc("get_products_for_customer_order");
+        const { data, error } = await supabase.rpc('get_products_for_customer_order');
 
         if (error) {
-          console.error("Products fetch error:", error);
+          console.error('Products fetch error:', error);
           return;
         }
 
@@ -68,25 +68,25 @@ function NuevoPedidoContent() {
 
         // Si es repetir pedido, cargar items del storage
         if (isRepeat) {
-          const repeatData = sessionStorage.getItem("repeat_order");
+          const repeatData = sessionStorage.getItem('repeat_order');
           if (repeatData) {
             try {
               const items: RepeatOrderItem[] = JSON.parse(repeatData);
               const cartItems: CartItem[] = items.map((item: RepeatOrderItem) => ({
-                product_id: item.product_id || "",
+                product_id: item.product_id || '',
                 product_name: item.product_name,
                 quantity: item.quantity,
-                unit_type: item.unit === "libra" ? "libra" : "media_libra",
+                unit_type: item.unit === 'libra' ? 'libra' : 'media_libra',
               }));
-              setCart(cartItems.filter((i) => i.product_id));
-              sessionStorage.removeItem("repeat_order");
+              setCart(cartItems.filter(i => i.product_id));
+              sessionStorage.removeItem('repeat_order');
             } catch (e) {
-              console.error("Error parsing repeat order:", e);
+              console.error('Error parsing repeat order:', e);
             }
           }
         }
       } catch (err) {
-        console.error("Products error:", err);
+        console.error('Products error:', err);
       } finally {
         setIsLoading(false);
       }
@@ -98,12 +98,10 @@ function NuevoPedidoContent() {
   }, [customer, authLoading, isAuthenticated, router, isRepeat]);
 
   const addToCart = (product: Product) => {
-    const existing = cart.find((i) => i.product_id === product.id);
+    const existing = cart.find(i => i.product_id === product.id);
     if (existing) {
       setCart(
-        cart.map((i) =>
-          i.product_id === product.id ? { ...i, quantity: i.quantity + 1 } : i
-        )
+        cart.map(i => (i.product_id === product.id ? { ...i, quantity: i.quantity + 1 } : i))
       );
     } else {
       setCart([
@@ -112,7 +110,7 @@ function NuevoPedidoContent() {
           product_id: product.id,
           product_name: product.name,
           quantity: 1,
-          unit_type: "libra",
+          unit_type: 'libra',
         },
       ]);
     }
@@ -121,22 +119,20 @@ function NuevoPedidoContent() {
   const updateQuantity = (productId: string, delta: number) => {
     setCart(
       cart
-        .map((i) =>
-          i.product_id === productId
-            ? { ...i, quantity: Math.max(0, i.quantity + delta) }
-            : i
+        .map(i =>
+          i.product_id === productId ? { ...i, quantity: Math.max(0, i.quantity + delta) } : i
         )
-        .filter((i) => i.quantity > 0)
+        .filter(i => i.quantity > 0)
     );
   };
 
   const toggleUnit = (productId: string) => {
     setCart(
-      cart.map((i) =>
+      cart.map(i =>
         i.product_id === productId
           ? {
               ...i,
-              unit_type: i.unit_type === "libra" ? "media_libra" : "libra",
+              unit_type: i.unit_type === 'libra' ? 'media_libra' : 'libra',
             }
           : i
       )
@@ -144,7 +140,7 @@ function NuevoPedidoContent() {
   };
 
   const removeFromCart = (productId: string) => {
-    setCart(cart.filter((i) => i.product_id !== productId));
+    setCart(cart.filter(i => i.product_id !== productId));
   };
 
   const handleSubmit = async () => {
@@ -154,22 +150,19 @@ function NuevoPedidoContent() {
     setError(null);
 
     try {
-      const { data, error: submitError } = await supabase.rpc(
-        "create_customer_order",
-        {
-          p_customer_id: customer.customer_id,
-          p_items: cart.map((i) => ({
-            product_id: i.product_id,
-            quantity: i.quantity,
-            unit_type: i.unit_type,
-          })),
-          p_notes: notes || null,
-        }
-      );
+      const { data, error: submitError } = await supabase.rpc('create_customer_order', {
+        p_customer_id: customer.customer_id,
+        p_items: cart.map(i => ({
+          product_id: i.product_id,
+          quantity: i.quantity,
+          unit_type: i.unit_type,
+        })),
+        p_notes: notes || null,
+      });
 
       if (submitError) {
-        console.error("Order submit error:", submitError);
-        setError("Error al enviar pedido");
+        console.error('Order submit error:', submitError);
+        setError('Error al enviar pedido');
         return;
       }
 
@@ -180,8 +173,8 @@ function NuevoPedidoContent() {
 
       setOrderSuccess(true);
     } catch (err) {
-      console.error("Submit error:", err);
-      setError("Error de conexion");
+      console.error('Submit error:', err);
+      setError('Error de conexion');
     } finally {
       setIsSubmitting(false);
     }
@@ -199,10 +192,7 @@ function NuevoPedidoContent() {
   if (orderSuccess) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-100 dark:from-zinc-900 dark:to-zinc-800 flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-        >
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
           <Card className="max-w-md w-full text-center">
             <CardContent className="py-8">
               <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
@@ -210,13 +200,10 @@ function NuevoPedidoContent() {
                 Pedido Recibido!
               </h2>
               <p className="text-gray-600 dark:text-gray-300 mb-6">
-                Te confirmaremos pronto por WhatsApp con el precio y detalles de
-                entrega.
+                Te confirmaremos pronto por WhatsApp con el precio y detalles de entrega.
               </p>
               <Link href="/portal">
-                <Button className="w-full bg-amber-600 hover:bg-amber-700">
-                  Volver al inicio
-                </Button>
+                <Button className="w-full bg-amber-600 hover:bg-amber-700">Volver al inicio</Button>
               </Link>
             </CardContent>
           </Card>
@@ -237,9 +224,7 @@ function NuevoPedidoContent() {
           </Link>
           <div className="flex items-center gap-3">
             <Coffee className="h-6 w-6 text-amber-600" />
-            <span className="font-bold text-lg text-gray-900 dark:text-white">
-              Nuevo Pedido
-            </span>
+            <span className="font-bold text-lg text-gray-900 dark:text-white">Nuevo Pedido</span>
           </div>
         </div>
       </header>
@@ -253,29 +238,21 @@ function NuevoPedidoContent() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-3">
-              {products.map((product) => (
+              {products.map(product => (
                 <motion.button
                   key={product.id}
                   whileTap={{ scale: 0.95 }}
                   className={`p-4 rounded-lg border-2 text-left transition-colors ${
-                    cart.find((i) => i.product_id === product.id)
-                      ? "border-amber-500 bg-amber-50 dark:bg-amber-900/20"
-                      : "border-gray-200 dark:border-zinc-700 hover:border-amber-300"
-                  } ${
-                    !product.available
-                      ? "opacity-50 cursor-not-allowed"
-                      : "cursor-pointer"
-                  }`}
+                    cart.find(i => i.product_id === product.id)
+                      ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
+                      : 'border-gray-200 dark:border-zinc-700 hover:border-amber-300'
+                  } ${!product.available ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                   onClick={() => product.available && addToCart(product)}
                   disabled={!product.available}
                 >
-                  <p className="font-medium text-gray-900 dark:text-white">
-                    {product.name}
-                  </p>
-                  {!product.available && (
-                    <p className="text-xs text-red-500 mt-1">Sin stock</p>
-                  )}
-                  {cart.find((i) => i.product_id === product.id) && (
+                  <p className="font-medium text-gray-900 dark:text-white">{product.name}</p>
+                  {!product.available && <p className="text-xs text-red-500 mt-1">Sin stock</p>}
+                  {cart.find(i => i.product_id === product.id) && (
                     <p className="text-xs text-amber-600 mt-1">En carrito</p>
                   )}
                 </motion.button>
@@ -294,20 +271,18 @@ function NuevoPedidoContent() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {cart.map((item) => (
+              {cart.map(item => (
                 <div
                   key={item.product_id}
                   className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-zinc-700 last:border-0"
                 >
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      {item.product_name}
-                    </p>
+                    <p className="font-medium text-gray-900 dark:text-white">{item.product_name}</p>
                     <button
                       className="text-sm text-amber-600 hover:underline"
                       onClick={() => toggleUnit(item.product_id)}
                     >
-                      {item.unit_type === "libra" ? "Libra" : "Media libra"}
+                      {item.unit_type === 'libra' ? 'Libra' : 'Media libra'}
                       <span className="text-gray-400 ml-1">(cambiar)</span>
                     </button>
                   </div>
@@ -322,9 +297,7 @@ function NuevoPedidoContent() {
                       >
                         <Minus className="h-4 w-4" />
                       </Button>
-                      <span className="w-8 text-center font-medium">
-                        {item.quantity}
-                      </span>
+                      <span className="w-8 text-center font-medium">{item.quantity}</span>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -356,13 +329,11 @@ function NuevoPedidoContent() {
                   rows={2}
                   placeholder="Ej: Entregar en la tarde, molienda fina, etc."
                   value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
+                  onChange={e => setNotes(e.target.value)}
                 />
               </div>
 
-              {error && (
-                <p className="text-red-500 text-sm text-center">{error}</p>
-              )}
+              {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
               <Button
                 className="w-full bg-amber-600 hover:bg-amber-700 h-12 text-lg"

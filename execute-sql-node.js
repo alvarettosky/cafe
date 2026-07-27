@@ -9,7 +9,8 @@ const fs = require('fs');
 const https = require('https');
 
 const SUPABASE_URL = 'https://inszvqzpxfqibkjsptsm.supabase.co';
-const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imluc3p2cXpweGZxaWJranNwdHNtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODUxMTY4MiwiZXhwIjoyMDg0MDg3NjgyfQ.IUu1k4K_IQY_3x9bP0QpHd7PBceH6e8OUKAfICd9iYY';
+const SERVICE_ROLE_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imluc3p2cXpweGZxaWJranNwdHNtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODUxMTY4MiwiZXhwIjoyMDg0MDg3NjgyfQ.IUu1k4K_IQY_3x9bP0QpHd7PBceH6e8OUKAfICd9iYY';
 
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 console.log('🚀 EJECUTANDO SQL EN SUPABASE (Node.js)');
@@ -21,8 +22,8 @@ const sqlFile = '/tmp/fix_analytics.sql';
 console.log(`📋 Leyendo: ${sqlFile}`);
 
 if (!fs.existsSync(sqlFile)) {
-    console.error(`❌ Error: Archivo no encontrado: ${sqlFile}`);
-    process.exit(1);
+  console.error(`❌ Error: Archivo no encontrado: ${sqlFile}`);
+  process.exit(1);
 }
 
 const sqlContent = fs.readFileSync(sqlFile, 'utf8');
@@ -75,8 +76,8 @@ console.log('Abriendo navegador...');
 // Open browser (Linux)
 const { spawn } = require('child_process');
 spawn('xdg-open', ['https://supabase.com/dashboard/project/inszvqzpxfqibkjsptsm'], {
-    detached: true,
-    stdio: 'ignore'
+  detached: true,
+  stdio: 'ignore',
 }).unref();
 
 console.log('✅ Navegador abierto');

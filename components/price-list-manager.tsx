@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/lib/supabase";
-import { motion } from "framer-motion";
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
+import { motion } from 'framer-motion';
 import {
   DollarSign,
   Plus,
@@ -13,17 +13,17 @@ import {
   Loader2,
   Package,
   CheckCircle,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { SaleProductOption as Product } from "@/types/inventory";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { SaleProductOption as Product } from '@/types/inventory';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 
 interface PriceList {
   id: string;
@@ -54,8 +54,8 @@ export function PriceListManager() {
   const [saving, setSaving] = useState(false);
 
   // Form state
-  const [formName, setFormName] = useState("");
-  const [formDescription, setFormDescription] = useState("");
+  const [formName, setFormName] = useState('');
+  const [formDescription, setFormDescription] = useState('');
   const [formDiscount, setFormDiscount] = useState(0);
   const [formIsActive, setFormIsActive] = useState(true);
 
@@ -63,14 +63,8 @@ export function PriceListManager() {
     setIsLoading(true);
     try {
       const [listsResult, productsResult] = await Promise.all([
-        supabase
-          .from("price_lists")
-          .select("*")
-          .order("name"),
-        supabase
-          .from("inventory")
-          .select("product_id, product_name")
-          .order("product_name"),
+        supabase.from('price_lists').select('*').order('name'),
+        supabase.from('inventory').select('product_id, product_name').order('product_name'),
       ]);
 
       if (listsResult.error) throw listsResult.error;
@@ -79,7 +73,7 @@ export function PriceListManager() {
       setPriceLists(listsResult.data || []);
       setProducts(productsResult.data || []);
     } catch (err) {
-      console.error("Error fetching price lists:", err);
+      console.error('Error fetching price lists:', err);
     } finally {
       setIsLoading(false);
     }
@@ -92,39 +86,43 @@ export function PriceListManager() {
   const fetchListItems = async (listId: string) => {
     try {
       const { data, error } = await supabase
-        .from("price_list_items")
-        .select(`
+        .from('price_list_items')
+        .select(
+          `
           *,
           product:inventory(product_name)
-        `)
-        .eq("price_list_id", listId);
+        `
+        )
+        .eq('price_list_id', listId);
 
       if (error) throw error;
 
-      const items = (data || []).map((item: {
-        id: string;
-        price_list_id: string;
-        product_id: string;
-        product: { product_name: string } | null;
-        custom_price: number;
-      }) => ({
-        id: item.id,
-        price_list_id: item.price_list_id,
-        product_id: item.product_id,
-        product_name: item.product?.product_name || "Producto desconocido",
-        custom_price: item.custom_price,
-      }));
+      const items = (data || []).map(
+        (item: {
+          id: string;
+          price_list_id: string;
+          product_id: string;
+          product: { product_name: string } | null;
+          custom_price: number;
+        }) => ({
+          id: item.id,
+          price_list_id: item.price_list_id,
+          product_id: item.product_id,
+          product_name: item.product?.product_name || 'Producto desconocido',
+          custom_price: item.custom_price,
+        })
+      );
 
       setListItems(items);
     } catch (err) {
-      console.error("Error fetching list items:", err);
+      console.error('Error fetching list items:', err);
     }
   };
 
   const openCreateModal = () => {
     setEditingList(null);
-    setFormName("");
-    setFormDescription("");
+    setFormName('');
+    setFormDescription('');
     setFormDiscount(0);
     setFormIsActive(true);
     setIsModalOpen(true);
@@ -133,7 +131,7 @@ export function PriceListManager() {
   const openEditModal = (list: PriceList) => {
     setEditingList(list);
     setFormName(list.name);
-    setFormDescription(list.description || "");
+    setFormDescription(list.description || '');
     setFormDiscount(list.discount_percent);
     setFormIsActive(list.is_active);
     setIsModalOpen(true);
@@ -159,15 +157,13 @@ export function PriceListManager() {
 
       if (editingList) {
         const { error } = await supabase
-          .from("price_lists")
+          .from('price_lists')
           .update(listData)
-          .eq("id", editingList.id);
+          .eq('id', editingList.id);
 
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from("price_lists")
-          .insert(listData);
+        const { error } = await supabase.from('price_lists').insert(listData);
 
         if (error) throw error;
       }
@@ -175,25 +171,22 @@ export function PriceListManager() {
       await fetchData();
       setIsModalOpen(false);
     } catch (err) {
-      console.error("Error saving price list:", err);
+      console.error('Error saving price list:', err);
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteList = async (listId: string) => {
-    if (!confirm("Esta seguro de eliminar esta lista de precios?")) return;
+    if (!confirm('Esta seguro de eliminar esta lista de precios?')) return;
 
     try {
-      const { error } = await supabase
-        .from("price_lists")
-        .delete()
-        .eq("id", listId);
+      const { error } = await supabase.from('price_lists').delete().eq('id', listId);
 
       if (error) throw error;
       await fetchData();
     } catch (err) {
-      console.error("Error deleting price list:", err);
+      console.error('Error deleting price list:', err);
     }
   };
 
@@ -201,41 +194,39 @@ export function PriceListManager() {
     if (!selectedListId) return;
 
     try {
-      const { error } = await supabase
-        .from("price_list_items")
-        .upsert({
+      const { error } = await supabase.from('price_list_items').upsert(
+        {
           price_list_id: selectedListId,
           product_id: productId,
           custom_price: customPrice,
-        }, {
-          onConflict: "price_list_id,product_id",
-        });
+        },
+        {
+          onConflict: 'price_list_id,product_id',
+        }
+      );
 
       if (error) throw error;
       await fetchListItems(selectedListId);
     } catch (err) {
-      console.error("Error adding item:", err);
+      console.error('Error adding item:', err);
     }
   };
 
   const handleRemoveItem = async (itemId: string) => {
     try {
-      const { error } = await supabase
-        .from("price_list_items")
-        .delete()
-        .eq("id", itemId);
+      const { error } = await supabase.from('price_list_items').delete().eq('id', itemId);
 
       if (error) throw error;
       if (selectedListId) await fetchListItems(selectedListId);
     } catch (err) {
-      console.error("Error removing item:", err);
+      console.error('Error removing item:', err);
     }
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
       minimumFractionDigits: 0,
     }).format(amount);
   };
@@ -273,7 +264,7 @@ export function PriceListManager() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <Card className={!list.is_active ? "opacity-60" : ""}>
+            <Card className={!list.is_active ? 'opacity-60' : ''}>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center justify-between">
                   <span className="flex items-center gap-2">
@@ -289,7 +280,7 @@ export function PriceListManager() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-gray-600 mb-2">
-                  {list.description || "Sin descripcion"}
+                  {list.description || 'Sin descripcion'}
                 </p>
                 <div className="flex items-center gap-2 mb-4">
                   <span className="text-lg font-bold text-amber-600">
@@ -298,19 +289,11 @@ export function PriceListManager() {
                   <span className="text-sm text-gray-500">descuento base</span>
                 </div>
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openItemsModal(list.id)}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => openItemsModal(list.id)}>
                     <Package className="h-4 w-4 mr-1" />
                     Productos
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openEditModal(list)}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => openEditModal(list)}>
                     <Edit2 className="h-4 w-4" />
                   </Button>
                   <Button
@@ -344,34 +327,28 @@ export function PriceListManager() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingList ? "Editar Lista de Precios" : "Nueva Lista de Precios"}
+              {editingList ? 'Editar Lista de Precios' : 'Nueva Lista de Precios'}
             </DialogTitle>
-            <DialogDescription>
-              Configure los detalles de la lista de precios
-            </DialogDescription>
+            <DialogDescription>Configure los detalles de la lista de precios</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nombre *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
               <input
                 type="text"
                 value={formName}
-                onChange={(e) => setFormName(e.target.value)}
+                onChange={e => setFormName(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
                 placeholder="Ej: Mayoristas Gold"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Descripcion
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Descripcion</label>
               <textarea
                 value={formDescription}
-                onChange={(e) => setFormDescription(e.target.value)}
+                onChange={e => setFormDescription(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
                 rows={2}
                 placeholder="Descripcion opcional..."
@@ -387,7 +364,7 @@ export function PriceListManager() {
                 min="0"
                 max="100"
                 value={formDiscount}
-                onChange={(e) => setFormDiscount(Number(e.target.value))}
+                onChange={e => setFormDiscount(Number(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
               <p className="text-xs text-gray-500 mt-1">
@@ -400,7 +377,7 @@ export function PriceListManager() {
                 type="checkbox"
                 id="isActive"
                 checked={formIsActive}
-                onChange={(e) => setFormIsActive(e.target.checked)}
+                onChange={e => setFormIsActive(e.target.checked)}
                 className="h-4 w-4 text-amber-600 rounded border-gray-300"
               />
               <label htmlFor="isActive" className="text-sm text-gray-700">
@@ -433,9 +410,7 @@ export function PriceListManager() {
               <Package className="h-5 w-5" />
               Precios Personalizados
             </DialogTitle>
-            <DialogDescription>
-              Configure precios especificos para cada producto
-            </DialogDescription>
+            <DialogDescription>Configure precios especificos para cada producto</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 max-h-[60vh] overflow-y-auto">
@@ -444,7 +419,7 @@ export function PriceListManager() {
               <div>
                 <h4 className="font-medium text-gray-700 mb-2">Productos configurados</h4>
                 <div className="space-y-2">
-                  {listItems.map((item) => (
+                  {listItems.map(item => (
                     <div
                       key={item.id}
                       className="flex items-center justify-between p-3 bg-gray-50 rounded-md"
@@ -474,8 +449,8 @@ export function PriceListManager() {
               <h4 className="font-medium text-gray-700 mb-2">Agregar producto</h4>
               <div className="space-y-2">
                 {products
-                  .filter((p) => !listItems.some((i) => i.product_id === p.product_id))
-                  .map((product) => (
+                  .filter(p => !listItems.some(i => i.product_id === p.product_id))
+                  .map(product => (
                     <ProductPriceRow
                       key={product.product_id}
                       product={product}
@@ -499,7 +474,7 @@ function ProductPriceRow({
   product: Product;
   onAdd: (productId: string, price: number) => void;
 }) {
-  const [price, setPrice] = useState(10.00); // Default price
+  const [price, setPrice] = useState(10.0); // Default price
   const [adding, setAdding] = useState(false);
 
   const handleAdd = async () => {
@@ -517,7 +492,7 @@ function ProductPriceRow({
         type="number"
         min="0"
         value={price}
-        onChange={(e) => setPrice(Number(e.target.value))}
+        onChange={e => setPrice(Number(e.target.value))}
         className="w-28 px-2 py-1 border border-gray-300 rounded-md text-sm"
       />
       <Button size="sm" onClick={handleAdd} disabled={adding}>

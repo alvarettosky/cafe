@@ -59,9 +59,7 @@ export function RecurrenceInput({
         </div>
       </label>
 
-      {helperText && (
-        <p className="text-xs text-gray-500">{helperText}</p>
-      )}
+      {helperText && <p className="text-xs text-gray-500">{helperText}</p>}
 
       <div className="flex gap-2">
         <div className="relative flex-1">

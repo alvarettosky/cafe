@@ -32,9 +32,7 @@ describe('DateRangeSelector', () => {
   });
 
   it('should highlight active preset', () => {
-    render(
-      <DateRangeSelector onPresetChange={mockOnPresetChange} activePreset="esta-semana" />
-    );
+    render(<DateRangeSelector onPresetChange={mockOnPresetChange} activePreset="esta-semana" />);
 
     const weekButton = screen.getByRole('button', { name: /esta semana/i });
 
@@ -83,9 +81,7 @@ describe('DateRangeSelector', () => {
 
     expect(screen.getByRole('button', { name: /hoy/i }).className).toContain('bg-primary');
 
-    rerender(
-      <DateRangeSelector onPresetChange={mockOnPresetChange} activePreset="este-año" />
-    );
+    rerender(<DateRangeSelector onPresetChange={mockOnPresetChange} activePreset="este-año" />);
 
     expect(screen.getByRole('button', { name: /hoy/i }).className).not.toContain('bg-primary');
     expect(screen.getByRole('button', { name: /este año/i }).className).toContain('bg-primary');

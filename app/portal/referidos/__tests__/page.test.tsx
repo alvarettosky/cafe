@@ -215,7 +215,9 @@ describe('ReferidosPage', () => {
       render(<ReferidosPage />);
 
       await waitFor(() => {
-        const backLink = screen.getAllByRole('link').find(link => link.getAttribute('href') === '/portal');
+        const backLink = screen
+          .getAllByRole('link')
+          .find(link => link.getAttribute('href') === '/portal');
         expect(backLink).toBeInTheDocument();
       });
     });
@@ -418,7 +420,7 @@ describe('ReferidosPage', () => {
       const user = userEvent.setup();
 
       let resolveGenerate: (value: { data: unknown; error: null }) => void;
-      const generatePromise = new Promise<{ data: unknown; error: null }>((resolve) => {
+      const generatePromise = new Promise<{ data: unknown; error: null }>(resolve => {
         resolveGenerate = resolve;
       });
 

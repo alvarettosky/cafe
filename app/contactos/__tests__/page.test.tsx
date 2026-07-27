@@ -32,15 +32,23 @@ vi.mock('framer-motion', () => ({
 
 // Mock child components
 vi.mock('@/components/smart-whatsapp-button', () => ({
-  SmartWhatsAppButton: ({ customerId, customerName }: { customerId: string; customerName: string }) => (
-    <button data-testid={`whatsapp-${customerId}`}>WhatsApp {customerName}</button>
-  ),
+  SmartWhatsAppButton: ({
+    customerId,
+    customerName,
+  }: {
+    customerId: string;
+    customerName: string;
+  }) => <button data-testid={`whatsapp-${customerId}`}>WhatsApp {customerName}</button>,
 }));
 
 vi.mock('@/components/repeat-sale-button', () => ({
-  RepeatSaleButton: ({ customerId, customerName }: { customerId: string; customerName: string }) => (
-    <button data-testid={`repeat-sale-${customerId}`}>Repetir {customerName}</button>
-  ),
+  RepeatSaleButton: ({
+    customerId,
+    customerName,
+  }: {
+    customerId: string;
+    customerName: string;
+  }) => <button data-testid={`repeat-sale-${customerId}`}>Repetir {customerName}</button>,
 }));
 
 // Import after mocks
@@ -178,7 +186,9 @@ describe('ContactosPage', () => {
       render(<ContactosPage />);
 
       await waitFor(() => {
-        expect(screen.getByText(/clientes que necesitan ser contactados seg[uú]n/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/clientes que necesitan ser contactados seg[uú]n/i)
+        ).toBeInTheDocument();
       });
     });
 
@@ -423,8 +433,8 @@ describe('ContactosPage', () => {
 
       await waitFor(() => {
         const emailLinks = screen.getAllByRole('link');
-        const juanEmailLink = emailLinks.find(link =>
-          link.getAttribute('href') === 'mailto:juan@test.com'
+        const juanEmailLink = emailLinks.find(
+          link => link.getAttribute('href') === 'mailto:juan@test.com'
         );
         expect(juanEmailLink).toBeInTheDocument();
       });
@@ -443,15 +453,15 @@ describe('ContactosPage', () => {
 
   describe('Empty State', () => {
     it('should show success message when no contacts need attention', async () => {
-      mockSupabaseRpc.mockImplementation(() =>
-        Promise.resolve({ data: [], error: null })
-      );
+      mockSupabaseRpc.mockImplementation(() => Promise.resolve({ data: [], error: null }));
 
       render(<ContactosPage />);
 
       await waitFor(() => {
         expect(screen.getByText('¡Todo al día!')).toBeInTheDocument();
-        expect(screen.getByText('No hay clientes que necesiten contacto en este momento')).toBeInTheDocument();
+        expect(
+          screen.getByText('No hay clientes que necesiten contacto en este momento')
+        ).toBeInTheDocument();
       });
     });
 
@@ -561,7 +571,9 @@ describe('ContactosPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Sin prospectos pendientes')).toBeInTheDocument();
-        expect(screen.getByText('Todos los clientes registrados ya han realizado al menos una compra')).toBeInTheDocument();
+        expect(
+          screen.getByText('Todos los clientes registrados ya han realizado al menos una compra')
+        ).toBeInTheDocument();
       });
     });
   });
@@ -602,7 +614,7 @@ describe('ContactosPage', () => {
       mockSupabaseRpc.mockImplementation(() =>
         Promise.resolve({
           data: null,
-          error: { message: 'Database error' }
+          error: { message: 'Database error' },
         })
       );
 
@@ -625,7 +637,7 @@ describe('ContactosPage', () => {
             neq: vi.fn().mockReturnValue({
               order: vi.fn().mockResolvedValue({
                 data: null,
-                error: { message: 'Database error' }
+                error: { message: 'Database error' },
               }),
             }),
           }),

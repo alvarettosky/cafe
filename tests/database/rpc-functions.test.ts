@@ -7,9 +7,7 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 // Skip all tests if environment variables are not set
 const canConnect = Boolean(supabaseUrl && supabaseKey && !supabaseUrl.includes('undefined'));
 
-const supabase = canConnect
-  ? createClient(supabaseUrl!, supabaseKey!)
-  : null;
+const supabase = canConnect ? createClient(supabaseUrl!, supabaseKey!) : null;
 
 describe.skipIf(!canConnect)('RPC Functions Tests', () => {
   describe('get_advanced_metrics', () => {

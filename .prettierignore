@@ -1,0 +1,15 @@
+# Artefactos de build y dependencias
+node_modules/
+.next/
+out/
+coverage/
+playwright-report/
+test-results/
+.worktrees/
+
+# Derivados generados: el .md es la fuente de verdad.
+# Formatearlos mete ruido en el diff y el siguiente render lo deshace.
+*.html
+
+# Lockfiles: los gestiona npm, no prettier
+package-lock.json

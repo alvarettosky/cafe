@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/lib/supabase";
-import { motion } from "framer-motion";
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
+import { motion } from 'framer-motion';
 import {
   Truck,
   Calendar,
@@ -16,9 +16,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Package,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface DeliveryItem {
   product_name: string;
@@ -36,7 +36,7 @@ interface Delivery {
   zone_name: string | null;
   zone_color: string | null;
   scheduled_date: string;
-  status: "pending" | "in_progress" | "completed" | "cancelled";
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
   notes: string | null;
   items: DeliveryItem[];
   completed_at: string | null;
@@ -57,16 +57,16 @@ export function DeliveriesDashboard() {
   const fetchDeliveries = useCallback(async () => {
     setIsLoading(true);
     try {
-      const dateStr = selectedDate.toISOString().split("T")[0];
+      const dateStr = selectedDate.toISOString().split('T')[0];
 
-      const { data, error } = await supabase.rpc("get_deliveries_for_date", {
+      const { data, error } = await supabase.rpc('get_deliveries_for_date', {
         p_date: dateStr,
       });
 
       if (error) throw error;
       setDeliveries(data || []);
     } catch (err) {
-      console.error("Error fetching deliveries:", err);
+      console.error('Error fetching deliveries:', err);
     } finally {
       setIsLoading(false);
     }
@@ -76,35 +76,29 @@ export function DeliveriesDashboard() {
     fetchDeliveries();
   }, [fetchDeliveries]);
 
-  const updateDeliveryStatus = async (
-    deliveryId: string,
-    newStatus: Delivery["status"]
-  ) => {
+  const updateDeliveryStatus = async (deliveryId: string, newStatus: Delivery['status']) => {
     try {
       const updateData: { status: string; completed_at?: string | null } = {
         status: newStatus,
       };
 
-      if (newStatus === "completed") {
+      if (newStatus === 'completed') {
         updateData.completed_at = new Date().toISOString();
       } else {
         updateData.completed_at = null;
       }
 
-      const { error } = await supabase
-        .from("deliveries")
-        .update(updateData)
-        .eq("id", deliveryId);
+      const { error } = await supabase.from('deliveries').update(updateData).eq('id', deliveryId);
 
       if (error) throw error;
       await fetchDeliveries();
     } catch (err) {
-      console.error("Error updating delivery:", err);
+      console.error('Error updating delivery:', err);
     }
   };
 
   const goToPreviousDay = () => {
-    setSelectedDate((prev) => {
+    setSelectedDate(prev => {
       const newDate = new Date(prev);
       newDate.setDate(newDate.getDate() - 1);
       return newDate;
@@ -112,7 +106,7 @@ export function DeliveriesDashboard() {
   };
 
   const goToNextDay = () => {
-    setSelectedDate((prev) => {
+    setSelectedDate(prev => {
       const newDate = new Date(prev);
       newDate.setDate(newDate.getDate() + 1);
       return newDate;
@@ -124,11 +118,11 @@ export function DeliveriesDashboard() {
   };
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString("es-CO", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+    return date.toLocaleDateString('es-CO', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
   };
 
@@ -143,16 +137,16 @@ export function DeliveriesDashboard() {
 
   // Group deliveries by zone
   const zoneGroups: ZoneGroup[] = deliveries.reduce((groups, delivery) => {
-    const zoneId = delivery.zone_id || "no-zone";
-    const existingGroup = groups.find((g) => (g.zone_id || "no-zone") === zoneId);
+    const zoneId = delivery.zone_id || 'no-zone';
+    const existingGroup = groups.find(g => (g.zone_id || 'no-zone') === zoneId);
 
     if (existingGroup) {
       existingGroup.deliveries.push(delivery);
     } else {
       groups.push({
         zone_id: delivery.zone_id,
-        zone_name: delivery.zone_name || "Sin Zona",
-        zone_color: delivery.zone_color || "#9CA3AF",
+        zone_name: delivery.zone_name || 'Sin Zona',
+        zone_color: delivery.zone_color || '#9CA3AF',
         deliveries: [delivery],
       });
     }
@@ -160,25 +154,25 @@ export function DeliveriesDashboard() {
     return groups;
   }, [] as ZoneGroup[]);
 
-  const getStatusIcon = (status: Delivery["status"]) => {
+  const getStatusIcon = (status: Delivery['status']) => {
     switch (status) {
-      case "completed":
+      case 'completed':
         return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case "in_progress":
+      case 'in_progress':
         return <Truck className="h-5 w-5 text-blue-500" />;
-      case "cancelled":
+      case 'cancelled':
         return <XCircle className="h-5 w-5 text-red-500" />;
       default:
         return <Clock className="h-5 w-5 text-yellow-500" />;
     }
   };
 
-  const getStatusLabel = (status: Delivery["status"]) => {
-    const labels: Record<Delivery["status"], string> = {
-      pending: "Pendiente",
-      in_progress: "En camino",
-      completed: "Entregado",
-      cancelled: "Cancelado",
+  const getStatusLabel = (status: Delivery['status']) => {
+    const labels: Record<Delivery['status'], string> = {
+      pending: 'Pendiente',
+      in_progress: 'En camino',
+      completed: 'Entregado',
+      cancelled: 'Cancelado',
     };
     return labels[status];
   };
@@ -186,10 +180,10 @@ export function DeliveriesDashboard() {
   // Stats
   const stats = {
     total: deliveries.length,
-    pending: deliveries.filter((d) => d.status === "pending").length,
-    inProgress: deliveries.filter((d) => d.status === "in_progress").length,
-    completed: deliveries.filter((d) => d.status === "completed").length,
-    cancelled: deliveries.filter((d) => d.status === "cancelled").length,
+    pending: deliveries.filter(d => d.status === 'pending').length,
+    inProgress: deliveries.filter(d => d.status === 'in_progress').length,
+    completed: deliveries.filter(d => d.status === 'completed').length,
+    cancelled: deliveries.filter(d => d.status === 'cancelled').length,
   };
 
   if (isLoading) {
@@ -210,9 +204,7 @@ export function DeliveriesDashboard() {
           </Button>
           <div className="text-center min-w-[200px]">
             <p className="font-medium capitalize">{formatDate(selectedDate)}</p>
-            {isToday(selectedDate) && (
-              <span className="text-xs text-amber-600">Hoy</span>
-            )}
+            {isToday(selectedDate) && <span className="text-xs text-amber-600">Hoy</span>}
           </div>
           <Button variant="outline" size="icon" onClick={goToNextDay}>
             <ChevronRight className="h-4 w-4" />
@@ -276,7 +268,7 @@ export function DeliveriesDashboard() {
         <div className="space-y-6">
           {zoneGroups.map((group, groupIndex) => (
             <motion.div
-              key={group.zone_id || "no-zone"}
+              key={group.zone_id || 'no-zone'}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: groupIndex * 0.1 }}
@@ -296,26 +288,24 @@ export function DeliveriesDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {group.deliveries.map((delivery) => (
+                    {group.deliveries.map(delivery => (
                       <div
                         key={delivery.id}
                         className={`p-4 rounded-lg border ${
-                          delivery.status === "completed"
-                            ? "bg-green-50 border-green-200"
-                            : delivery.status === "in_progress"
-                            ? "bg-blue-50 border-blue-200"
-                            : delivery.status === "cancelled"
-                            ? "bg-red-50 border-red-200"
-                            : "bg-gray-50 border-gray-200"
+                          delivery.status === 'completed'
+                            ? 'bg-green-50 border-green-200'
+                            : delivery.status === 'in_progress'
+                              ? 'bg-blue-50 border-blue-200'
+                              : delivery.status === 'cancelled'
+                                ? 'bg-red-50 border-red-200'
+                                : 'bg-gray-50 border-gray-200'
                         }`}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               {getStatusIcon(delivery.status)}
-                              <span className="font-medium">
-                                {delivery.customer_name}
-                              </span>
+                              <span className="font-medium">{delivery.customer_name}</span>
                               <span className="text-xs text-gray-500">
                                 {getStatusLabel(delivery.status)}
                               </span>
@@ -345,11 +335,8 @@ export function DeliveriesDashboard() {
                               <div className="flex items-center gap-2 text-sm text-gray-600">
                                 <Package className="h-4 w-4" />
                                 {delivery.items
-                                  .map(
-                                    (item) =>
-                                      `${item.quantity} ${item.unit} ${item.product_name}`
-                                  )
-                                  .join(", ")}
+                                  .map(item => `${item.quantity} ${item.unit} ${item.product_name}`)
+                                  .join(', ')}
                               </div>
                             )}
 
@@ -362,17 +349,12 @@ export function DeliveriesDashboard() {
 
                           {/* Actions */}
                           <div className="flex gap-1 ml-4">
-                            {delivery.status === "pending" && (
+                            {delivery.status === 'pending' && (
                               <>
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() =>
-                                    updateDeliveryStatus(
-                                      delivery.id,
-                                      "in_progress"
-                                    )
-                                  }
+                                  onClick={() => updateDeliveryStatus(delivery.id, 'in_progress')}
                                 >
                                   <Truck className="h-4 w-4" />
                                 </Button>
@@ -380,44 +362,29 @@ export function DeliveriesDashboard() {
                                   size="sm"
                                   variant="outline"
                                   className="text-green-600"
-                                  onClick={() =>
-                                    updateDeliveryStatus(
-                                      delivery.id,
-                                      "completed"
-                                    )
-                                  }
+                                  onClick={() => updateDeliveryStatus(delivery.id, 'completed')}
                                 >
                                   <CheckCircle className="h-4 w-4" />
                                 </Button>
                               </>
                             )}
-                            {delivery.status === "in_progress" && (
+                            {delivery.status === 'in_progress' && (
                               <Button
                                 size="sm"
                                 className="bg-green-600 hover:bg-green-700"
-                                onClick={() =>
-                                  updateDeliveryStatus(
-                                    delivery.id,
-                                    "completed"
-                                  )
-                                }
+                                onClick={() => updateDeliveryStatus(delivery.id, 'completed')}
                               >
                                 <CheckCircle className="h-4 w-4 mr-1" />
                                 Entregado
                               </Button>
                             )}
-                            {(delivery.status === "pending" ||
-                              delivery.status === "in_progress") && (
+                            {(delivery.status === 'pending' ||
+                              delivery.status === 'in_progress') && (
                               <Button
                                 size="sm"
                                 variant="outline"
                                 className="text-red-600"
-                                onClick={() =>
-                                  updateDeliveryStatus(
-                                    delivery.id,
-                                    "cancelled"
-                                  )
-                                }
+                                onClick={() => updateDeliveryStatus(delivery.id, 'cancelled')}
                               >
                                 <XCircle className="h-4 w-4" />
                               </Button>

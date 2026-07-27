@@ -77,16 +77,21 @@ SELECT * FROM inventory;
 ## Troubleshooting
 
 ### Error: "policy already exists"
+
 Si ves este error, significa que ya ejecutaste algunas migraciones. Puedes:
+
 1. Saltarte las que ya están aplicadas
 2. O resetear la base de datos desde el Dashboard de Supabase (Settings → Database → Reset Database)
 
 ### Error: "permission denied for schema auth"
+
 La migración `013_fix_auth_error.sql` modifica el esquema `auth`. Si no tienes permisos:
+
 1. Ejecuta esta migración desde el dashboard como owner
 2. O sáltala si no ves errores de "Scan error" en la consola
 
 ### No aparecen productos en el dropdown
+
 Significa que las migraciones no se ejecutaron. Sigue los pasos de "Aplicar Migraciones" arriba.
 
 ## Agregar Nuevas Migraciones

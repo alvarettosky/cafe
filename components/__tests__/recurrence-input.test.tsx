@@ -12,25 +12,14 @@ describe('RecurrenceInput', () => {
 
   describe('Basic Rendering', () => {
     it('should render with default props', () => {
-      render(
-        <RecurrenceInput
-          value={null}
-          onChange={mockOnChange}
-        />
-      );
+      render(<RecurrenceInput value={null} onChange={mockOnChange} />);
 
       expect(screen.getByText('Recurrencia típica (días)')).toBeInTheDocument();
       expect(screen.getByPlaceholderText('Ej: 15 días')).toBeInTheDocument();
     });
 
     it('should render with custom label', () => {
-      render(
-        <RecurrenceInput
-          value={null}
-          onChange={mockOnChange}
-          label="Frecuencia de compra"
-        />
-      );
+      render(<RecurrenceInput value={null} onChange={mockOnChange} label="Frecuencia de compra" />);
 
       expect(screen.getByText('Frecuencia de compra')).toBeInTheDocument();
     });
@@ -48,12 +37,7 @@ describe('RecurrenceInput', () => {
     });
 
     it('should display current value', () => {
-      render(
-        <RecurrenceInput
-          value={14}
-          onChange={mockOnChange}
-        />
-      );
+      render(<RecurrenceInput value={14} onChange={mockOnChange} />);
 
       const input = screen.getByPlaceholderText('Ej: 15 días');
       expect(input).toHaveValue(14);
@@ -125,12 +109,7 @@ describe('RecurrenceInput', () => {
     it('should update value when user types', async () => {
       const user = userEvent.setup();
 
-      render(
-        <RecurrenceInput
-          value={null}
-          onChange={mockOnChange}
-        />
-      );
+      render(<RecurrenceInput value={null} onChange={mockOnChange} />);
 
       const input = screen.getByPlaceholderText('Ej: 15 días');
       await user.type(input, '21');
@@ -141,12 +120,7 @@ describe('RecurrenceInput', () => {
     it('should clear value when input is cleared', async () => {
       const user = userEvent.setup();
 
-      render(
-        <RecurrenceInput
-          value={14}
-          onChange={mockOnChange}
-        />
-      );
+      render(<RecurrenceInput value={14} onChange={mockOnChange} />);
 
       const input = screen.getByPlaceholderText('Ej: 15 días');
       await user.clear(input);
@@ -157,12 +131,7 @@ describe('RecurrenceInput', () => {
     it('should only accept numeric values', async () => {
       const user = userEvent.setup();
 
-      render(
-        <RecurrenceInput
-          value={null}
-          onChange={mockOnChange}
-        />
-      );
+      render(<RecurrenceInput value={null} onChange={mockOnChange} />);
 
       const input = screen.getByPlaceholderText('Ej: 15 días');
       await user.type(input, 'abc');
@@ -174,12 +143,7 @@ describe('RecurrenceInput', () => {
     it('should not accept negative values', async () => {
       const user = userEvent.setup();
 
-      render(
-        <RecurrenceInput
-          value={null}
-          onChange={mockOnChange}
-        />
-      );
+      render(<RecurrenceInput value={null} onChange={mockOnChange} />);
 
       const input = screen.getByPlaceholderText('Ej: 15 días');
 
@@ -193,25 +157,17 @@ describe('RecurrenceInput', () => {
 
   describe('Common Recurrence Values', () => {
     it('should display helper text with examples', () => {
-      render(
-        <RecurrenceInput
-          value={null}
-          onChange={mockOnChange}
-        />
-      );
+      render(<RecurrenceInput value={null} onChange={mockOnChange} />);
 
-      expect(screen.getByText(/¿Cada cuántos días suele comprar este cliente?/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/¿Cada cuántos días suele comprar este cliente?/)
+      ).toBeInTheDocument();
     });
 
     it('should accept typical weekly recurrence (7 days)', async () => {
       const user = userEvent.setup();
 
-      render(
-        <RecurrenceInput
-          value={null}
-          onChange={mockOnChange}
-        />
-      );
+      render(<RecurrenceInput value={null} onChange={mockOnChange} />);
 
       const input = screen.getByPlaceholderText('Ej: 15 días');
       await user.type(input, '7');
@@ -222,12 +178,7 @@ describe('RecurrenceInput', () => {
     it('should accept biweekly recurrence (14 days)', async () => {
       const user = userEvent.setup();
 
-      render(
-        <RecurrenceInput
-          value={null}
-          onChange={mockOnChange}
-        />
-      );
+      render(<RecurrenceInput value={null} onChange={mockOnChange} />);
 
       const input = screen.getByPlaceholderText('Ej: 15 días');
       await user.type(input, '14');
@@ -238,12 +189,7 @@ describe('RecurrenceInput', () => {
     it('should accept monthly recurrence (30 days)', async () => {
       const user = userEvent.setup();
 
-      render(
-        <RecurrenceInput
-          value={null}
-          onChange={mockOnChange}
-        />
-      );
+      render(<RecurrenceInput value={null} onChange={mockOnChange} />);
 
       const input = screen.getByPlaceholderText('Ej: 15 días');
       await user.type(input, '30');
@@ -254,12 +200,7 @@ describe('RecurrenceInput', () => {
 
   describe('Accessibility', () => {
     it('should have proper label association', () => {
-      render(
-        <RecurrenceInput
-          value={null}
-          onChange={mockOnChange}
-        />
-      );
+      render(<RecurrenceInput value={null} onChange={mockOnChange} />);
 
       const input = screen.getByPlaceholderText('Ej: 15 días');
       const label = screen.getByText('Recurrencia típica (días)');
@@ -269,24 +210,14 @@ describe('RecurrenceInput', () => {
     });
 
     it('should have proper input type', () => {
-      render(
-        <RecurrenceInput
-          value={null}
-          onChange={mockOnChange}
-        />
-      );
+      render(<RecurrenceInput value={null} onChange={mockOnChange} />);
 
       const input = screen.getByPlaceholderText('Ej: 15 días');
       expect(input).toHaveAttribute('type', 'number');
     });
 
     it('should have minimum value constraint', () => {
-      render(
-        <RecurrenceInput
-          value={null}
-          onChange={mockOnChange}
-        />
-      );
+      render(<RecurrenceInput value={null} onChange={mockOnChange} />);
 
       const input = screen.getByPlaceholderText('Ej: 15 días');
       expect(input).toHaveAttribute('min', '1');
@@ -297,12 +228,7 @@ describe('RecurrenceInput', () => {
     it('should handle very large recurrence values', async () => {
       const user = userEvent.setup();
 
-      render(
-        <RecurrenceInput
-          value={null}
-          onChange={mockOnChange}
-        />
-      );
+      render(<RecurrenceInput value={null} onChange={mockOnChange} />);
 
       const input = screen.getByPlaceholderText('Ej: 15 días');
       await user.type(input, '365');
@@ -313,12 +239,7 @@ describe('RecurrenceInput', () => {
     it('should handle value of 1 (daily)', async () => {
       const user = userEvent.setup();
 
-      render(
-        <RecurrenceInput
-          value={null}
-          onChange={mockOnChange}
-        />
-      );
+      render(<RecurrenceInput value={null} onChange={mockOnChange} />);
 
       const input = screen.getByPlaceholderText('Ej: 15 días');
       await user.type(input, '1');
@@ -329,12 +250,7 @@ describe('RecurrenceInput', () => {
     it('should handle changing from a value to null', async () => {
       const user = userEvent.setup();
 
-      render(
-        <RecurrenceInput
-          value={7}
-          onChange={mockOnChange}
-        />
-      );
+      render(<RecurrenceInput value={7} onChange={mockOnChange} />);
 
       const input = screen.getByPlaceholderText('Ej: 15 días');
       await user.clear(input);

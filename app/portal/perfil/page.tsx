@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import { useCustomerPortal } from "@/context/customer-portal-context";
-import { motion } from "framer-motion";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { useCustomerPortal } from '@/context/customer-portal-context';
+import { motion } from 'framer-motion';
 import {
   Coffee,
   Loader2,
@@ -15,18 +15,18 @@ import {
   MapPin,
   Save,
   CheckCircle,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Link from "next/link";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
 
 export default function PortalPerfilPage() {
   const router = useRouter();
   const { customer, isLoading: authLoading, isAuthenticated, refreshSession } = useCustomerPortal();
 
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [address, setAddress] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -34,7 +34,7 @@ export default function PortalPerfilPage() {
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push("/portal/auth");
+      router.push('/portal/auth');
       return;
     }
 
@@ -43,17 +43,17 @@ export default function PortalPerfilPage() {
 
       try {
         // Usar el dashboard para obtener datos actuales
-        const { data, error } = await supabase.rpc("get_customer_portal_dashboard", {
+        const { data, error } = await supabase.rpc('get_customer_portal_dashboard', {
           p_customer_id: customer.customer_id,
         });
 
         if (!error && data && data.customer) {
-          setPhone(data.customer.phone || "");
-          setEmail(data.customer.email || "");
-          setAddress(data.customer.address || "");
+          setPhone(data.customer.phone || '');
+          setEmail(data.customer.email || '');
+          setAddress(data.customer.address || '');
         }
       } catch (err) {
-        console.error("Profile fetch error:", err);
+        console.error('Profile fetch error:', err);
       } finally {
         setIsLoading(false);
       }
@@ -72,7 +72,7 @@ export default function PortalPerfilPage() {
     setSaved(false);
 
     try {
-      const { data, error: saveError } = await supabase.rpc("update_customer_profile", {
+      const { data, error: saveError } = await supabase.rpc('update_customer_profile', {
         p_customer_id: customer.customer_id,
         p_phone: phone || null,
         p_email: email || null,
@@ -80,8 +80,8 @@ export default function PortalPerfilPage() {
       });
 
       if (saveError) {
-        console.error("Profile save error:", saveError);
-        setError("Error al guardar");
+        console.error('Profile save error:', saveError);
+        setError('Error al guardar');
         return;
       }
 
@@ -96,8 +96,8 @@ export default function PortalPerfilPage() {
       // Reset saved indicator after 3 seconds
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
-      console.error("Save error:", err);
-      setError("Error de conexion");
+      console.error('Save error:', err);
+      setError('Error de conexion');
     } finally {
       setIsSaving(false);
     }
@@ -123,19 +123,14 @@ export default function PortalPerfilPage() {
           </Link>
           <div className="flex items-center gap-3">
             <Coffee className="h-6 w-6 text-amber-600" />
-            <span className="font-bold text-lg text-gray-900 dark:text-white">
-              Mi Perfil
-            </span>
+            <span className="font-bold text-lg text-gray-900 dark:text-white">Mi Perfil</span>
           </div>
         </div>
       </header>
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -155,7 +150,7 @@ export default function PortalPerfilPage() {
                   className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-gray-900 dark:text-white"
                   placeholder="Tu numero de telefono"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={e => setPhone(e.target.value)}
                 />
               </div>
 
@@ -170,7 +165,7 @@ export default function PortalPerfilPage() {
                   className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-gray-900 dark:text-white"
                   placeholder="Tu email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={e => setEmail(e.target.value)}
                 />
               </div>
 
@@ -185,13 +180,11 @@ export default function PortalPerfilPage() {
                   rows={2}
                   placeholder="Tu direccion para entregas"
                   value={address}
-                  onChange={(e) => setAddress(e.target.value)}
+                  onChange={e => setAddress(e.target.value)}
                 />
               </div>
 
-              {error && (
-                <p className="text-red-500 text-sm text-center">{error}</p>
-              )}
+              {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
               {saved && (
                 <motion.p
@@ -226,8 +219,8 @@ export default function PortalPerfilPage() {
         <Card>
           <CardContent className="py-4">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Tu informacion nos ayuda a brindarte un mejor servicio.
-              Mantenemos tus datos seguros y nunca los compartimos con terceros.
+              Tu informacion nos ayuda a brindarte un mejor servicio. Mantenemos tus datos seguros y
+              nunca los compartimos con terceros.
             </p>
           </CardContent>
         </Card>

@@ -1,18 +1,31 @@
-"use client";
+'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Coffee, Package, TrendingUp, AlertTriangle, RefreshCcw, BarChart3, Users, Phone, LogOut, LucideIcon, DollarSign, Database } from "lucide-react";
-import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
-import { InventoryList } from "@/components/inventory-list";
-import { useAuth } from "@/components/auth-provider";
-import { Loader2 } from "lucide-react";
-import { DashboardStats } from "@/types";
-import { Diagnostics } from "@/components/diagnostics";
-import { PendingUsersModal } from "@/components/pending-users-modal";
-import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Coffee,
+  Package,
+  TrendingUp,
+  AlertTriangle,
+  RefreshCcw,
+  BarChart3,
+  Users,
+  Phone,
+  LogOut,
+  LucideIcon,
+  DollarSign,
+  Database,
+} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
+import { InventoryList } from '@/components/inventory-list';
+import { useAuth } from '@/components/auth-provider';
+import { Loader2 } from 'lucide-react';
+import { DashboardStats } from '@/types';
+import { Diagnostics } from '@/components/diagnostics';
+import { PendingUsersModal } from '@/components/pending-users-modal';
+import Link from 'next/link';
 
 interface RecentSale {
   id: string;
@@ -57,14 +70,16 @@ export default function Dashboard() {
       // Fetch Recent Sales with customer info
       const { data: salesData } = await supabase
         .from('sales')
-        .select(`
+        .select(
+          `
           *,
           customers (
             full_name,
             address,
             phone
           )
-        `)
+        `
+        )
         .order('created_at', { ascending: false })
         .limit(5);
 
@@ -81,7 +96,11 @@ export default function Dashboard() {
   }, [refreshKey, user, isLoading, isAdmin]);
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-zinc-950"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-950">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   if (!user) return null; // AuthProvider handles redirect
@@ -160,27 +179,37 @@ export default function Dashboard() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <KpiCard
             title="Total en Inventario"
-            value={stats?.total_inventory_grams != null ? `${stats.total_inventory_grams.toLocaleString()} g` : "..."}
+            value={
+              stats?.total_inventory_grams != null
+                ? `${stats.total_inventory_grams.toLocaleString()} g`
+                : '...'
+            }
             icon={Package}
             description="Stock actual disponible"
           />
           <KpiCard
             title="Ventas Hoy"
-            value={stats?.sales_today != null ? `$ ${stats.sales_today.toLocaleString()}` : "..."}
+            value={stats?.sales_today != null ? `$ ${stats.sales_today.toLocaleString()}` : '...'}
             icon={TrendingUp}
-            trend={stats && stats.sales_today > 0 ? "Activo" : "Sin ventas"}
+            trend={stats && stats.sales_today > 0 ? 'Activo' : 'Sin ventas'}
           />
           <KpiCard
             title="Café Tostado"
-            value={stats?.roasted_coffee_lbs != null ? `${Number(stats.roasted_coffee_lbs).toFixed(1)} lbs` : "..."}
+            value={
+              stats?.roasted_coffee_lbs != null
+                ? `${Number(stats.roasted_coffee_lbs).toFixed(1)} lbs`
+                : '...'
+            }
             icon={Coffee}
           />
           <KpiCard
             title="Alertas Stock"
-            value={stats ? `${stats.low_stock_count}` : "..."}
+            value={stats ? `${stats.low_stock_count}` : '...'}
             icon={AlertTriangle}
             description="Items bajo mínimo"
-            className={stats && stats.low_stock_count > 0 ? "border-destructive/50 text-destructive" : ""}
+            className={
+              stats && stats.low_stock_count > 0 ? 'border-destructive/50 text-destructive' : ''
+            }
           />
         </div>
 
@@ -195,10 +224,15 @@ export default function Dashboard() {
             <CardContent>
               <div className="space-y-4">
                 {recentSales.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">No hay ventas recientes</p>
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No hay ventas recientes
+                  </p>
                 ) : (
-                  recentSales.map((sale) => (
-                    <div key={sale.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                  recentSales.map(sale => (
+                    <div
+                      key={sale.id}
+                      className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                    >
                       <div className="flex items-center space-x-3 flex-1 min-w-0">
                         <div className="p-2 bg-primary/20 rounded-full flex-shrink-0">
                           <Coffee className="w-4 h-4 text-primary" />
@@ -208,11 +242,14 @@ export default function Dashboard() {
                             {sale.customers?.full_name || 'Cliente General'}
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
-                            {sale.customers?.address || new Date(sale.created_at).toLocaleTimeString()}
+                            {sale.customers?.address ||
+                              new Date(sale.created_at).toLocaleTimeString()}
                           </p>
                         </div>
                       </div>
-                      <span className="font-bold text-sm flex-shrink-0 ml-2">$ {Number(sale.total_amount).toFixed(2)}</span>
+                      <span className="font-bold text-sm flex-shrink-0 ml-2">
+                        $ {Number(sale.total_amount).toFixed(2)}
+                      </span>
                     </div>
                   ))
                 )}
@@ -253,5 +290,5 @@ function KpiCard({ title, value, icon: Icon, trend, description, className }: Kp
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

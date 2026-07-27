@@ -13,7 +13,9 @@ test.describe('Sales Flow', () => {
     await page.click('text=Nueva Venta');
 
     // Wait for the new sale page to load
-    await expect(page.locator('h1:has-text("Registrar Venta de Café")')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h1:has-text("Registrar Venta de Café")')).toBeVisible({
+      timeout: 10000,
+    });
 
     // Verify form elements are present
     await expect(page.locator('#product-select')).toBeVisible();
@@ -24,7 +26,9 @@ test.describe('Sales Flow', () => {
   test('should complete a full sale transaction', async ({ authenticatedPage: page }) => {
     // Navigate to new sale page
     await page.click('text=Nueva Venta');
-    await expect(page.locator('h1:has-text("Registrar Venta de Café")')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h1:has-text("Registrar Venta de Café")')).toBeVisible({
+      timeout: 10000,
+    });
 
     // Select product using the id
     await page.selectOption('#product-select', { index: 1 });
@@ -45,10 +49,14 @@ test.describe('Sales Flow', () => {
     await expect(page.locator('text=Ventas Hoy')).toBeVisible();
   });
 
-  test('should show validation error when no product selected', async ({ authenticatedPage: page }) => {
+  test('should show validation error when no product selected', async ({
+    authenticatedPage: page,
+  }) => {
     // Navigate to new sale page
     await page.click('text=Nueva Venta');
-    await expect(page.locator('h1:has-text("Registrar Venta de Café")')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h1:has-text("Registrar Venta de Café")')).toBeVisible({
+      timeout: 10000,
+    });
 
     // Try to submit without selecting product
     await page.click('button:has-text("Confirmar Venta")');
@@ -60,7 +68,9 @@ test.describe('Sales Flow', () => {
   test('should allow adding a new customer during sale', async ({ authenticatedPage: page }) => {
     // Navigate to new sale page
     await page.click('text=Nueva Venta');
-    await expect(page.locator('h1:has-text("Registrar Venta de Café")')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h1:has-text("Registrar Venta de Café")')).toBeVisible({
+      timeout: 10000,
+    });
 
     // Click "+ Nuevo" customer button
     await page.click('button:has-text("+ Nuevo")');
@@ -79,10 +89,14 @@ test.describe('Sales Flow', () => {
     await expect(page).toHaveURL('/', { timeout: 10000 });
   });
 
-  test('should allow selecting different units (libra vs media libra)', async ({ authenticatedPage: page }) => {
+  test('should allow selecting different units (libra vs media libra)', async ({
+    authenticatedPage: page,
+  }) => {
     // Navigate to new sale page
     await page.click('text=Nueva Venta');
-    await expect(page.locator('h1:has-text("Registrar Venta de Café")')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h1:has-text("Registrar Venta de Café")')).toBeVisible({
+      timeout: 10000,
+    });
 
     // Select product first
     await page.selectOption('#product-select', { index: 1 });
@@ -107,7 +121,9 @@ test.describe('Sales Flow', () => {
   test('should support all payment methods', async ({ authenticatedPage: page }) => {
     // Navigate to new sale page
     await page.click('text=Nueva Venta');
-    await expect(page.locator('h1:has-text("Registrar Venta de Café")')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h1:has-text("Registrar Venta de Café")')).toBeVisible({
+      timeout: 10000,
+    });
 
     // Verify all payment methods are available
     const paymentMethods = [
@@ -117,11 +133,13 @@ test.describe('Sales Flow', () => {
       'Nequi Alvaretto',
       'Nequi La Negra',
       'DaviPlata',
-      'Pago a crédito o pendiente'
+      'Pago a crédito o pendiente',
     ];
 
     // Find payment method select (it doesn't have an id, use label)
-    const paymentSelect = page.locator('select').filter({ has: page.locator('option:has-text("Efectivo")') });
+    const paymentSelect = page
+      .locator('select')
+      .filter({ has: page.locator('option:has-text("Efectivo")') });
 
     for (const method of paymentMethods) {
       await expect(paymentSelect.locator(`option:has-text("${method}")`)).toBeAttached();

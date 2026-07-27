@@ -26,7 +26,11 @@ describe('Card Components', () => {
     });
 
     it('applies custom className', () => {
-      render(<Card className="custom-class" data-testid="card">Content</Card>);
+      render(
+        <Card className="custom-class" data-testid="card">
+          Content
+        </Card>
+      );
       const card = screen.getByTestId('card');
       expect(card).toHaveClass('custom-class');
       expect(card).toHaveClass('rounded-xl'); // Still has base classes
@@ -39,7 +43,11 @@ describe('Card Components', () => {
     });
 
     it('supports hoverEffect prop', () => {
-      render(<Card hoverEffect data-testid="card">Content</Card>);
+      render(
+        <Card hoverEffect data-testid="card">
+          Content
+        </Card>
+      );
       const card = screen.getByTestId('card');
       expect(card).toBeInTheDocument();
     });
@@ -83,7 +91,11 @@ describe('Card Components', () => {
     });
 
     it('applies custom className', () => {
-      render(<CardHeader className="custom-header" data-testid="header">Header</CardHeader>);
+      render(
+        <CardHeader className="custom-header" data-testid="header">
+          Header
+        </CardHeader>
+      );
       const header = screen.getByTestId('header');
       expect(header).toHaveClass('custom-header');
       expect(header).toHaveClass('flex-col'); // Still has base classes
@@ -148,7 +160,11 @@ describe('Card Components', () => {
     });
 
     it('applies custom className', () => {
-      render(<CardContent className="custom-content" data-testid="content">Content</CardContent>);
+      render(
+        <CardContent className="custom-content" data-testid="content">
+          Content
+        </CardContent>
+      );
       const content = screen.getByTestId('content');
       expect(content).toHaveClass('custom-content');
       expect(content).toHaveClass('pt-0'); // Still has base classes

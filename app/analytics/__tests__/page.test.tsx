@@ -38,25 +38,35 @@ vi.mock('framer-motion', () => ({
 // Mock chart components - these are complex and we just want to verify they render
 vi.mock('@/components/charts/revenue-chart', () => ({
   RevenueChart: ({ data }: { data: unknown[] }) => (
-    <div data-testid="revenue-chart" data-count={data?.length || 0}>Revenue Chart</div>
+    <div data-testid="revenue-chart" data-count={data?.length || 0}>
+      Revenue Chart
+    </div>
   ),
 }));
 
 vi.mock('@/components/charts/payment-chart', () => ({
-  PaymentChart: () => (
-    <div data-testid="payment-chart">Payment Chart</div>
-  ),
+  PaymentChart: () => <div data-testid="payment-chart">Payment Chart</div>,
 }));
 
 vi.mock('@/components/charts/product-chart', () => ({
   ProductChart: ({ data }: { data: unknown[] }) => (
-    <div data-testid="product-chart" data-count={data?.length || 0}>Product Chart</div>
+    <div data-testid="product-chart" data-count={data?.length || 0}>
+      Product Chart
+    </div>
   ),
 }));
 
 // Mock KPI Card
 vi.mock('@/components/metrics/advanced-kpi-card', () => ({
-  AdvancedKPICard: ({ title, value, subtitle }: { title: string; value: string; subtitle: string }) => (
+  AdvancedKPICard: ({
+    title,
+    value,
+    subtitle,
+  }: {
+    title: string;
+    value: string;
+    subtitle: string;
+  }) => (
     <div data-testid={`kpi-card-${title.toLowerCase().replace(/\s+/g, '-')}`}>
       <span data-testid="kpi-title">{title}</span>
       <span data-testid="kpi-value">{value}</span>
@@ -67,11 +77,23 @@ vi.mock('@/components/metrics/advanced-kpi-card', () => ({
 
 // Mock DateRangeSelector
 vi.mock('@/components/date-range-selector', () => ({
-  DateRangeSelector: ({ onPresetChange, activePreset }: { onPresetChange: (preset: string) => void; activePreset: string }) => (
+  DateRangeSelector: ({
+    onPresetChange,
+    activePreset,
+  }: {
+    onPresetChange: (preset: string) => void;
+    activePreset: string;
+  }) => (
     <div data-testid="date-range-selector">
-      <button data-testid="preset-hoy" onClick={() => onPresetChange('hoy')}>Hoy</button>
-      <button data-testid="preset-esta-semana" onClick={() => onPresetChange('esta-semana')}>Esta Semana</button>
-      <button data-testid="preset-este-mes" onClick={() => onPresetChange('este-mes')}>Este Mes</button>
+      <button data-testid="preset-hoy" onClick={() => onPresetChange('hoy')}>
+        Hoy
+      </button>
+      <button data-testid="preset-esta-semana" onClick={() => onPresetChange('esta-semana')}>
+        Esta Semana
+      </button>
+      <button data-testid="preset-este-mes" onClick={() => onPresetChange('este-mes')}>
+        Este Mes
+      </button>
       <span data-testid="active-preset">{activePreset}</span>
     </div>
   ),
@@ -110,8 +132,20 @@ describe('AnalyticsPage', () => {
   ];
 
   const mockProductPerformance = [
-    { product_id: '1', product_name: 'Cafe Especial', quantity_sold: 25, revenue: 500000, profit: 150000 },
-    { product_id: '2', product_name: 'Cafe Premium', quantity_sold: 15, revenue: 375000, profit: 112500 },
+    {
+      product_id: '1',
+      product_name: 'Cafe Especial',
+      quantity_sold: 25,
+      revenue: 500000,
+      profit: 150000,
+    },
+    {
+      product_id: '2',
+      product_name: 'Cafe Premium',
+      quantity_sold: 15,
+      revenue: 375000,
+      profit: 112500,
+    },
   ];
 
   const mockPendingCredits = [
@@ -219,7 +253,9 @@ describe('AnalyticsPage', () => {
       render(<AnalyticsPage />);
 
       await waitFor(() => {
-        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/anal[ií]ticas avanzadas/i);
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+          /anal[ií]ticas avanzadas/i
+        );
       });
     });
 
@@ -375,7 +411,9 @@ describe('AnalyticsPage', () => {
 
       await waitFor(() => {
         const subtitles = screen.getAllByTestId('kpi-subtitle');
-        const stockSubtitle = subtitles.find(s => s.textContent?.includes('3 productos con poco stock'));
+        const stockSubtitle = subtitles.find(s =>
+          s.textContent?.includes('3 productos con poco stock')
+        );
         expect(stockSubtitle).toBeInTheDocument();
       });
     });

@@ -615,7 +615,7 @@ describe('NuevoPedidoPage', () => {
       const user = userEvent.setup();
 
       let resolveSubmit: (value: { data: unknown; error: null }) => void;
-      const submitPromise = new Promise<{ data: unknown; error: null }>((resolve) => {
+      const submitPromise = new Promise<{ data: unknown; error: null }>(resolve => {
         resolveSubmit = resolve;
       });
 

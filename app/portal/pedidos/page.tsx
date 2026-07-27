@@ -1,21 +1,14 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import { useCustomerPortal } from "@/context/customer-portal-context";
-import { motion } from "framer-motion";
-import {
-  Coffee,
-  Loader2,
-  ArrowLeft,
-  Package,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import Link from "next/link";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { useCustomerPortal } from '@/context/customer-portal-context';
+import { motion } from 'framer-motion';
+import { Coffee, Loader2, ArrowLeft, Package, ChevronDown, ChevronUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import Link from 'next/link';
 
 interface OrderItem {
   product_name: string;
@@ -48,7 +41,7 @@ export default function PortalPedidosPage() {
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push("/portal/auth");
+      router.push('/portal/auth');
       return;
     }
 
@@ -56,21 +49,21 @@ export default function PortalPedidosPage() {
       if (!customer) return;
 
       try {
-        const { data, error } = await supabase.rpc("get_customer_order_history", {
+        const { data, error } = await supabase.rpc('get_customer_order_history', {
           p_customer_id: customer.customer_id,
           p_limit: limit,
           p_offset: offset,
         });
 
         if (error) {
-          console.error("Orders fetch error:", error);
+          console.error('Orders fetch error:', error);
           return;
         }
 
         setOrders(data.orders || []);
         setTotal(data.total || 0);
       } catch (err) {
-        console.error("Orders error:", err);
+        console.error('Orders error:', err);
       } finally {
         setIsLoading(false);
       }
@@ -82,17 +75,17 @@ export default function PortalPedidosPage() {
   }, [customer, authLoading, isAuthenticated, router, offset]);
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("es-CO", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
+    return new Date(dateStr).toLocaleDateString('es-CO', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
     });
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
       minimumFractionDigits: 0,
     }).format(amount);
   };
@@ -121,9 +114,7 @@ export default function PortalPedidosPage() {
           </Link>
           <div className="flex items-center gap-3">
             <Coffee className="h-6 w-6 text-amber-600" />
-            <span className="font-bold text-lg text-gray-900 dark:text-white">
-              Mis Pedidos
-            </span>
+            <span className="font-bold text-lg text-gray-900 dark:text-white">Mis Pedidos</span>
           </div>
         </div>
       </header>
@@ -167,10 +158,8 @@ export default function PortalPedidosPage() {
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                           {order.items?.length || 0} producto(s)
-                          {order.status === "pending_confirmation" && (
-                            <span className="ml-2 text-orange-600 font-medium">
-                              Pendiente
-                            </span>
+                          {order.status === 'pending_confirmation' && (
+                            <span className="ml-2 text-orange-600 font-medium">Pendiente</span>
                           )}
                         </p>
                       </div>
@@ -191,15 +180,12 @@ export default function PortalPedidosPage() {
                   {expandedOrder === order.id && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
+                      animate={{ height: 'auto', opacity: 1 }}
                       className="border-t border-gray-100 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/50 p-4"
                     >
                       <div className="space-y-2">
                         {order.items?.map((item, i) => (
-                          <div
-                            key={i}
-                            className="flex justify-between text-sm"
-                          >
+                          <div key={i} className="flex justify-between text-sm">
                             <span className="text-gray-700 dark:text-gray-300">
                               {item.quantity} {item.unit} {item.product_name}
                             </span>
@@ -211,7 +197,7 @@ export default function PortalPedidosPage() {
                       </div>
                       <div className="mt-4 pt-3 border-t border-gray-200 dark:border-zinc-600 flex justify-between">
                         <span className="text-gray-600 dark:text-gray-400">
-                          Pago: {order.payment_method || "No especificado"}
+                          Pago: {order.payment_method || 'No especificado'}
                         </span>
                         <span className="font-bold text-gray-900 dark:text-white">
                           Total: {formatCurrency(order.total_amount)}

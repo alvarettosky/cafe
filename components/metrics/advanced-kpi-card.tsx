@@ -34,9 +34,7 @@ export function AdvancedKPICard({
             <div className="space-y-2">
               <p className="text-sm font-medium text-white/60">{title}</p>
               <p className="text-3xl font-bold text-white">{value}</p>
-              {subtitle && (
-                <p className="text-sm text-white/40">{subtitle}</p>
-              )}
+              {subtitle && <p className="text-sm text-white/40">{subtitle}</p>}
             </div>
             <div className="rounded-lg bg-white/10 p-3">
               <Icon className="h-6 w-6 text-white" />

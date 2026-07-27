@@ -1,7 +1,18 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Phone, Mail, Calendar, AlertTriangle, Clock, CheckCircle, Users, Filter, UserPlus, Home } from 'lucide-react';
+import {
+  Phone,
+  Mail,
+  Calendar,
+  AlertTriangle,
+  Clock,
+  CheckCircle,
+  Users,
+  Filter,
+  UserPlus,
+  Home,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -60,7 +71,7 @@ export default function ContactosPage() {
 
       if (error) throw error;
 
-      const prospectsWithDays = (data || []).map((p) => ({
+      const prospectsWithDays = (data || []).map(p => ({
         ...p,
         days_since_registered: Math.floor(
           (Date.now() - new Date(p.created_at).getTime()) / (1000 * 60 * 60 * 24)
@@ -81,7 +92,7 @@ export default function ContactosPage() {
       return;
     }
 
-    const filtered = contacts.filter((contact) => contact.urgency === urgencyFilter);
+    const filtered = contacts.filter(contact => contact.urgency === urgencyFilter);
     setFilteredContacts(filtered);
   }, [urgencyFilter, contacts]);
 
@@ -152,10 +163,10 @@ export default function ContactosPage() {
 
   const stats = {
     total: contacts.length,
-    high: contacts.filter((c) => c.urgency === 'high').length,
-    medium: contacts.filter((c) => c.urgency === 'medium').length,
-    low: contacts.filter((c) => c.urgency === 'low').length,
-    unknown: contacts.filter((c) => c.urgency === 'unknown').length,
+    high: contacts.filter(c => c.urgency === 'high').length,
+    medium: contacts.filter(c => c.urgency === 'medium').length,
+    low: contacts.filter(c => c.urgency === 'low').length,
+    unknown: contacts.filter(c => c.urgency === 'unknown').length,
   };
 
   return (
@@ -303,7 +314,7 @@ export default function ContactosPage() {
             </label>
             <select
               value={daysThreshold}
-              onChange={(e) => setDaysThreshold(parseInt(e.target.value))}
+              onChange={e => setDaysThreshold(parseInt(e.target.value))}
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               <option value={3}>3 días</option>
@@ -321,15 +332,11 @@ export default function ContactosPage() {
           transition={{ delay: 0.3 }}
         >
           {loading ? (
-            <div className="py-12 text-center text-gray-500">
-              Cargando lista de contactos...
-            </div>
+            <div className="py-12 text-center text-gray-500">Cargando lista de contactos...</div>
           ) : filteredContacts.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 py-12 text-center">
               <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-              <p className="text-lg font-medium text-gray-900 mb-2">
-                ¡Todo al día!
-              </p>
+              <p className="text-lg font-medium text-gray-900 mb-2">¡Todo al día!</p>
               <p className="text-gray-600">
                 {urgencyFilter === 'all'
                   ? 'No hay clientes que necesiten contacto en este momento'
@@ -338,7 +345,7 @@ export default function ContactosPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredContacts.map((contact) => {
+              {filteredContacts.map(contact => {
                 const config = getUrgencyConfig(contact.urgency);
                 const Icon = config.icon;
 
@@ -450,22 +457,18 @@ export default function ContactosPage() {
           </div>
 
           {loadingProspects ? (
-            <div className="py-8 text-center text-gray-500">
-              Cargando prospectos...
-            </div>
+            <div className="py-8 text-center text-gray-500">Cargando prospectos...</div>
           ) : prospects.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 py-8 text-center">
               <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
-              <p className="text-lg font-medium text-gray-900 mb-1">
-                Sin prospectos pendientes
-              </p>
+              <p className="text-lg font-medium text-gray-900 mb-1">Sin prospectos pendientes</p>
               <p className="text-gray-600">
                 Todos los clientes registrados ya han realizado al menos una compra
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {prospects.map((prospect) => (
+              {prospects.map(prospect => (
                 <motion.div
                   key={prospect.id}
                   initial={{ opacity: 0, scale: 0.95 }}

@@ -30,7 +30,11 @@ vi.mock('framer-motion', () => ({
 
 // Mock child components
 vi.mock('@/components/customer-modal', () => ({
-  CustomerModal: ({ isOpen, onClose, customerId }: {
+  CustomerModal: ({
+    isOpen,
+    onClose,
+    customerId,
+  }: {
     isOpen: boolean;
     onClose: () => void;
     customerId: string | null;
@@ -43,9 +47,13 @@ vi.mock('@/components/customer-modal', () => ({
 }));
 
 vi.mock('@/components/repeat-sale-button', () => ({
-  RepeatSaleButton: ({ customerId, customerName }: { customerId: string; customerName: string }) => (
-    <button data-testid={`repeat-sale-${customerId}`}>Repetir {customerName}</button>
-  ),
+  RepeatSaleButton: ({
+    customerId,
+    customerName,
+  }: {
+    customerId: string;
+    customerName: string;
+  }) => <button data-testid={`repeat-sale-${customerId}`}>Repetir {customerName}</button>,
 }));
 
 vi.mock('@/components/generate-portal-access-button', () => ({
@@ -69,7 +77,9 @@ vi.mock('@/components/export', () => ({
 
 vi.mock('@/components/new-customer-modal', () => ({
   NewCustomerModal: ({ onCustomerAdded }: { onCustomerAdded?: () => void }) => (
-    <button data-testid="new-customer-modal" onClick={onCustomerAdded}>Nuevo Cliente</button>
+    <button data-testid="new-customer-modal" onClick={onCustomerAdded}>
+      Nuevo Cliente
+    </button>
   ),
 }));
 
@@ -171,7 +181,9 @@ describe('CustomersPage', () => {
       render(<CustomersPage />);
 
       await waitFor(() => {
-        expect(screen.getByRole('heading', { name: /gesti[oó]n de clientes/i })).toBeInTheDocument();
+        expect(
+          screen.getByRole('heading', { name: /gesti[oó]n de clientes/i })
+        ).toBeInTheDocument();
       });
     });
 
@@ -179,7 +191,9 @@ describe('CustomersPage', () => {
       render(<CustomersPage />);
 
       await waitFor(() => {
-        expect(screen.getByText(/administra la informaci[oó]n de recurrencia/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/administra la informaci[oó]n de recurrencia/i)
+        ).toBeInTheDocument();
       });
     });
 
@@ -287,7 +301,9 @@ describe('CustomersPage', () => {
       render(<CustomersPage />);
 
       await waitFor(() => {
-        expect(screen.getByPlaceholderText(/buscar por nombre, tel[eé]fono o email/i)).toBeInTheDocument();
+        expect(
+          screen.getByPlaceholderText(/buscar por nombre, tel[eé]fono o email/i)
+        ).toBeInTheDocument();
       });
     });
 
@@ -355,7 +371,9 @@ describe('CustomersPage', () => {
       await user.type(searchInput, 'NonexistentCustomer');
 
       await waitFor(() => {
-        expect(screen.getByText('No se encontraron clientes con esos criterios')).toBeInTheDocument();
+        expect(
+          screen.getByText('No se encontraron clientes con esos criterios')
+        ).toBeInTheDocument();
       });
     });
   });
@@ -519,7 +537,10 @@ describe('CustomersPage', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('customer-modal')).toBeInTheDocument();
-        expect(screen.getByTestId('customer-modal')).toHaveAttribute('data-customer-id', 'customer-1');
+        expect(screen.getByTestId('customer-modal')).toHaveAttribute(
+          'data-customer-id',
+          'customer-1'
+        );
       });
     });
 
@@ -570,7 +591,7 @@ describe('CustomersPage', () => {
             select: vi.fn().mockReturnValue({
               order: vi.fn().mockResolvedValue({
                 data: null,
-                error: { message: 'View does not exist' }
+                error: { message: 'View does not exist' },
               }),
             }),
           };
@@ -580,7 +601,7 @@ describe('CustomersPage', () => {
             select: vi.fn().mockReturnValue({
               order: vi.fn().mockResolvedValue({
                 data: mockCustomers.map(c => ({ ...c, segment: undefined })),
-                error: null
+                error: null,
               }),
             }),
           };
@@ -608,7 +629,7 @@ describe('CustomersPage', () => {
         select: vi.fn().mockReturnValue({
           order: vi.fn().mockResolvedValue({
             data: null,
-            error: { message: 'Database connection failed' }
+            error: { message: 'Database connection failed' },
           }),
         }),
       }));

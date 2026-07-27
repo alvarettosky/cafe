@@ -203,7 +203,13 @@ describe('PortalAuthPage', () => {
     it('should call validate_customer_magic_link RPC', async () => {
       mockSearchParamsGet.mockReturnValue('my-magic-token');
       mockSupabaseRpc.mockResolvedValue({
-        data: { success: true, session_token: 's', customer_id: 'c', customer_name: 'N', customer_email: null },
+        data: {
+          success: true,
+          session_token: 's',
+          customer_id: 'c',
+          customer_name: 'N',
+          customer_email: null,
+        },
         error: null,
       });
 

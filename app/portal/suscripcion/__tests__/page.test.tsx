@@ -210,7 +210,9 @@ describe('PortalSuscripcionPage', () => {
       render(<PortalSuscripcionPage />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Crea una suscripcion para recibir tu cafe automaticamente/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/Crea una suscripcion para recibir tu cafe automaticamente/i)
+        ).toBeInTheDocument();
       });
     });
 
@@ -283,7 +285,9 @@ describe('PortalSuscripcionPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Acciones')).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /editar productos y frecuencia/i })).toBeInTheDocument();
+        expect(
+          screen.getByRole('button', { name: /editar productos y frecuencia/i })
+        ).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /omitir proxima entrega/i })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /pausar suscripcion/i })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /cancelar suscripcion/i })).toBeInTheDocument();
@@ -380,7 +384,9 @@ describe('PortalSuscripcionPage', () => {
         expect(screen.getByText('Cancelada')).toBeInTheDocument();
       });
 
-      expect(screen.queryByRole('button', { name: /cancelar suscripcion/i })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /cancelar suscripcion/i })
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -647,7 +653,9 @@ describe('PortalSuscripcionPage', () => {
       render(<PortalSuscripcionPage />);
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /editar productos y frecuencia/i })).toBeInTheDocument();
+        expect(
+          screen.getByRole('button', { name: /editar productos y frecuencia/i })
+        ).toBeInTheDocument();
       });
 
       await user.click(screen.getByRole('button', { name: /editar productos y frecuencia/i }));
@@ -1233,7 +1241,9 @@ describe('PortalSuscripcionPage', () => {
       render(<PortalSuscripcionPage />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Con la suscripcion, recibiras tu cafe automaticamente/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/Con la suscripcion, recibiras tu cafe automaticamente/i)
+        ).toBeInTheDocument();
       });
     });
   });

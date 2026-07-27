@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog";
-import { Key, Loader2, Copy, CheckCircle, MessageCircle, ExternalLink } from "lucide-react";
+} from '@/components/ui/dialog';
+import { Key, Loader2, Copy, CheckCircle, MessageCircle, ExternalLink } from 'lucide-react';
 
 interface GeneratePortalAccessButtonProps {
   customerId: string;
   customerName: string;
   customerPhone?: string | null;
-  variant?: "default" | "outline" | "ghost" | "destructive";
-  size?: "default" | "sm" | "lg" | "icon";
+  variant?: 'default' | 'outline' | 'ghost' | 'destructive';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
   showLabel?: boolean;
   className?: string;
 }
@@ -35,10 +35,10 @@ export function GeneratePortalAccessButton({
   customerId,
   customerName,
   customerPhone,
-  variant = "outline",
-  size = "sm",
+  variant = 'outline',
+  size = 'sm',
   showLabel = true,
-  className = "",
+  className = '',
 }: GeneratePortalAccessButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,20 +50,20 @@ export function GeneratePortalAccessButton({
     setResult(null);
 
     try {
-      const { data, error } = await supabase.rpc("generate_customer_magic_link", {
+      const { data, error } = await supabase.rpc('generate_customer_magic_link', {
         p_customer_id: customerId,
       });
 
       if (error) {
-        console.error("Error generating magic link:", error);
-        setResult({ error: "Error al generar enlace" });
+        console.error('Error generating magic link:', error);
+        setResult({ error: 'Error al generar enlace' });
         return;
       }
 
       setResult(data);
     } catch (err) {
-      console.error("Magic link error:", err);
-      setResult({ error: "Error de conexion" });
+      console.error('Magic link error:', err);
+      setResult({ error: 'Error de conexion' });
     } finally {
       setIsLoading(false);
     }
@@ -81,19 +81,19 @@ export function GeneratePortalAccessButton({
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } catch (err) {
-        console.error("Copy error:", err);
+        console.error('Copy error:', err);
       }
     }
   };
 
   const handleOpenWhatsApp = () => {
     if (result?.whatsapp_url) {
-      window.open(result.whatsapp_url, "_blank");
+      window.open(result.whatsapp_url, '_blank');
     }
   };
 
   // No mostrar si no tiene telefono
-  if (!customerPhone || customerPhone === "N/A") {
+  if (!customerPhone || customerPhone === 'N/A') {
     return null;
   }
 
@@ -117,9 +117,7 @@ export function GeneratePortalAccessButton({
               <Key className="h-5 w-5" />
               Acceso al Portal
             </DialogTitle>
-            <DialogDescription>
-              Genera un enlace de acceso para {customerName}
-            </DialogDescription>
+            <DialogDescription>Genera un enlace de acceso para {customerName}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -142,9 +140,7 @@ export function GeneratePortalAccessButton({
                     <CheckCircle className="h-4 w-4" />
                     Enlace generado correctamente
                   </p>
-                  <p className="text-xs text-green-600 dark:text-green-400">
-                    Valido por 24 horas
-                  </p>
+                  <p className="text-xs text-green-600 dark:text-green-400">Valido por 24 horas</p>
                 </div>
 
                 {/* Link Preview */}
@@ -157,17 +153,13 @@ export function GeneratePortalAccessButton({
 
                 {/* Actions */}
                 <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={handleCopyLink}
-                    className="w-full"
-                  >
+                  <Button variant="outline" onClick={handleCopyLink} className="w-full">
                     {copied ? (
                       <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
                     ) : (
                       <Copy className="h-4 w-4 mr-2" />
                     )}
-                    {copied ? "Copiado!" : "Copiar"}
+                    {copied ? 'Copiado!' : 'Copiar'}
                   </Button>
 
                   <Button
@@ -183,7 +175,7 @@ export function GeneratePortalAccessButton({
                 <Button
                   variant="ghost"
                   className="w-full"
-                  onClick={() => window.open(result.magic_link, "_blank")}
+                  onClick={() => window.open(result.magic_link, '_blank')}
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Abrir enlace

@@ -423,7 +423,7 @@ describe('PortalDashboard', () => {
 
       mockSupabaseRpc.mockResolvedValue({
         data: null,
-        error: { message: 'Database error' }
+        error: { message: 'Database error' },
       });
 
       render(<PortalDashboard />);
@@ -444,7 +444,7 @@ describe('PortalDashboard', () => {
 
       mockSupabaseRpc.mockResolvedValue({
         data: { error: 'Cliente no encontrado' },
-        error: null
+        error: null,
       });
 
       render(<PortalDashboard />);
@@ -465,7 +465,7 @@ describe('PortalDashboard', () => {
 
       mockSupabaseRpc.mockResolvedValue({
         data: null,
-        error: { message: 'Error' }
+        error: { message: 'Error' },
       });
 
       render(<PortalDashboard />);
@@ -495,7 +495,7 @@ describe('PortalDashboard', () => {
 
         mockSupabaseRpc.mockResolvedValue({
           data: { ...mockDashboardData, status },
-          error: null
+          error: null,
         });
 
         render(<PortalDashboard />);
@@ -588,7 +588,7 @@ describe('PortalDashboard', () => {
 
       mockSupabaseRpc.mockResolvedValue({
         data: { ...mockDashboardData, days_until_next: 0 },
-        error: null
+        error: null,
       });
 
       render(<PortalDashboard />);
@@ -608,7 +608,7 @@ describe('PortalDashboard', () => {
 
       mockSupabaseRpc.mockResolvedValue({
         data: { ...mockDashboardData, days_until_next: -5 },
-        error: null
+        error: null,
       });
 
       render(<PortalDashboard />);

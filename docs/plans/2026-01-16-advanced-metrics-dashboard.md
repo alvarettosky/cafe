@@ -15,6 +15,7 @@
 ### Task 1: Add Cost Tracking to Inventory
 
 **Files:**
+
 - Create: `supabase/migrations/015_add_cost_tracking.sql`
 
 **Step 1: Write migration for cost columns**
@@ -61,6 +62,7 @@ git commit -m "feat(db): add cost tracking columns to inventory"
 ### Task 2: Add Profit Calculation to Sale Items
 
 **Files:**
+
 - Create: `supabase/migrations/016_add_profit_to_sales.sql`
 
 **Step 1: Write migration for profit columns**
@@ -139,6 +141,7 @@ git commit -m "feat(db): add profit calculation to sale items with trigger"
 ### Task 3: Update process_coffee_sale RPC
 
 **Files:**
+
 - Create: `supabase/migrations/017_update_rpc_with_profit.sql`
 
 **Step 1: Write updated RPC with profit calculation**
@@ -263,6 +266,7 @@ git commit -m "feat(db): update process_coffee_sale RPC to calculate profits"
 ### Task 4: Create Advanced Metrics RPC
 
 **Files:**
+
 - Create: `supabase/migrations/018_advanced_metrics_rpc.sql`
 
 **Step 1: Write comprehensive metrics function**
@@ -378,6 +382,7 @@ git commit -m "feat(db): add advanced metrics RPC with profit analysis"
 ### Task 5: Create Time Series Data RPC
 
 **Files:**
+
 - Create: `supabase/migrations/019_time_series_rpc.sql`
 
 **Step 1: Write time series function for charts**
@@ -500,6 +505,7 @@ git commit -m "feat(db): add time series and product performance RPCs"
 ### Task 6: Add Charting Library
 
 **Files:**
+
 - Modify: `frontend/package.json`
 
 **Step 1: Install recharts**
@@ -513,6 +519,7 @@ npm install @types/recharts --save-dev
 **Step 2: Verify installation**
 
 Check `package.json` includes:
+
 ```json
 "recharts": "^2.x.x"
 ```
@@ -531,6 +538,7 @@ git commit -m "feat(deps): add recharts for data visualization"
 ### Task 7: Create Advanced Types
 
 **Files:**
+
 - Create: `frontend/types/analytics.ts`
 
 **Step 1: Define comprehensive types**
@@ -622,6 +630,7 @@ git commit -m "feat(types): add comprehensive analytics type definitions"
 ### Task 8: Create Revenue Chart Component
 
 **Files:**
+
 - Create: `frontend/components/charts/revenue-chart.tsx`
 
 **Step 1: Build responsive line chart**
@@ -719,6 +728,7 @@ git commit -m "feat(ui): add revenue/profit trend line chart"
 ### Task 9: Create Product Performance Chart
 
 **Files:**
+
 - Create: `frontend/components/charts/product-chart.tsx`
 
 **Step 1: Build bar chart component**
@@ -789,6 +799,7 @@ git commit -m "feat(ui): add product performance bar chart"
 ### Task 10: Create Payment Method Chart
 
 **Files:**
+
 - Create: `frontend/components/charts/payment-chart.tsx`
 
 **Step 1: Build pie chart component**
@@ -870,6 +881,7 @@ git commit -m "feat(ui): add payment methods pie chart"
 ### Task 11: Create Advanced Metrics Cards
 
 **Files:**
+
 - Create: `frontend/components/metrics/advanced-kpi-card.tsx`
 
 **Step 1: Build enhanced KPI card with trend**
@@ -948,6 +960,7 @@ git commit -m "feat(ui): add advanced KPI card with trend indicators"
 ### Task 12: Create Date Range Selector
 
 **Files:**
+
 - Create: `frontend/components/date-range-selector.tsx`
 
 **Step 1: Build date range picker**
@@ -1045,6 +1058,7 @@ git commit -m "feat(ui): add date range selector with presets"
 ### Task 13: Create Analytics Page Layout
 
 **Files:**
+
 - Create: `frontend/app/analytics/page.tsx`
 
 **Step 1: Build comprehensive analytics page**
@@ -1263,6 +1277,7 @@ git commit -m "feat(ui): create comprehensive analytics page"
 ### Task 14: Add Navigation to Analytics
 
 **Files:**
+
 - Modify: `frontend/app/page.tsx`
 
 **Step 1: Add analytics button to main dashboard**
@@ -1300,6 +1315,7 @@ git commit -m "feat(nav): add analytics page navigation button"
 ### Task 15: Test All Database Functions
 
 **Files:**
+
 - Create: `frontend/scripts/test-analytics.js`
 
 **Step 1: Create test script**
@@ -1330,7 +1346,7 @@ async function testAnalytics() {
   console.log('\n2️⃣ Testing get_sales_time_series...');
   const { data: series, error: seriesError } = await supabase.rpc('get_sales_time_series', {
     p_period: 'daily',
-    p_days_back: 7
+    p_days_back: 7,
   });
 
   if (seriesError) {
@@ -1412,6 +1428,7 @@ git push
 ## Summary
 
 **Total Implementation:**
+
 - 7 new database migrations
 - 4 new RPC functions
 - 8 new React components
@@ -1440,6 +1457,7 @@ git push
 ## Post-Implementation Enhancements
 
 **Future additions (not in this plan):**
+
 - Export to CSV/PDF
 - Customer lifetime value
 - Forecasting/projections

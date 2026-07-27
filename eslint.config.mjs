@@ -1,6 +1,6 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
+import { defineConfig, globalIgnores } from 'eslint/config';
+import nextVitals from 'eslint-config-next/core-web-vitals';
+import nextTs from 'eslint-config-next/typescript';
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -8,28 +8,28 @@ const eslintConfig = defineConfig([
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Build outputs
-    ".next/**",
-    "out/**",
-    "dist/**",
-    "build/**",
-    "next-env.d.ts",
+    '.next/**',
+    'out/**',
+    'dist/**',
+    'build/**',
+    'next-env.d.ts',
     // Dependencies
-    "node_modules/**",
+    'node_modules/**',
     // Git worktrees (development isolation)
-    ".worktrees/**",
+    '.worktrees/**',
     // Generated files
-    "*.min.js",
-    "coverage/**",
-    ".nyc_output/**",
+    '*.min.js',
+    'coverage/**',
+    '.nyc_output/**',
     // Playwright
-    ".playwright-mcp/**",
-    "playwright-report/**",
-    "test-results/**",
+    '.playwright-mcp/**',
+    'playwright-report/**',
+    'test-results/**',
     // k6 load testing scripts (use require imports)
-    "tests/load/**",
+    'tests/load/**',
     // Helper scripts (CommonJS)
-    "execute-sql-node.js",
-    "fix-analytics-auto.js",
+    'execute-sql-node.js',
+    'fix-analytics-auto.js',
   ]),
 ]);
 

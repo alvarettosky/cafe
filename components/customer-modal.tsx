@@ -79,10 +79,9 @@ export function CustomerModal({
     if (!customerId) return;
 
     try {
-      const { data, error: rpcError } = await supabase.rpc(
-        'calculate_customer_recurrence',
-        { p_customer_id: customerId }
-      );
+      const { data, error: rpcError } = await supabase.rpc('calculate_customer_recurrence', {
+        p_customer_id: customerId,
+      });
 
       if (rpcError) throw rpcError;
 
@@ -188,9 +187,7 @@ export function CustomerModal({
         </DialogHeader>
 
         {loading ? (
-          <div className="py-8 text-center text-gray-500">
-            Cargando información del cliente...
-          </div>
+          <div className="py-8 text-center text-gray-500">Cargando información del cliente...</div>
         ) : error ? (
           <div className="py-4 text-center text-red-600">{error}</div>
         ) : customer ? (
@@ -209,7 +206,7 @@ export function CustomerModal({
                   <input
                     type="text"
                     value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
+                    onChange={e => setFullName(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Nombre del cliente"
                   />
@@ -226,7 +223,7 @@ export function CustomerModal({
                     <input
                       type="tel"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={e => setPhone(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="3001234567"
                     />
@@ -242,7 +239,7 @@ export function CustomerModal({
                     <input
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={e => setEmail(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="cliente@ejemplo.com"
                     />
@@ -259,7 +256,7 @@ export function CustomerModal({
                   <input
                     type="text"
                     value={address}
-                    onChange={(e) => setAddress(e.target.value)}
+                    onChange={e => setAddress(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Dirección del cliente"
                   />
@@ -274,8 +271,14 @@ export function CustomerModal({
                   </label>
                   <input
                     type="datetime-local"
-                    value={lastPurchaseDate ? new Date(lastPurchaseDate).toISOString().slice(0, 16) : ''}
-                    onChange={(e) => setLastPurchaseDate(e.target.value ? new Date(e.target.value).toISOString() : '')}
+                    value={
+                      lastPurchaseDate ? new Date(lastPurchaseDate).toISOString().slice(0, 16) : ''
+                    }
+                    onChange={e =>
+                      setLastPurchaseDate(
+                        e.target.value ? new Date(e.target.value).toISOString() : ''
+                      )
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <p className="text-xs text-gray-500 mt-1">
@@ -285,14 +288,8 @@ export function CustomerModal({
 
                 {/* Customer Type and Delivery Zone */}
                 <div className="grid grid-cols-2 gap-4">
-                  <CustomerTypeSelect
-                    value={customerType}
-                    onChange={setCustomerType}
-                  />
-                  <DeliveryZoneSelect
-                    value={deliveryZoneId}
-                    onChange={setDeliveryZoneId}
-                  />
+                  <CustomerTypeSelect value={customerType} onChange={setCustomerType} />
+                  <DeliveryZoneSelect value={deliveryZoneId} onChange={setDeliveryZoneId} />
                 </div>
               </div>
 
@@ -313,9 +310,7 @@ export function CustomerModal({
                   <div className="flex items-start gap-3">
                     <TrendingUp className="h-5 w-5 text-blue-600 mt-0.5" />
                     <div>
-                      <p className="font-medium text-blue-900">
-                        Próxima compra esperada
-                      </p>
+                      <p className="font-medium text-blue-900">Próxima compra esperada</p>
                       <p className="text-sm text-blue-700 mt-1">
                         Aproximadamente{' '}
                         {formatDate(

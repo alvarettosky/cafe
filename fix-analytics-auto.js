@@ -16,7 +16,7 @@ const colors = {
   green: '\x1b[32m',
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
-  cyan: '\x1b[36m'
+  cyan: '\x1b[36m',
 };
 
 function log(message, color = 'reset') {
@@ -68,14 +68,14 @@ function executeSQLViaPSQL(sql, serviceRoleKey) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': serviceRoleKey,
-        'Authorization': `Bearer ${serviceRoleKey}`
-      }
+        apikey: serviceRoleKey,
+        Authorization: `Bearer ${serviceRoleKey}`,
+      },
     };
 
-    const req = https.request(options, (res) => {
+    const req = https.request(options, res => {
       let body = '';
-      res.on('data', (chunk) => body += chunk);
+      res.on('data', chunk => (body += chunk));
       res.on('end', () => {
         if (res.statusCode === 200 || res.statusCode === 201) {
           resolve(body);
@@ -102,7 +102,10 @@ async function main() {
   if (!serviceRoleKey) {
     log('\n❌ FALLO: No se pudo obtener una Service Role Key válida\n', 'red');
     log('SOLUCIÓN MANUAL:', 'yellow');
-    log('1. Ve a: https://supabase.com/dashboard/project/inszvqzpxfqibkjsptsm/settings/api-keys', 'yellow');
+    log(
+      '1. Ve a: https://supabase.com/dashboard/project/inszvqzpxfqibkjsptsm/settings/api-keys',
+      'yellow'
+    );
     log('2. Copia la clave completa "service_role" (Secret keys)', 'yellow');
     log('3. Edita ~/.config/claude/mcp.json', 'yellow');
     log('4. Reemplaza SUPABASE_SERVICE_ROLE_KEY con la clave completa', 'yellow');

@@ -4,7 +4,7 @@ import { PaymentChart } from '../payment-chart';
 import type { PaymentBreakdown } from '@/types/analytics';
 
 const mockPayments: PaymentBreakdown = {
-  'Efectivo': { count: 10, total: 6000, profit: 4000 },
+  Efectivo: { count: 10, total: 6000, profit: 4000 },
   'Transf. Davivienda': { count: 15, total: 9000, profit: 6000 },
   'Nequi Alvaretto': { count: 5, total: 3000, profit: 2000 },
 };

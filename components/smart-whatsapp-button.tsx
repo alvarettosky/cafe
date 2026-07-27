@@ -1,26 +1,33 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { MessageCircle, Loader2, Send } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
+import { useState } from 'react';
+import { MessageCircle, Loader2, Send } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/lib/supabase';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 
-type MessageType = 'auto' | 'reminder_preventive' | 'reminder_due' | 'reminder_overdue' | 'post_sale' | 'first_purchase' | 'prospect';
+type MessageType =
+  | 'auto'
+  | 'reminder_preventive'
+  | 'reminder_due'
+  | 'reminder_overdue'
+  | 'post_sale'
+  | 'first_purchase'
+  | 'prospect';
 
 interface SmartWhatsAppButtonProps {
   customerId: string;
   customerName: string;
   phone?: string | null;
   messageType?: MessageType;
-  variant?: "default" | "outline" | "ghost" | "destructive";
-  size?: "default" | "sm" | "lg" | "icon";
+  variant?: 'default' | 'outline' | 'ghost' | 'destructive';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
   showLabel?: boolean;
   showPreview?: boolean;
   className?: string;
@@ -41,11 +48,11 @@ export function SmartWhatsAppButton({
   customerName,
   phone,
   messageType = 'auto',
-  variant = "default",
-  size = "sm",
+  variant = 'default',
+  size = 'sm',
   showLabel = true,
   showPreview = true,
-  className = "",
+  className = '',
 }: SmartWhatsAppButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -81,13 +88,10 @@ export function SmartWhatsAppButton({
       }
 
       // Generar el mensaje
-      const { data, error: msgError } = await supabase.rpc(
-        'generate_whatsapp_message',
-        {
-          p_customer_id: customerId,
-          p_template_key: templateKey
-        }
-      );
+      const { data, error: msgError } = await supabase.rpc('generate_whatsapp_message', {
+        p_customer_id: customerId,
+        p_template_key: templateKey,
+      });
 
       if (msgError) throw msgError;
 
@@ -131,12 +135,12 @@ export function SmartWhatsAppButton({
 
   const getTemplateLabel = (template: string): string => {
     const labels: Record<string, string> = {
-      'reminder_preventive': 'Recordatorio preventivo',
-      'reminder_due': 'Cliente por contactar',
-      'reminder_overdue': 'Cliente atrasado',
-      'post_sale': 'Post-venta',
-      'first_purchase': 'Primera compra',
-      'prospect': 'Prospecto',
+      reminder_preventive: 'Recordatorio preventivo',
+      reminder_due: 'Cliente por contactar',
+      reminder_overdue: 'Cliente atrasado',
+      post_sale: 'Post-venta',
+      first_purchase: 'Primera compra',
+      prospect: 'Prospecto',
     };
     return labels[template] || template;
   };
@@ -180,9 +184,7 @@ export function SmartWhatsAppButton({
             <div className="space-y-4">
               {/* Preview del mensaje */}
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-sm text-gray-800 whitespace-pre-wrap">
-                  {messageData.message}
-                </p>
+                <p className="text-sm text-gray-800 whitespace-pre-wrap">{messageData.message}</p>
               </div>
 
               {/* Info adicional */}
@@ -195,16 +197,10 @@ export function SmartWhatsAppButton({
 
               {/* Acciones */}
               <div className="flex gap-2 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsPreviewOpen(false)}
-                >
+                <Button variant="outline" onClick={() => setIsPreviewOpen(false)}>
                   Cancelar
                 </Button>
-                <Button
-                  onClick={handleSend}
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                >
+                <Button onClick={handleSend} className="bg-green-600 hover:bg-green-700 text-white">
                   <Send className="h-4 w-4 mr-2" />
                   Enviar por WhatsApp
                 </Button>
@@ -212,11 +208,7 @@ export function SmartWhatsAppButton({
             </div>
           )}
 
-          {error && (
-            <div className="text-red-500 text-sm p-3 bg-red-50 rounded">
-              {error}
-            </div>
-          )}
+          {error && <div className="text-red-500 text-sm p-3 bg-red-50 rounded">{error}</div>}
         </DialogContent>
       </Dialog>
     </>

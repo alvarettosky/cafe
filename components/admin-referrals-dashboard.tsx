@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/lib/supabase";
-import { motion } from "framer-motion";
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
+import { motion } from 'framer-motion';
 import {
   Users,
   Gift,
@@ -13,9 +13,9 @@ import {
   Loader2,
   Search,
   Eye,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ReferralStats {
   total_referrals: number;
@@ -46,23 +46,21 @@ export function AdminReferralsDashboard() {
   const [stats, setStats] = useState<ReferralStats | null>(null);
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       // Fetch stats
-      const { data: statsData, error: statsError } = await supabase.rpc(
-        "get_referral_stats"
-      );
+      const { data: statsData, error: statsError } = await supabase.rpc('get_referral_stats');
 
       if (statsError) throw statsError;
       setStats(statsData);
 
       // Fetch referrals with customer names
       const { data: referralsData, error: referralsError } = await supabase
-        .from("referrals")
+        .from('referrals')
         .select(
           `
           *,
@@ -70,7 +68,7 @@ export function AdminReferralsDashboard() {
           referred:customers!referrals_referred_customer_id_fkey(full_name)
         `
         )
-        .order("created_at", { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(100);
 
       if (referralsError) throw referralsError;
@@ -95,7 +93,7 @@ export function AdminReferralsDashboard() {
           code: r.code,
           status: r.status,
           referrer_id: r.referrer_id,
-          referrer_name: r.referrer?.full_name || "Desconocido",
+          referrer_name: r.referrer?.full_name || 'Desconocido',
           referred_phone: r.referred_phone,
           referred_customer_name: r.referred?.full_name || null,
           created_at: r.created_at,
@@ -109,7 +107,7 @@ export function AdminReferralsDashboard() {
 
       setReferrals(formattedReferrals);
     } catch (err) {
-      console.error("Error fetching referral data:", err);
+      console.error('Error fetching referral data:', err);
     } finally {
       setIsLoading(false);
     }
@@ -119,45 +117,39 @@ export function AdminReferralsDashboard() {
     fetchData();
   }, [fetchData]);
 
-  const filteredReferrals = referrals.filter((r) => {
+  const filteredReferrals = referrals.filter(r => {
     const matchesSearch =
       r.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       r.referrer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (r.referred_customer_name || "")
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+      (r.referred_customer_name || '').toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus =
-      statusFilter === "all" || r.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' || r.status === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
 
   const getStatusBadge = (status: string) => {
-    const styles: Record<string, { bg: string; text: string; label: string }> =
-      {
-        pending: {
-          bg: "bg-yellow-100",
-          text: "text-yellow-800",
-          label: "Pendiente",
-        },
-        registered: {
-          bg: "bg-blue-100",
-          text: "text-blue-800",
-          label: "Registrado",
-        },
-        completed: {
-          bg: "bg-green-100",
-          text: "text-green-800",
-          label: "Completado",
-        },
-        expired: { bg: "bg-gray-100", text: "text-gray-800", label: "Expirado" },
-      };
+    const styles: Record<string, { bg: string; text: string; label: string }> = {
+      pending: {
+        bg: 'bg-yellow-100',
+        text: 'text-yellow-800',
+        label: 'Pendiente',
+      },
+      registered: {
+        bg: 'bg-blue-100',
+        text: 'text-blue-800',
+        label: 'Registrado',
+      },
+      completed: {
+        bg: 'bg-green-100',
+        text: 'text-green-800',
+        label: 'Completado',
+      },
+      expired: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Expirado' },
+    };
     const style = styles[status] || styles.pending;
     return (
-      <span
-        className={`px-2 py-1 rounded-full text-xs font-medium ${style.bg} ${style.text}`}
-      >
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${style.bg} ${style.text}`}>
         {style.label}
       </span>
     );
@@ -240,9 +232,7 @@ export function AdminReferralsDashboard() {
             <Card>
               <CardContent className="p-4 text-center">
                 <TrendingUp className="h-6 w-6 mx-auto text-amber-500 mb-2" />
-                <p className="text-2xl font-bold">
-                  {stats.conversion_rate.toFixed(1)}%
-                </p>
+                <p className="text-2xl font-bold">{stats.conversion_rate.toFixed(1)}%</p>
                 <p className="text-xs text-gray-500">Conversion</p>
               </CardContent>
             </Card>
@@ -256,9 +246,7 @@ export function AdminReferralsDashboard() {
             <Card>
               <CardContent className="p-4 text-center">
                 <Users className="h-6 w-6 mx-auto text-indigo-500 mb-2" />
-                <p className="text-2xl font-bold">
-                  {stats.this_month_referrals}
-                </p>
+                <p className="text-2xl font-bold">{stats.this_month_referrals}</p>
                 <p className="text-xs text-gray-500">Este Mes</p>
               </CardContent>
             </Card>
@@ -288,13 +276,13 @@ export function AdminReferralsDashboard() {
                 type="text"
                 placeholder="Buscar por codigo o nombre..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={e => setStatusFilter(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
             >
               <option value="all">Todos los estados</option>
@@ -310,56 +298,34 @@ export function AdminReferralsDashboard() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">
-                    Codigo
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">
-                    Referidor
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">
-                    Referido
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">
-                    Estado
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">
-                    Recompensas
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">
-                    Fecha
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">
-                    Expira
-                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600">Codigo</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600">Referidor</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600">Referido</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600">Estado</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600">Recompensas</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600">Fecha</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-600">Expira</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredReferrals.map((referral) => (
+                {filteredReferrals.map(referral => (
                   <tr key={referral.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
-                      <span className="font-mono font-medium text-amber-700">
-                        {referral.code}
-                      </span>
+                      <span className="font-mono font-medium text-amber-700">{referral.code}</span>
                     </td>
                     <td className="px-4 py-3">{referral.referrer_name}</td>
                     <td className="px-4 py-3">
                       {referral.referred_customer_name || (
                         <span className="text-gray-400">
-                          {referral.referred_phone || "Sin usar"}
+                          {referral.referred_phone || 'Sin usar'}
                         </span>
                       )}
                     </td>
+                    <td className="px-4 py-3">{getStatusBadge(referral.status)}</td>
                     <td className="px-4 py-3">
-                      {getStatusBadge(referral.status)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-green-600">
-                        +{referral.referrer_reward_percent}%
-                      </span>
-                      {" / "}
-                      <span className="text-blue-600">
-                        +{referral.referred_reward_percent}%
-                      </span>
+                      <span className="text-green-600">+{referral.referrer_reward_percent}%</span>
+                      {' / '}
+                      <span className="text-blue-600">+{referral.referred_reward_percent}%</span>
                       {referral.reward_claimed && (
                         <CheckCircle className="inline h-4 w-4 ml-1 text-green-500" />
                       )}
@@ -374,10 +340,7 @@ export function AdminReferralsDashboard() {
                 ))}
                 {filteredReferrals.length === 0 && (
                   <tr>
-                    <td
-                      colSpan={7}
-                      className="px-4 py-8 text-center text-gray-500"
-                    >
+                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                       <Eye className="h-8 w-8 mx-auto mb-2 text-gray-300" />
                       No se encontraron referidos
                     </td>
