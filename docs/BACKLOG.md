@@ -25,7 +25,7 @@ Sustituye a `.claude/TODO.md`, que queda como puntero.
 | P0.2 Verificar que la app sigue sirviendo  | ✅ La anon key desplegada **no fue rotada**: `GET /rest/v1/inventory?select=product_id&limit=0` → HTTP 200 `[]` (RLS devolviendo vacío al anónimo, correcto) |
 | P0.3 Reactivar los workflows               | ✅ Los 6 en `active`. Antes había 4 en `disabled_inactivity`                                                                                                 |
 | P0.4 Romper la circularidad del keep-alive | ✅ Timer de systemd **fuera de GitHub** — ver abajo                                                                                                          |
-| P0.5 Backup fuera de Supabase              | ⬜ Sigue abierto                                                                                                                                             |
+| P0.5 Backup fuera de Supabase              | ✅ Espejo local con verificación y vigilante de frescura                                                                                                     |
 
 ### P0.4 — Keep-alive externo a GitHub (resuelto 2026-07-27)
 
@@ -65,6 +65,56 @@ no alcanza a disparar y el proyecto se vuelve a pausar. Cerrarlo del todo exige 
 no dependa de un equipo personal: el plan Pro de Supabase (sin pausa por inactividad), un cron en
 un servidor siempre encendido, o un segundo ping desde otro dispositivo. El keep-alive de GitHub
 sigue activo como respaldo, con su límite conocido de 60 días.
+
+### P0.5 — Copia de los backups fuera de Supabase (resuelto 2026-07-27)
+
+El workflow `daily-backup.yml` exporta 20 tablas y sube el ZIP a Supabase Storage. El problema no
+era que fallara, sino **dónde dejaba la copia**: dentro del mismo sistema del que debía proteger.
+Estuvo a dos días de perderse junto con el proyecto.
+
+**Descartado por peligroso:** subir el ZIP como artefacto de GitHub Actions o como release asset.
+Este repositorio es **público**, y los artefactos de repos públicos son descargables por cualquiera.
+Sería publicar datos de clientes para resolver un problema de respaldo.
+
+**Implementado:** un segundo timer de systemd que baja el bucket a disco local.
+
+| Pieza            | Ruta                                                                |
+| ---------------- | ------------------------------------------------------------------- |
+| Script           | `~/.local/bin/cafe-mirador-backup-mirror.sh`                        |
+| Servicio + timer | `~/.config/systemd/user/cafe-mirador-backup-mirror.{service,timer}` |
+| Destino          | `~/Backups/cafe-mirador/` (retención: últimas 30 copias)            |
+| Log              | `~/.local/state/cafe-mirador/mirror.log`                            |
+
+Decisiones que importan:
+
+- **Verifica antes de aceptar.** Cada ZIP descargado pasa `unzip -t` y se comprueba que contenga
+  `_metadata.json` antes de darlo por bueno; si no, se descarta. Acumular archivos corruptos
+  creyendo que hay respaldo es peor que no tener ninguno.
+- **Hace de vigilante, no solo de copiadora.** Si el backup más reciente del bucket supera las 48 h,
+  alerta y sale con código 1. Ese es exactamente el fallo que pasó desapercibido 111 días: GitHub
+  deshabilitó el workflow y nadie notó que habían dejado de generarse backups. Un espejo que copia
+  en silencio un bucket congelado reproduce la misma falsa seguridad.
+- **Un solo secreto en disco.** Solo vive el PAT de Supabase (`~/.config/cafe-mirador/supabase.pat`,
+  modo 600, revocable desde el dashboard). La `service_role` se pide a la Management API en cada
+  ejecución y existe únicamente en memoria.
+- **06:00 UTC**, cuatro horas después del workflow (02:00 UTC), con `Persistent=true`.
+
+Verificado el 2026-07-27: primera ejecución real bajó **11 backups, todos validados** (92 KB), y
+**la alerta de frescura saltó de verdad** — detectó que el más reciente tenía 2721 h. El código de
+salida 1 era correcto: el bucket llevaba parado desde el 5 de abril. Se normaliza solo cuando el
+workflow vuelva a correr.
+
+**Riesgo residual:** el espejo vive en el mismo equipo personal que el keep-alive. Protege de perder
+el proyecto de Supabase, no de perder el portátil. Una copia realmente fuera de sitio (disco externo,
+almacenamiento cifrado remoto) sigue siendo trabajo pendiente si el volumen de datos lo justifica.
+
+> **Contexto que relativiza la urgencia.** Al inspeccionar el contenido real de los backups, la base
+> de producción resultó tener **47 registros en total** (2 clientes, 1 venta, 1 ítem de venta): son
+> datos de demo, no un histórico de negocio. El historial real de ventas —53 clientes, de
+> 2024-09-26 a 2026-06-03— **nunca estuvo en Supabase**: vive en
+> `ventas-y-pagos-cafe-2024-09-26-a-2026-06-03.csv`, versionado desde el 2026-07-27 en el repo
+> privado `alvaretto/proyectos-varios`. Conviene decidir si ese histórico debe cargarse al CRM; hasta
+> entonces, el activo a proteger es el CSV, no la base.
 
 <details>
 <summary>Diagnóstico original del incidente (se conserva por la causa raíz)</summary>
@@ -110,7 +160,7 @@ existe copia externa más reciente.
 | P0.2 | Descargar los datos como respaldo externo, restaure o no                               | **[B]** | Ídem                                                                                                     |
 | P0.3 | Reactivar los 4 workflows (`gh workflow enable`)                                       | **[B]** | Bloqueado: la cuenta autenticada es `alvaretto` y el repo es de `alvarettosky` (403)                     |
 | P0.4 | Romper la circularidad del keep-alive                                                  | **✅**  | Resuelto 2026-07-27 con un timer de systemd de usuario, externo a GitHub. Ver la sección P0.4 más arriba |
-| P0.5 | Que el backup deje una copia **fuera** de Supabase                                     | **[C]** | Un backup alojado en el sistema del que protege no protege de la pérdida de ese sistema                  |
+| P0.5 | Que el backup deje una copia **fuera** de Supabase                                     | **✅**  | Resuelto 2026-07-27 con un espejo local en systemd. Ver la sección P0.5 más arriba                       |
 
 </details>
 
