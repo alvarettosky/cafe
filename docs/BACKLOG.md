@@ -80,3 +80,35 @@ Sustituye a `.claude/TODO.md`, que queda como puntero.
 2. Al cerrarse, se mueve a **§D con el motivo**, no se borra.
 3. Si un pendiente resulta ser una afirmación fósil, también va a §D — para que
    nadie lo vuelva a «arreglar».
+
+---
+
+## Nota técnica — cómo se cierra B4
+
+Consultado en la documentación oficial del CLI de Supabase (context7,
+`/supabase/cli`, 2026-07-27).
+
+El CLI genera los tipos del esquema, **incluidas las firmas de las RPC**:
+
+```bash
+supabase gen types --linked          # desde el proyecto enlazado (Management API)
+supabase gen types --local           # desde la base local de desarrollo
+supabase gen types --db-url '...'    # desde una URL de conexión
+```
+
+Con `--linked` o `--project-id` no se abre conexión a la base: el CLI llama al
+endpoint `generateTypescriptTypes` de la Management API. Por eso B4 está en §B y
+no en §A — hace falta la credencial del proyecto.
+
+**Detalle que importa al implementarlo:** el archivo generado exporta `Json`,
+`Database`, `Tables`, `TablesInsert`, `TablesUpdate`, `Enums` y `CompositeTypes`.
+**`Functions` NO se exporta como helper independiente**: existe solo como
+propiedad anidada dentro de `Database`, por esquema
+(`Database['public']['Functions']['process_coffee_sale']`). Quien intente
+`import type { Functions }` va a fallar sin entender por qué.
+
+Cerrar B4 significa: generar el archivo, tipar el cliente con
+`createClient<Database>(...)` y hacer que las llamadas `.rpc(...)` validen sus
+parámetros contra el esquema real. Eso convierte «cambiar una migración rompe el
+frontend en silencio» ([BLUEPRINT §3](BLUEPRINT.md#3-contratos-que-typescript-no-protege))
+en un error de compilación.
