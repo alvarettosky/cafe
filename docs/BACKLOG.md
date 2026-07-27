@@ -64,7 +64,7 @@ son `SECURITY DEFINER`. Habría que comprobar si validan el token de sesión por
 dentro; si no lo hacen, cualquiera con un UUID de cliente podría leer su portal.
 Queda fuera del alcance de esta corrección porque exige rediseño, no un permiso.
 
-## 🔴 P0-SEC-2 — Un token personal de Supabase, 188 días en el repo público
+## ✅ P0-SEC-2 — Token personal filtrado 188 días. REVOCADO el 2026-07-27
 
 **Requiere una acción que solo puede hacer el dueño de la cuenta.**
 
@@ -74,17 +74,16 @@ Queda fuera del alcance de esta corrección porque exige rediseño, no un permis
 
 Un PAT es peor que la `service_role`. No da acceso a una base: da acceso **a la
 cuenta entera** — crear y borrar proyectos, leer todas las claves de cualquiera
-de ellos, pausar, restaurar. Comprobado el 2026-07-27: **seguía siendo válido**
-(`GET /v1/projects` → HTTP 200).
+de ellos, pausar, restaurar. Estuvo vivo hasta el 2026-07-27 (`GET /v1/projects` → HTTP 200); **ya revocado**, comprobado con 401.
 
 El archivo ya se eliminó del repositorio, y con él `VERCEL_QUICK_FIX.html`, que
 llevaba una `anon` legacy (esa ya estaba muerta: la mató desactivar las legacy).
 **Pero borrarlos no cierra nada.** El token sigue en la historia de git y en
 cualquier fork.
 
-| Acción                                                                                                         | Clase   |
-| -------------------------------------------------------------------------------------------------------------- | ------- |
-| **Revocar `cafedesalento` (`sbp_8099…`)** en <https://supabase.com/dashboard/account/tokens> — cuenta del café | **[B]** |
+| Acción                                    | Clase                                                                           |
+| ----------------------------------------- | ------------------------------------------------------------------------------- |
+| **Revocar `cafedesalento` (`sbp_8099…`)** | ✅ **HECHO** el 2026-07-27. Verificado: la Management API devuelve **HTTP 401** |
 
 Cómo distinguirlo de los demás: es el que la cuenta del café lista como
 `cafedesalento`, sin usar desde hace 5 meses. **No revoques `cafe-julio-2026`
