@@ -52,6 +52,11 @@ Tres decisiones que importan:
 - **`Persistent=true`.** Sin esto, un equipo apagado a la hora del disparo pierde la ejecución
   sin más — así es como se llega a 7 días sin ping sin enterarse. Con `Persistent`, systemd la
   ejecuta al arrancar. `Linger=yes` ya estaba activo, así que corre sin sesión abierta.
+- **09:00 hora local (America/Bogota), no medianoche.** Corregido el 2026-07-27: la primera
+  versión disparaba a las 00:26 local, y este timer vive en un equipo personal. Programarlo de
+  madrugada garantiza que casi nunca dispare a su hora y que todo dependa del rescate de
+  `Persistent`. En horario de trabajo el portátil está encendido y el ping ocurre cuando toca;
+  `Persistent` vuelve a ser red de seguridad, no el mecanismo principal.
 - **Usa la anon key, no la service role.** Es pública por diseño (viaja en el bundle de
   producción, protegida por RLS): genera tráfico de API sin poner un secreto en el disco.
 
@@ -97,7 +102,10 @@ Decisiones que importan:
 - **Un solo secreto en disco.** Solo vive el PAT de Supabase (`~/.config/cafe-mirador/supabase.pat`,
   modo 600, revocable desde el dashboard). La `service_role` se pide a la Management API en cada
   ejecución y existe únicamente en memoria.
-- **06:00 UTC**, cuatro horas después del workflow (02:00 UTC), con `Persistent=true`.
+- **11:00 hora local (America/Bogota)**, con `Persistent=true`. El workflow sube el ZIP a las
+  02:00 UTC, que son las 21:00 del día anterior en Colombia; espejarlo a la mañana siguiente lo
+  recoge con ~14 h de antigüedad, muy por debajo del umbral de 48 h. Se descartó espejar justo
+  después del workflow (22:00 local) porque cae fuera de la franja útil, con el equipo apagado.
 
 Verificado el 2026-07-27: primera ejecución real bajó **11 backups, todos validados** (92 KB), y
 **la alerta de frescura saltó de verdad** — detectó que el más reciente tenía 2721 h. El código de
@@ -163,6 +171,24 @@ existe copia externa más reciente.
 | P0.5 | Que el backup deje una copia **fuera** de Supabase                                     | **✅**  | Resuelto 2026-07-27 con un espejo local en systemd. Ver la sección P0.5 más arriba                       |
 
 </details>
+
+### Horarios: todo dentro de 07:00–22:00 hora Colombia
+
+Criterio fijado el 2026-07-27. `America/Bogota` es UTC−5 todo el año (sin horario de verano),
+así que la conversión es constante.
+
+| Tarea                         | Dónde corre | Hora Colombia       |
+| ----------------------------- | ----------- | ------------------- |
+| `keep-alive` (timer local)    | este equipo | 09:00               |
+| `backup-mirror` (timer local) | este equipo | 11:00               |
+| `keep-alive.yml`              | GitHub      | 07:00 (cada 5 días) |
+| `daily-backup.yml`            | GitHub      | 21:00               |
+| `e2e.yml`                     | GitHub      | 21:00               |
+| `nightly.yml`                 | GitHub      | 22:00               |
+
+La distinción que importa: **los timers locales dependen de que este equipo esté encendido; los
+workflows de GitHub no.** Por eso los locales se movieron a horario de trabajo y los de GitHub se
+dejaron como estaban — ya caían dentro de la franja y su horario es indiferente al portátil.
 
 ## A — Automatizable ahora
 
