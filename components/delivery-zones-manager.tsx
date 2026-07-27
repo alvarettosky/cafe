@@ -13,17 +13,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-
-interface DeliveryZone {
-  id: string;
-  name: string;
-  description: string | null;
-  delivery_days: string[];
-  color: string;
-  sort_order: number;
-  is_active: boolean;
-  customer_count?: number;
-}
+import type { DeliveryZone, DeliveryZoneWithCustomerCount } from '@/types/deliveries';
 
 const DAYS_OF_WEEK = [
   { value: 'monday', label: 'Lunes' },
@@ -47,10 +37,10 @@ const COLORS = [
 ];
 
 export function DeliveryZonesManager() {
-  const [zones, setZones] = useState<DeliveryZone[]>([]);
+  const [zones, setZones] = useState<DeliveryZoneWithCustomerCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingZone, setEditingZone] = useState<DeliveryZone | null>(null);
+  const [editingZone, setEditingZone] = useState<DeliveryZoneWithCustomerCount | null>(null);
   const [saving, setSaving] = useState(false);
 
   // Form state
@@ -77,16 +67,11 @@ export function DeliveryZonesManager() {
       if (error) throw error;
 
       const zonesWithCount = (data || []).map(
-        (zone: {
-          id: string;
-          name: string;
-          description: string | null;
-          delivery_days: string[];
-          color: string;
-          sort_order: number;
-          is_active: boolean;
-          customers: { count: number }[];
-        }) => ({
+        (
+          zone: DeliveryZone & {
+            customers: { count: number }[];
+          }
+        ) => ({
           ...zone,
           customer_count: zone.customers?.[0]?.count || 0,
         })
@@ -114,7 +99,7 @@ export function DeliveryZonesManager() {
     setIsModalOpen(true);
   };
 
-  const openEditModal = (zone: DeliveryZone) => {
+  const openEditModal = (zone: DeliveryZoneWithCustomerCount) => {
     setEditingZone(zone);
     setFormName(zone.name);
     setFormDescription(zone.description || '');
@@ -178,7 +163,7 @@ export function DeliveryZonesManager() {
     setFormDays(prev => (prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]));
   };
 
-  const getDaysLabel = (days: string[]) => {
+  const getDaysLabel = (days: string[] | null) => {
     if (!days || days.length === 0) return 'Sin dias asignados';
     const dayMap: Record<string, string> = {
       monday: 'Lun',
@@ -227,7 +212,10 @@ export function DeliveryZonesManager() {
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center justify-between">
                   <span className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: zone.color }} />
+                    <div
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: zone.color ?? undefined }}
+                    />
                     {zone.name}
                   </span>
                   {!zone.is_active && (

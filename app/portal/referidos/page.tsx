@@ -20,30 +20,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-
-interface Referral {
-  id: string;
-  code: string;
-  status: string;
-  referred_phone: string;
-  created_at: string;
-  completed_at: string | null;
-  expires_at: string;
-  reward_claimed: boolean;
-  reward_value: number;
-}
-
-interface ReferralStats {
-  total: number;
-  completed: number;
-  pending: number;
-  this_month: number;
-}
-
-interface ReferralData {
-  referrals: Referral[] | null;
-  stats: ReferralStats;
-}
+import type { PortalReferralData } from '@/types/referrals';
 
 interface GeneratedCode {
   success: boolean;
@@ -60,7 +37,7 @@ export default function ReferidosPage() {
   const router = useRouter();
   const { customer, isLoading: authLoading, isAuthenticated } = useCustomerPortal();
 
-  const [referralData, setReferralData] = useState<ReferralData | null>(null);
+  const [referralData, setReferralData] = useState<PortalReferralData | null>(null);
   const [generatedCode, setGeneratedCode] = useState<GeneratedCode | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);

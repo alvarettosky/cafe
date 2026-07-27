@@ -3,15 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { MapPin, Loader2 } from 'lucide-react';
-
-interface DeliveryZone {
-  id: string;
-  name: string;
-  description: string | null;
-  delivery_days: string[] | null;
-  color: string | null;
-  is_active: boolean;
-}
+import type { DeliveryZone } from '@/types/deliveries';
 
 interface DeliveryZoneSelectProps {
   value: string | null;

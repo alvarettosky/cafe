@@ -16,35 +16,11 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-interface ReferralStats {
-  total_referrals: number;
-  completed_referrals: number;
-  pending_referrals: number;
-  total_rewards_given: number;
-  conversion_rate: number;
-  this_month_referrals: number;
-}
-
-interface Referral {
-  id: string;
-  code: string;
-  status: string;
-  referrer_id: string;
-  referrer_name: string;
-  referred_phone: string | null;
-  referred_customer_name: string | null;
-  created_at: string;
-  expires_at: string;
-  completed_at: string | null;
-  referrer_reward_percent: number;
-  referred_reward_percent: number;
-  reward_claimed: boolean;
-}
+import type { AdminReferral, AdminReferralRow, AdminReferralStats } from '@/types/referrals';
 
 export function AdminReferralsDashboard() {
-  const [stats, setStats] = useState<ReferralStats | null>(null);
-  const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [stats, setStats] = useState<AdminReferralStats | null>(null);
+  const [referrals, setReferrals] = useState<AdminReferral[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -73,37 +49,21 @@ export function AdminReferralsDashboard() {
 
       if (referralsError) throw referralsError;
 
-      const formattedReferrals = (referralsData || []).map(
-        (r: {
-          id: string;
-          code: string;
-          status: string;
-          referrer_id: string;
-          referrer: { full_name: string } | null;
-          referred: { full_name: string } | null;
-          referred_phone: string | null;
-          created_at: string;
-          expires_at: string;
-          completed_at: string | null;
-          referrer_reward_percent: number;
-          referred_reward_percent: number;
-          reward_claimed: boolean;
-        }) => ({
-          id: r.id,
-          code: r.code,
-          status: r.status,
-          referrer_id: r.referrer_id,
-          referrer_name: r.referrer?.full_name || 'Desconocido',
-          referred_phone: r.referred_phone,
-          referred_customer_name: r.referred?.full_name || null,
-          created_at: r.created_at,
-          expires_at: r.expires_at,
-          completed_at: r.completed_at,
-          referrer_reward_percent: r.referrer_reward_percent,
-          referred_reward_percent: r.referred_reward_percent,
-          reward_claimed: r.reward_claimed,
-        })
-      );
+      const formattedReferrals = (referralsData || []).map((r: AdminReferralRow) => ({
+        id: r.id,
+        code: r.code,
+        status: r.status,
+        referrer_id: r.referrer_id,
+        referrer_name: r.referrer?.full_name || 'Desconocido',
+        referred_phone: r.referred_phone,
+        referred_customer_name: r.referred?.full_name || null,
+        created_at: r.created_at,
+        expires_at: r.expires_at,
+        completed_at: r.completed_at,
+        referrer_reward_percent: r.referrer_reward_percent,
+        referred_reward_percent: r.referred_reward_percent,
+        reward_claimed: r.reward_claimed,
+      }));
 
       setReferrals(formattedReferrals);
     } catch (err) {
