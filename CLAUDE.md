@@ -18,8 +18,12 @@ Sistema de gestión para venta de café por libras y medias libras, con tienda o
 **Testing** (medido 2026-07-27 con `npm test` y `npm run test:coverage`):
 865 tests unitarios en 38 archivos, todos en verde. Cobertura: líneas 93,79 % ·
 sentencias 92,1 % · ramas 88,22 % · funciones 89,01 % (umbral exigido: 80 % en
-las cuatro). Los 7 tests E2E de Playwright existen pero no se ejecutaron en esa
-verificación — ver `docs/BACKLOG.md` B5.
+las cuatro).
+
+**E2E** (medido el 2026-07-27 en el CI de GitHub, al mergear): **23 tests de
+Playwright en verde en los tres navegadores** — chromium 54,7 s · firefox 1,1 min
+· webkit 1,7 min. Este documento decía «7 tests E2E» y además nunca se habían
+ejecutado; ambas cosas quedaron corregidas al correrlos de verdad.
 
 ### Documentación de gestión
 

@@ -9,16 +9,16 @@ Qué se construyó, en qué orden y qué sigue.
 
 ## Estado actual, medido
 
-| Indicador       | Valor                                                                  | Cómo se comprobó             |
-| --------------- | ---------------------------------------------------------------------- | ---------------------------- |
-| Tests unitarios | **865 en 38 archivos, todos en verde**                                 | `npm test`                   |
-| Cobertura       | Líneas 93,79 % · Sentencias 92,1 % · Ramas 88,22 % · Funciones 89,01 % | `npm run test:coverage`      |
-| Umbral exigido  | 80 % en las cuatro métricas                                            | `vitest.config.mts`          |
-| Tipos           | Sin errores                                                            | `npx tsc --noEmit`           |
-| Lint            | 0 errores, 10 warnings                                                 | `npm run lint`               |
-| Formato         | Todo el repo conforme                                                  | `npm run format:check`       |
-| Build           | 21 rutas generadas                                                     | `npm run build`              |
-| Tests E2E       | 7 escritos, **sin ejecutar** en esta verificación                      | ver [BACKLOG](BACKLOG.md) B5 |
+| Indicador       | Valor                                                                  | Cómo se comprobó            |
+| --------------- | ---------------------------------------------------------------------- | --------------------------- |
+| Tests unitarios | **865 en 38 archivos, todos en verde**                                 | `npm test`                  |
+| Cobertura       | Líneas 93,79 % · Sentencias 92,1 % · Ramas 88,22 % · Funciones 89,01 % | `npm run test:coverage`     |
+| Umbral exigido  | 80 % en las cuatro métricas                                            | `vitest.config.mts`         |
+| Tipos           | Sin errores                                                            | `npx tsc --noEmit`          |
+| Lint            | 0 errores, 10 warnings                                                 | `npm run lint`              |
+| Formato         | Todo el repo conforme                                                  | `npm run format:check`      |
+| Build           | 21 rutas generadas                                                     | `npm run build`             |
+| Tests E2E       | **23 en verde × 3 navegadores** (chromium, firefox, webkit)            | CI de GitHub, run del merge |
 
 ## Fases entregadas
 
