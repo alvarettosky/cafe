@@ -13,3 +13,8 @@ test-results/
 
 # Lockfiles: los gestiona npm, no prettier
 package-lock.json
+
+# Lo regenera `next build` con su propio estilo (comillas dobles). Formatearlo
+# hace que cada build deje el working tree sucio. El propio archivo lo avisa:
+# "This file should not be edited".
+next-env.d.ts
