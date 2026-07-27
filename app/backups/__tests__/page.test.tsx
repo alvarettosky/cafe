@@ -57,21 +57,21 @@ describe('BackupsPage', () => {
       name: 'cafe-mirador-backup-2026-01-22.zip',
       createdTime: '2026-01-22T02:00:00Z',
       size: '1.5 MB',
-      webViewLink: 'https://storage.example.com/backup-1',
+      downloadUrl: 'https://storage.example.com/backup-1',
     },
     {
       id: 'backup-2',
       name: 'cafe-mirador-backup-2026-01-21.zip',
       createdTime: '2026-01-21T02:00:00Z',
       size: '1.4 MB',
-      webViewLink: 'https://storage.example.com/backup-2',
+      downloadUrl: 'https://storage.example.com/backup-2',
     },
     {
       id: 'backup-3',
       name: 'cafe-mirador-backup-2026-01-20.zip',
       createdTime: '2026-01-20T02:00:00Z',
       size: '1.3 MB',
-      webViewLink: null,
+      downloadUrl: '',
     },
   ];
 
@@ -409,12 +409,12 @@ describe('BackupsPage', () => {
       expect(screen.getAllByText('1.5 MB').length).toBeGreaterThan(0);
     });
 
-    it('should display "Abrir" links for backups with webViewLink', async () => {
+    it('should display "Abrir" links for backups with downloadUrl', async () => {
       render(<BackupsPage />);
 
       await waitFor(() => {
         const openLinks = screen.getAllByText('Abrir');
-        expect(openLinks).toHaveLength(2); // First two have webViewLink
+        expect(openLinks).toHaveLength(2); // First two have downloadUrl
       });
     });
 

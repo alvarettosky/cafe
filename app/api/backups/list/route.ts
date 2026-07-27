@@ -1,19 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+import type { BackupFile } from "@/types/backups";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const BUCKET_NAME = 'backups';
-
-interface BackupFile {
-    id: string;
-    name: string;
-    createdTime: string;
-    size: string;
-    downloadUrl: string;
-}
 
 export async function GET(request: NextRequest) {
     try {

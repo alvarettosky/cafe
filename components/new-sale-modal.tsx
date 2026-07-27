@@ -2,11 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-interface Customer {
-    id: string;
-    full_name: string;
-    typical_recurrence_days: number | null;
-}
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
@@ -14,6 +9,7 @@ import { Coffee, Loader2, RefreshCw, Tag, Percent } from "lucide-react";
 import { RecurrenceInput } from "./recurrence-input";
 
 import type { SaleProductOption as Product } from "@/types/inventory";
+import type { SaleCustomerOption as Customer } from "@/types/sales";
 // Tipo para información de precio por cliente
 interface CustomerPriceInfo {
     product_id: string;

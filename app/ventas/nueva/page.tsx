@@ -2,11 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-interface Customer {
-    id: string;
-    full_name: string;
-    typical_recurrence_days: number | null;
-}
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
@@ -15,6 +10,7 @@ import { RecurrenceInput } from "@/components/recurrence-input";
 import Link from "next/link";
 
 import type { SaleProductOption as Product } from "@/types/inventory";
+import type { SaleCustomerOption as Customer } from "@/types/sales";
 export default function NuevaVentaPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);

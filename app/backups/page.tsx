@@ -22,14 +22,7 @@ import { Button } from '@/components/ui/button';
 import { ExportForm } from '@/components/export';
 import { supabase } from '@/lib/supabase';
 
-interface BackupFile {
-    id: string;
-    name: string;
-    createdTime: string;
-    size: string;
-    webViewLink: string;
-}
-
+import type { BackupFile } from "@/types/backups";
 export default function BackupsPage() {
     const router = useRouter();
     const { isAdmin, isLoading: authLoading, session } = useAuth();
@@ -205,9 +198,9 @@ export default function BackupsPage() {
                         {lastBackup && (
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground">{lastBackup.size}</span>
-                                {lastBackup.webViewLink && (
+                                {lastBackup.downloadUrl && (
                                     <a
-                                        href={lastBackup.webViewLink}
+                                        href={lastBackup.downloadUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-primary hover:underline flex items-center gap-1"
@@ -314,9 +307,9 @@ export default function BackupsPage() {
                                                     {backup.size}
                                                 </td>
                                                 <td className="p-3 text-right">
-                                                    {backup.webViewLink && (
+                                                    {backup.downloadUrl && (
                                                         <a
-                                                            href={backup.webViewLink}
+                                                            href={backup.downloadUrl}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="inline-flex items-center gap-1 text-sm text-primary hover:underline"

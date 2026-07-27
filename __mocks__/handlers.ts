@@ -6,6 +6,7 @@ import type {
 } from '../types'
 import type { InventoryMovement } from '../types/inventory'
 import type { VariantForSale } from '../types/products'
+import type { BackupFile } from '../types/backups'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://test.supabase.co'
 
@@ -292,28 +293,32 @@ const mockCustomerPriceInfo = {
 // Mock export data
 const mockExportBlob = new Uint8Array([80, 75, 3, 4]) // Minimal XLSX header bytes
 
-// Mock backup data
-const mockBackups = [
+// Mock backup data.
+// La forma debe seguir a `BackupFile` de types/backups.ts, que es lo que
+// emite GET /api/backups/list. Antes este mock devolvia `downloadUrl`, un
+// campo que la API nunca produjo: por eso los tests pasaban en verde
+// mientras los enlaces de descarga no se renderizaban en produccion.
+const mockBackups: BackupFile[] = [
   {
     id: 'backup-1',
     name: 'cafe-mirador-backup-2026-01-22.zip',
     createdTime: '2026-01-22T02:00:00Z',
     size: '1.5 MB',
-    webViewLink: 'https://storage.example.com/backup-1',
+    downloadUrl: 'https://storage.example.com/backup-1',
   },
   {
     id: 'backup-2',
     name: 'cafe-mirador-backup-2026-01-21.zip',
     createdTime: '2026-01-21T02:00:00Z',
     size: '1.4 MB',
-    webViewLink: 'https://storage.example.com/backup-2',
+    downloadUrl: 'https://storage.example.com/backup-2',
   },
   {
     id: 'backup-3',
     name: 'cafe-mirador-backup-2026-01-20.zip',
     createdTime: '2026-01-20T02:00:00Z',
     size: '1.3 MB',
-    webViewLink: null,
+    downloadUrl: '',
   },
 ]
 
