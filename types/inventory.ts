@@ -174,3 +174,26 @@ export function gramsToLbs(grams: number): number {
 export function lbsToGrams(lbs: number): number {
     return lbs * 453.592;
 }
+
+/**
+ * Producto de inventario en su forma minima: lo que necesitan las listas y
+ * los selectores de stock. Es el subconjunto de InventoryItemWithMovements
+ * que consumen inventory-list y product-modal.
+ *
+ * NO confundir con `Product` de types/products.ts, que es el producto padre
+ * del catalogo (Fase 4, tabla `products`) y tiene otra forma.
+ */
+export interface InventoryProductSummary {
+    product_id: string;
+    product_name: string;
+    total_grams_available: number;
+}
+
+/**
+ * Producto tal como lo ven los formularios de venta: solo identidad, sin
+ * stock. Derivado de InventoryProductSummary para que no puedan divergir.
+ */
+export type SaleProductOption = Pick<
+    InventoryProductSummary,
+    'product_id' | 'product_name'
+>;

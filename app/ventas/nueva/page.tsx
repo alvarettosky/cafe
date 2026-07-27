@@ -2,11 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-interface Product {
-    product_id: string;
-    product_name: string;
-}
-
 interface Customer {
     id: string;
     full_name: string;
@@ -19,6 +14,7 @@ import { Coffee, Loader2, ArrowLeft } from "lucide-react";
 import { RecurrenceInput } from "@/components/recurrence-input";
 import Link from "next/link";
 
+import type { SaleProductOption as Product } from "@/types/inventory";
 export default function NuevaVentaPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);

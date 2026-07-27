@@ -2,11 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-interface Product {
-    product_id: string;
-    product_name: string;
-}
-
 interface Customer {
     id: string;
     full_name: string;
@@ -18,6 +13,7 @@ import { supabase } from "@/lib/supabase";
 import { Coffee, Loader2, RefreshCw, Tag, Percent } from "lucide-react";
 import { RecurrenceInput } from "./recurrence-input";
 
+import type { SaleProductOption as Product } from "@/types/inventory";
 // Tipo para información de precio por cliente
 interface CustomerPriceInfo {
     product_id: string;

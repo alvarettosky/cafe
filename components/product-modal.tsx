@@ -7,12 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-interface Product {
-    product_id: string;
-    product_name: string;
-    total_grams_available: number;
-}
-
+import type { InventoryProductSummary as Product } from "@/types/inventory";
 interface ProductModalProps {
     isOpen: boolean;
     onClose: () => void;

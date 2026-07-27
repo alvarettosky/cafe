@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { SaleProductOption as Product } from "@/types/inventory";
 import {
   Dialog,
   DialogContent,
@@ -39,11 +40,6 @@ interface PriceListItem {
   product_id: string;
   product_name: string;
   custom_price: number;
-}
-
-interface Product {
-  product_id: string;
-  product_name: string;
 }
 
 export function PriceListManager() {
