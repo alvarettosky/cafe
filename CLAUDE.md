@@ -15,25 +15,42 @@ Sistema de gestión para venta de café por libras y medias libras, con tienda o
 | 3    | Crecimiento y Escalabilidad    | ✅ Completado |
 | 4    | Arquitectura POS Profesional   | ✅ Completado |
 
-**Testing**: 854 tests unitarios + 7 E2E pasando (93%+ cobertura)
+**Testing** (medido 2026-07-27 con `npm test` y `npm run test:coverage`):
+865 tests unitarios en 38 archivos, todos en verde. Cobertura: líneas 93,79 % ·
+sentencias 92,1 % · ramas 88,22 % · funciones 89,01 % (umbral exigido: 80 % en
+las cuatro). Los 7 tests E2E de Playwright existen pero no se ejecutaron en esa
+verificación — ver `docs/BACKLOG.md` B5.
+
+### Documentación de gestión
+
+Antes de proponer un cambio, leer en este orden:
+
+| Documento                                | Para qué                                                                                            |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [`docs/BLUEPRINT.md`](docs/BLUEPRINT.md) | Por qué el sistema es así. Decisiones D1–D6 y los contratos que TypeScript no protege               |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md)     | Qué se entregó, estado medido y el siguiente paso vigente                                           |
+| [`docs/BACKLOG.md`](docs/BACKLOG.md)     | Pendientes [A]/[B]/[C]/[D]. **§D lista lo ya cerrado con su motivo: leerlo antes de proponer nada** |
+| [`docs/SYLLABUS.md`](docs/SYLLABUS.md)   | Ruta de lectura para entrar al proyecto sin contexto                                                |
 
 ## Comandos Esenciales
 
 ### Desarrollo Local
 
-**IMPORTANTE**: Este proyecto requiere Node.js v20+ en un entorno virtual local:
+Requiere Node.js v20 o superior.
 
 ```bash
-# Activar entorno (NECESARIO en cada terminal nueva)
-source setup_env.sh
-export PATH=$(pwd)/.node_env/bin:$PATH
-
-# Desarrollo
 npm install              # Instalar dependencias
-npm run dev             # Servidor desarrollo (localhost:3000)
-npm run build           # Build de producción
-npm start               # Servidor producción local
+npm run dev              # Servidor desarrollo (localhost:3000)
+npm run build            # Build de producción
+npm start                # Servidor producción local
 ```
+
+> **Sobre `setup_env.sh`.** Este archivo creaba un entorno Node aislado en
+> `.node_env/` y durante un tiempo fue obligatorio activarlo en cada terminal.
+> Ya no lo es: el directorio `.node_env/` no existe, y lint, `tsc`, los 865
+> tests y el build pasan con el Node del sistema (verificado con v26.4.0 el
+> 2026-07-27). El script se conserva por si hace falta fijar la versión en una
+> máquina con un Node antiguo.
 
 ### Testing
 

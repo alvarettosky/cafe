@@ -28,6 +28,21 @@ Sistema completo de gestión para **Mirador Montañero Café Selecto** que inclu
 
 La aplicación está desplegada en Vercel con actualizaciones automáticas en cada push a la rama `main`.
 
+> ⚠️ **No hay entorno de staging.** Un push a `main` va directo a producción.
+
+## 📚 Documentación
+
+| Documento                                | Qué responde                                                                                        |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [`docs/BLUEPRINT.md`](docs/BLUEPRINT.md) | **Por qué** el sistema es así: decisiones de arquitectura y los contratos que TypeScript no protege |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md)     | **Qué** se entregó, el estado medido y el siguiente paso vigente                                    |
+| [`docs/BACKLOG.md`](docs/BACKLOG.md)     | Pendientes clasificados. **§D lista lo ya cerrado con su motivo**                                   |
+| [`docs/SYLLABUS.md`](docs/SYLLABUS.md)   | Ruta de lectura en 8 módulos para entrar al proyecto                                                |
+| [`CLAUDE.md`](CLAUDE.md)                 | Referencia operativa: comandos, esquema de datos, convenciones                                      |
+| [`FICHA_TECNICA.md`](FICHA_TECNICA.md)   | Cuentas, stack y métricas                                                                           |
+| [`INSTRUCCIONES.md`](INSTRUCCIONES.md)   | Guía de inicio rápido                                                                               |
+| [`docs/testing/`](docs/testing/)         | Guías de testing y CI/CD                                                                            |
+
 ## ✨ Características Destacadas
 
 ### 🤖 Sistema de Recurrencia Inteligente

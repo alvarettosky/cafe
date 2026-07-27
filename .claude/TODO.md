@@ -1,157 +1,24 @@
-# TODO - Café Mirador
+# TODO — Café Mirador
 
-## ✅ Completado
+> **Este archivo ya no se mantiene.** Los pendientes vivos están en
+> [`../docs/BACKLOG.md`](../docs/BACKLOG.md), clasificados por lo que hace falta
+> para cerrarlos ([A] automatizable · [B] fuente externa · [C] juicio humano ·
+> [D] bloqueado).
+>
+> Se dejó de mantener el 2026-07-27, con su último estado fechado el 2026-01-23.
+> Tener dos listas de pendientes garantiza que una de las dos mienta: esta
+> afirmaba que fallaban tests en un worktree que ya no existe, y no registraba
+> que los enlaces de descarga de backups estaban rotos en producción.
 
-### Sistema de Recurrencia de Clientes
+## Dónde está cada cosa ahora
 
-- [x] Función RPC `calculate_customer_recurrence` para calcular recurrencia basada en historial
-- [x] Función RPC `update_customer_recurrence` para actualizar recurrencia de clientes
-- [x] Campo `typical_recurrence_days` en tabla customers
-- [x] Componente `RecurrenceInput` con sugerencias de IA
-- [x] Integración en `CustomerModal` para editar recurrencia
-- [x] Integración en `NewSaleModal` para nuevos clientes
-- [x] Página `/clientes` para gestión de clientes con recurrencia
-- [x] Página `/contactos` para lista de clientes a contactar
-- [x] Tests completos para componentes de recurrencia
+| Lo que buscabas aquí      | Dónde está                                                                      |
+| ------------------------- | ------------------------------------------------------------------------------- |
+| Pendientes abiertos       | [`docs/BACKLOG.md`](../docs/BACKLOG.md) §A/§B/§C                                |
+| Bugs conocidos            | [`docs/BACKLOG.md`](../docs/BACKLOG.md) — los cerrados, en §D con su causa raíz |
+| Qué se completó y cuándo  | [`docs/ROADMAP.md`](../docs/ROADMAP.md)                                         |
+| Por qué el sistema es así | [`docs/BLUEPRINT.md`](../docs/BLUEPRINT.md)                                     |
+| Por dónde empezar a leer  | [`docs/SYLLABUS.md`](../docs/SYLLABUS.md)                                       |
 
-### Campos de Dirección
-
-- [x] Campo `address` en tabla customers
-- [x] Input de dirección en `NewSaleModal` (modo nuevo cliente)
-- [x] Input de dirección en `CustomerModal`
-- [x] Visualización de dirección en lista de ventas recientes
-- [x] Tipos TypeScript actualizados (`CustomerWithRecurrence`)
-
-### UX/UI Mejorada
-
-- [x] Modal de "Nueva Venta" movido a página completa `/ventas/nueva`
-- [x] Botones de navegación "Clientes" y "Contactos" en dashboard
-- [x] Formulario de ventas con mejor espaciado y visibilidad
-- [x] Modal de ventas optimizado (reducción de altura, scroll controlado)
-
-### Testing
-
-- [x] Tests para `customer-modal.test.tsx` (12 tests)
-- [x] Tests para `recurrence-input.test.tsx` (15 tests)
-- [x] Tests para `date-range-selector.test.tsx` corregidos
-- [x] Mocks de Supabase RPC corregidos
-- [x] 854 tests unitarios pasando (93%+ cobertura)
-- [x] 7 tests E2E con Playwright
-- [x] Tests para todas las páginas del portal de cliente
-- [x] Tests para API routes de exportación y backups
-
-### Sistema de Backups
-
-- [x] Backups automáticos diarios a Supabase Storage (2:00 AM UTC)
-- [x] Scripts de backup en `scripts/backup/`
-- [x] GitHub Actions workflow para backups
-- [x] Política de retención (7 días diarios, 4 semanas, 12 meses)
-- [x] Notificaciones por email via Resend (opcional)
-- [x] API routes para listar y triggear backups
-- [x] Exportación manual CSV/XLSX
-
-### Documentación
-
-- [x] Archivo `CLAUDE.md` con guía completa del proyecto
-  - Comandos esenciales
-  - Arquitectura del sistema
-  - Esquema de base de datos
-  - Sistema de recurrencia
-  - Errores comunes
-  - Workflow recomendado
-
-### Deployment
-
-- [x] Desplegado en Vercel: https://cafe-pi-steel.vercel.app
-- [x] Todas las rutas funcionando en producción
-  - `/` - Dashboard principal
-  - `/analytics` - Analytics
-  - `/clientes` - Gestión de clientes
-  - `/contactos` - Lista de contacto
-  - `/ventas/nueva` - Formulario de venta
-
----
-
-## 🔄 En Progreso
-
-_No hay tareas en progreso actualmente_
-
----
-
-## 📋 Pendiente
-
-### Testing ✅
-
-- [x] Aumentar cobertura de tests al 90% (actual: 93.9%)
-- [x] Agregar tests E2E con Playwright (7 tests)
-- [x] Tests para flujo completo de venta
-- [x] Tests para integración de recurrencia en ventas
-
-### Features
-
-- [ ] Notificaciones push para clientes que deben ser contactados
-- [ ] Sistema de recordatorios automáticos
-- [ ] Dashboard de métricas de recurrencia
-- [x] Exportar lista de contactos a CSV/Excel
-- [ ] Integración con WhatsApp Business API
-- [ ] Gráficas de predicción de ventas basadas en recurrencia
-
-### Optimizaciones
-
-- [ ] Caché de consultas frecuentes
-- [ ] Optimización de imágenes
-- [ ] Lazy loading de componentes pesados
-- [ ] Service Worker para PWA
-
-### DevOps ✅
-
-- [x] CI/CD con GitHub Actions (lint, tests, build, E2E, backups)
-- [ ] Monitoreo de errores con Sentry
-- [ ] Analytics con Google Analytics o Plausible
-- [x] Backup automático de base de datos (Supabase Storage)
-
-### UX/UI
-
-- [ ] Modo oscuro/claro toggle
-- [ ] Animaciones de transición mejoradas
-- [ ] Tour guiado para nuevos usuarios
-- [ ] Accesibilidad (ARIA labels, teclado navigation)
-
----
-
-## 🐛 Bugs Conocidos
-
-- [ ] Warnings de accesibilidad en Dialog components (Missing Description)
-- [ ] Tests fallando en worktree `.worktrees/customer-recurrence-sales-editing/`
-- [ ] Imagen de fondo `/coffee-bg-dark.jpg` devuelve 404
-
----
-
-## 📝 Notas
-
-### Worktree Antiguo
-
-El worktree `.worktrees/customer-recurrence-sales-editing/` tiene código desactualizado y tests fallando. Considerar:
-
-- Eliminar worktree si ya no se usa
-- Actualizar código en worktree
-- Merger branch `feature/customer-recurrence-sales-editing` a main
-
-### Pre-commit Hooks
-
-- Configurado con Husky y lint-staged
-- Ejecuta tests relacionados antes de commit
-- Deprecation warning de Husky v9 → v10
-
-### Estructura de Base de Datos
-
-Ver `CLAUDE.md` para esquema completo de:
-
-- customers (con recurrencia)
-- sales
-- inventory
-- RPC functions
-
----
-
-**Última actualización**: 2026-01-23
+El historial completo de este archivo sigue en git:
+`git log --follow .claude/TODO.md`.
