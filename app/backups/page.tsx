@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
@@ -29,6 +29,13 @@ export default function BackupsPage() {
   const [backups, setBackups] = useState<BackupFile[]>([]);
   const [backupsLoading, setBackupsLoading] = useState(true);
   const [configured, setConfigured] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  // Distingue "la peticion fallo" de "respondio bien y dice que no esta
+  // configurado". Son dos problemas distintos y llevan al admin a sitios
+  // distintos; mezclarlos fue justo el fallo que se corrige aqui.
+  const [loadFailed, setLoadFailed] = useState(false);
+  // Momento de la ultima carga, para saber si las URLs firmadas ya caducaron.
+  const ultimaCargaRef = useRef<number | null>(null);
   const [triggerLoading, setTriggerLoading] = useState(false);
   const [triggerMessage, setTriggerMessage] = useState<{
     type: 'success' | 'error';
@@ -47,6 +54,25 @@ export default function BackupsPage() {
     if (isAdmin && session?.access_token) {
       loadBackups();
     }
+  }, [isAdmin, session]);
+
+  // Las URLs de descarga son firmadas y caducan en 1 h (route.ts:90), pero esta
+  // pagina solo cargaba al montar: una pestana abierta un rato largo mostraba
+  // enlaces caducados que llevaban a un error de JWT en vez de descargar nada.
+  // Al volver a la pestana se refrescan si ya llevan mas de 45 min emitidos.
+  useEffect(() => {
+    if (!isAdmin || !session?.access_token) return;
+
+    const alVolver = () => {
+      if (document.visibilityState !== 'visible') return;
+      const emitidas = ultimaCargaRef.current;
+      if (emitidas && Date.now() - emitidas > 45 * 60 * 1000) {
+        loadBackups();
+      }
+    };
+
+    document.addEventListener('visibilitychange', alVolver);
+    return () => document.removeEventListener('visibilitychange', alVolver);
   }, [isAdmin, session]);
 
   const loadBackups = async () => {
@@ -68,10 +94,31 @@ export default function BackupsPage() {
         const data = await response.json();
         setBackups(data.backups || []);
         setConfigured(data.configured);
+        // La ruta explica por que no esta configurado; sin esto el mensaje se
+        // recibia y se descartaba, y la pagina inventaba su propia causa.
+        setLoadError(data.configured ? null : (data.message ?? null));
+        setLoadFailed(false);
+      } else {
+        // Un 401/403/500 NO es "sin configurar". Antes se caia en el else
+        // implicito y `configured` se quedaba en su false inicial, asi que un
+        // fallo de sesion o de Storage se mostraba como falta de configuracion
+        // y el admin iba a tocar variables de entorno que estaban bien.
+        let detalle = `HTTP ${response.status}`;
+        try {
+          const cuerpo = await response.json();
+          if (cuerpo?.error) detalle = `${cuerpo.error} (HTTP ${response.status})`;
+        } catch {
+          // respuesta sin JSON: nos quedamos con el codigo
+        }
+        setLoadError(detalle);
+        setLoadFailed(true);
       }
     } catch (error) {
       console.error('Error loading backups:', error);
+      setLoadError(error instanceof Error ? error.message : 'Error de red');
+      setLoadFailed(true);
     } finally {
+      ultimaCargaRef.current = Date.now();
       setBackupsLoading(false);
     }
   };
@@ -307,8 +354,29 @@ export default function BackupsPage() {
           </div>
         )}
 
+        {/* La peticion fallo: es un error, no una falta de configuracion. */}
+        {loadFailed && !backupsLoading && (
+          <div className="mb-8 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-red-800 dark:text-red-300 mb-2">
+                  No se pudo consultar el historial de backups
+                </h3>
+                <p className="text-sm text-red-700 dark:text-red-400">
+                  {loadError ?? 'Error desconocido'}
+                </p>
+                <p className="mt-2 text-sm text-red-700 dark:text-red-400">
+                  Esto no significa que los backups falten: la consulta no pudo completarse. Si la
+                  sesion caduco, vuelve a iniciarla; si persiste, revisa los logs del servidor.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Configuration Notice */}
-        {!configured && !backupsLoading && (
+        {!configured && !loadFailed && !backupsLoading && (
           <div className="mb-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
             <div className="flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
@@ -317,14 +385,19 @@ export default function BackupsPage() {
                   Backups Automaticos No Configurados
                 </h3>
                 <p className="text-sm text-yellow-700 dark:text-yellow-400 mb-2">
-                  Para habilitar backups automaticos a Google Drive, configura:
+                  Los backups se guardan en Supabase Storage. Para habilitarlos, configura:
                 </p>
                 <ul className="text-sm text-yellow-700 dark:text-yellow-400 list-disc list-inside space-y-1">
-                  <li>GOOGLE_DRIVE_CREDENTIALS (Service account JSON)</li>
-                  <li>GOOGLE_DRIVE_FOLDER_ID (ID de carpeta destino)</li>
+                  <li>SUPABASE_SERVICE_ROLE_KEY (obligatoria)</li>
+                  <li>NEXT_PUBLIC_SUPABASE_URL (obligatoria)</li>
                   <li>RESEND_API_KEY (Opcional, para notificaciones)</li>
                   <li>NOTIFICATION_EMAIL (Opcional, email destino)</li>
                 </ul>
+                {loadError && (
+                  <p className="mt-2 text-sm text-yellow-700 dark:text-yellow-400">
+                    Detalle del servidor: {loadError}
+                  </p>
+                )}
               </div>
             </div>
           </div>

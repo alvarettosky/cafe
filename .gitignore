@@ -39,5 +39,14 @@ VERCEL_FIX.html
 # tocara, dejando sin aplicar el formateo automatico.
 /backups/
 
+# ...pero anclar solo la raiz deja fuera los volcados que el exportador escribe
+# relativos al cwd (`path.join(process.cwd(), 'backups', ts)` en
+# scripts/backup/export-tables.ts), y ese directorio solo se limpia en la ruta
+# de exito de run-backup.ts. Si se invoca el exportador directamente, o si
+# falla la subida, quedan en disco 20 JSON con datos de clientes reales.
+# ESTE REPOSITORIO ES PUBLICO: no pueden entrar nunca.
+scripts/backup/backups/
+scripts/backups/
+
 # Cache incremental de tsc (npx tsc --noEmit)
 tsconfig.tsbuildinfo

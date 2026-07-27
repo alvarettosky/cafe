@@ -575,12 +575,12 @@ cafe-mirador-backup-YYYY-MM-DD_HH-MM-SS.zip
 ### TypeScript
 
 - Strict mode habilitado
-- Tipos definidos en `types/` directory
-- Interfaces importantes:
-  - `types/customer-recurrence.ts` - CustomerWithRecurrence, CustomerToContact
-  - `types/inventory.ts` - InventoryMovement, MovementType (sale, restock, adjustment, loss, return)
-  - `types/products.ts` - Product, ProductVariant, VariantForSale
-  - `types/index.ts` - DashboardStats, Sales, Products
+- Tipos definidos en `types/`
+
+El inventario completo del directorio, con la convención de nombres y el
+precedente que la motivó, vive en **[`docs/BLUEPRINT.md` §4](docs/BLUEPRINT.md#4-estructura-de-tipos)**.
+Es la única copia: mantener aquí una segunda lista garantiza que una de las dos
+quede obsoleta, que es exactamente lo que pasó con esta.
 
 ### Componentes React
 

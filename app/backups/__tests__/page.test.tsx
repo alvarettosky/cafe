@@ -482,8 +482,12 @@ describe('BackupsPage', () => {
       render(<BackupsPage />);
 
       await waitFor(() => {
-        expect(screen.getByText(/GOOGLE_DRIVE_CREDENTIALS/)).toBeInTheDocument();
-        expect(screen.getByText(/GOOGLE_DRIVE_FOLDER_ID/)).toBeInTheDocument();
+        // El almacenamiento es Supabase Storage, no Google Drive. Esta
+        // asercion fijaba los nombres de variables de una integracion que ya
+        // no existe, asi que validaba en verde un panel que mandaba al admin a
+        // configurar credenciales equivocadas.
+        expect(screen.getByText(/SUPABASE_SERVICE_ROLE_KEY/)).toBeInTheDocument();
+        expect(screen.getByText(/NEXT_PUBLIC_SUPABASE_URL/)).toBeInTheDocument();
       });
     });
 
