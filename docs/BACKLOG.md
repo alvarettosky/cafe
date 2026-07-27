@@ -17,6 +17,49 @@ Sustituye a `.claude/TODO.md`, que queda como puntero.
 
 ---
 
+## 🚨 P0 — La base de datos de producción se congela el ~2026-07-29
+
+**Estado verificado el 2026-07-27.** El proyecto Supabase **`cafe-de-salento`**
+(`inszvqzpxfqibkjsptsm`) lleva ~85 días pausado. Supabase avisó por correo el
+24-jul-2026 de que lo **congela permanentemente en 5 días**. Pasada esa fecha
+**no se puede restaurar**: solo descargar los datos.
+
+No es un riesgo futuro, ya se materializó: `inszvqzpxfqibkjsptsm.supabase.co`
+**no resuelve en DNS**. La app lleva ~85 días sin backend. `/login` sigue
+viéndose porque es una ruta prerenderizada, no porque funcione.
+
+Que es el mismo proyecto de esta app está probado: el bundle servido en
+<https://cafe-pi-steel.vercel.app> contiene ese host.
+
+### Causa raíz
+
+| #   | Cuándo      | Qué pasó                                                                                                                                                                                          |
+| --- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | 2026-02-03  | Último commit. El repositorio queda inactivo                                                                                                                                                      |
+| 2   | ~2026-04-06 | GitHub deshabilita los workflows programados por inactividad del repo. `gh workflow list --all` los marca `disabled_inactivity`: Daily Backup, E2E Tests, Nightly Tests y **Keep Supabase Alive** |
+| 3   | 2026-04-06  | Última ejecución de `keep-alive.yml`, el workflow que existía **exactamente para impedir esta pausa** (ping cada 5 días contra el umbral de 7 de Supabase)                                        |
+| 4   | ~2026-04-30 | Supabase pausa el proyecto. Cuadra con los «85 días» del correo                                                                                                                                   |
+| 5   | ~2026-07-29 | Congelación permanente                                                                                                                                                                            |
+
+**El keep-alive no falló: lo apagaron.** Un guardián cuya ejecución depende de la
+misma actividad que vigila no es un guardián. Mientras el repo tenga commits, el
+ping sobra; en cuanto deja de tenerlos —el único caso en que hace falta— GitHub
+lo desactiva.
+
+**Agravante:** el último backup automático es del **2026-04-05** (Daily Backup
+murió el mismo día que el resto) y vive **dentro del proyecto congelable**. No
+existe copia externa más reciente.
+
+### Acciones
+
+| #    | Acción                                                                                 | Clase   | Notas                                                                                                                                                     |
+| ---- | -------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P0.1 | **Restaurar el proyecto desde <https://supabase.com/dashboard>** antes del 29-jul-2026 | **[B]** | Requiere la sesión de Supabase del dueño. Es la única acción con fecha límite                                                                             |
+| P0.2 | Descargar los datos como respaldo externo, restaure o no                               | **[B]** | Ídem                                                                                                                                                      |
+| P0.3 | Reactivar los 4 workflows (`gh workflow enable`)                                       | **[B]** | Bloqueado: la cuenta autenticada es `alvaretto` y el repo es de `alvarettosky` (403)                                                                      |
+| P0.4 | Romper la circularidad del keep-alive                                                  | **[C]** | Opciones: disparador externo a GitHub (cron propio, cron-job.org), plan Pro de Supabase (sin pausa por inactividad), o un commit programado. Decidir cuál |
+| P0.5 | Que el backup deje una copia **fuera** de Supabase                                     | **[C]** | Un backup alojado en el sistema del que protege no protege de la pérdida de ese sistema                                                                   |
+
 ## A — Automatizable ahora
 
 | #   | Pendiente                                                         | Notas                                                                                                                                            |
