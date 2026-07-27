@@ -192,30 +192,20 @@ dejaron como estaban — ya caían dentro de la franja y su horario es indiferen
 
 ## A — Automatizable ahora
 
-| #   | Pendiente                                                         | Notas                                                                                                                                            |
-| --- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| A1  | Warnings de accesibilidad en `Dialog` (falta `Description`)       | Radix los emite en consola; 10 warnings de ESLint conviven aparte                                                                                |
-| A2  | Modo oscuro/claro con toggle                                      | Hoy el dark es fijo (`<html className="dark">`)                                                                                                  |
-| A3  | Accesibilidad: etiquetas ARIA y navegación por teclado            |                                                                                                                                                  |
-| A4  | Caché de consultas frecuentes                                     | El dashboard reconsulta en cada montaje                                                                                                          |
-| A5  | Lazy loading de componentes pesados                               | `app/portal/suscripcion/page.tsx` son 707 líneas                                                                                                 |
-| A6  | Optimización de imágenes                                          |                                                                                                                                                  |
-| A7  | Service Worker / PWA                                              |                                                                                                                                                  |
-| A8  | Dashboard de métricas de recurrencia                              | Los datos ya existen (`customer_segments`)                                                                                                       |
-| A9  | Gráficas de predicción de ventas basadas en recurrencia           | Depende de A8 para no duplicar consultas                                                                                                         |
-| A10 | Animaciones de transición                                         | framer-motion ya está en el proyecto                                                                                                             |
-| A11 | Etiqueta «Ver en Drive» en `/backups`                             | **Es un fósil**: el almacenamiento es Supabase Storage desde la migración; ya no hay Drive. Cambiar el texto y su aserción en el test            |
-| A12 | Homonimia pendiente: `Referral`, `ReferralStats` y `DeliveryZone` | Cada uno declarado 2 veces **con formas distintas** (portal vs admin). Mismo patrón que causó el bug `5ce639e`. Darles nombre propio en `types/` |
-
-### A13 — Formatear el repositorio completo
-
-`npm run format:check` reporta **137 archivos** con diferencias de estilo
-(medido 2026-07-27 sobre `main`). El repo nunca se formateó entero: prettier
-solo corre sobre los archivos que toca cada commit, vía lint-staged.
-
-No es cosmético del todo: mientras siga así, la fase 3 de `/validate` nace en
-rojo y hay que verificarla a mano archivo por archivo. Cerrarlo es un commit
-propio, aislado, que no mezcle reformateo con cambios de comportamiento.
+| #   | Pendiente                                                   | Notas                                                                                                                                                                                                                                          |
+| --- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A1  | Warnings de accesibilidad en `Dialog` (falta `Description`) | Radix los emite en consola; 10 warnings de ESLint conviven aparte                                                                                                                                                                              |
+| A2  | Modo oscuro/claro con toggle                                | Hoy el dark es fijo (`<html className="dark">`)                                                                                                                                                                                                |
+| A3  | Accesibilidad: etiquetas ARIA y navegación por teclado      |                                                                                                                                                                                                                                                |
+| A4  | Caché de consultas frecuentes                               | El dashboard reconsulta en cada montaje                                                                                                                                                                                                        |
+| A5  | Lazy loading de componentes pesados                         | `app/portal/suscripcion/page.tsx` son 707 líneas                                                                                                                                                                                               |
+| A6  | Optimización de imágenes                                    |                                                                                                                                                                                                                                                |
+| A7  | Service Worker / PWA                                        |                                                                                                                                                                                                                                                |
+| A8  | Dashboard de métricas de recurrencia                        | Los datos ya existen (`customer_segments`)                                                                                                                                                                                                     |
+| A9  | Gráficas de predicción de ventas basadas en recurrencia     | Depende de A8 para no duplicar consultas                                                                                                                                                                                                       |
+| A10 | Animaciones de transición                                   | framer-motion ya está en el proyecto                                                                                                                                                                                                           |
+| A11 | Etiqueta «Ver en Drive» en `/backups`                       | **Es un fósil**: el almacenamiento es Supabase Storage desde la migración; ya no hay Drive. Cambiar el texto y su aserción en el test                                                                                                          |
+| A14 | Zona de entrega sin color se pinta transparente             | `delivery-zones-manager.tsx` no aplica `background-color` cuando `color` es null; el componente hermano `delivery-zone-select.tsx` usa gris `#9CA3AF`. Unificar en el gris es un cambio de producto, no de tipos: por eso se dejó fuera de A12 |
 
 ## B — Requiere fuente externa
 
@@ -242,19 +232,49 @@ propio, aislado, que no mezcle reformateo con cambios de comportamiento.
 > **Leer esta sección antes de proponer algo.** Lo que está aquí ya se decidió;
 > re-proponerlo cuesta el tiempo de volver a descartarlo.
 
-| Qué                                                                 | Cuándo                 | Por qué se cerró así                                                                                                                                  |
-| ------------------------------------------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Enlaces de descarga de backups rotos                                | 2026-07-27 (`5ce639e`) | `BackupFile` duplicado; productor emitía `downloadUrl`, consumidor leía `webViewLink`. Tipo único en `types/backups.ts`                               |
-| Fondo `/coffee-bg-dark.jpg` daba 404                                | 2026-07-27 (`bbf34f4`) | El asset nunca se commiteó. Se agregó el archivo, **no** se quitó la referencia                                                                       |
-| `interface Product` ×7                                              | 2026-07-27 (`07ebdda`) | Tres formas distintas bajo un mismo nombre. Cada una con nombre propio en `types/`                                                                    |
-| Regla `backups/` en `.gitignore`                                    | 2026-07-27 (`c7d9335`) | Sin anclar, sombreaba `app/backups/` y `app/api/backups/`; el paso «Applying modifications» de lint-staged fallaba en silencio. Anclada a `/backups/` |
-| «Tests fallando en `.worktrees/customer-recurrence-sales-editing/`» | 2026-07-27             | **Afirmación fósil**: `git worktree list` muestra solo el principal y `.worktrees/` no existe. No hay nada que arreglar                               |
-| Deprecation de Husky v9→v10                                         | 2026-07-27             | Eliminadas las dos líneas que fallarían en v10                                                                                                        |
-| `/alinear-completo` como comando del proyecto                       | 2026-07-27             | Es del pipeline ICFES de otro proyecto. No aplica. Su lugar lo ocupa `/validate`                                                                      |
-| Datos de ventas en este repositorio                                 | 2026-07-27             | El repo es **público** y el CSV tiene 53 clientes identificables. Viven en el repo privado `proyectos-varios`                                         |
-| Node 20 vía `setup_env.sh`                                          | 2026-07-27             | `.node_env` no existe y todo (lint, tsc, 865 tests, build) pasa con node v26.4.0. El requisito era de enero                                           |
+| Qué                                                                 | Cuándo                 | Por qué se cerró así                                                                                                                                                                                     |
+| ------------------------------------------------------------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Enlaces de descarga de backups rotos                                | 2026-07-27 (`5ce639e`) | `BackupFile` duplicado; productor emitía `downloadUrl`, consumidor leía `webViewLink`. Tipo único en `types/backups.ts`                                                                                  |
+| Fondo `/coffee-bg-dark.jpg` daba 404                                | 2026-07-27 (`bbf34f4`) | El asset nunca se commiteó. Se agregó el archivo, **no** se quitó la referencia                                                                                                                          |
+| `interface Product` ×7                                              | 2026-07-27 (`07ebdda`) | Tres formas distintas bajo un mismo nombre. Cada una con nombre propio en `types/`                                                                                                                       |
+| Regla `backups/` en `.gitignore`                                    | 2026-07-27 (`c7d9335`) | Sin anclar, sombreaba `app/backups/` y `app/api/backups/`; el paso «Applying modifications» de lint-staged fallaba en silencio. Anclada a `/backups/`                                                    |
+| «Tests fallando en `.worktrees/customer-recurrence-sales-editing/`» | 2026-07-27             | **Afirmación fósil**: `git worktree list` muestra solo el principal y `.worktrees/` no existe. No hay nada que arreglar                                                                                  |
+| Deprecation de Husky v9→v10                                         | 2026-07-27             | Eliminadas las dos líneas que fallarían en v10                                                                                                                                                           |
+| `/alinear-completo` como comando del proyecto                       | 2026-07-27             | Es del pipeline ICFES de otro proyecto. No aplica. Su lugar lo ocupa `/validate`                                                                                                                         |
+| Datos de ventas en este repositorio                                 | 2026-07-27             | El repo es **público** y el CSV tiene 53 clientes identificables. Viven en el repo privado `proyectos-varios`                                                                                            |
+| Node 20 vía `setup_env.sh`                                          | 2026-07-27             | `.node_env` no existe y todo (lint, tsc, 865 tests, build) pasa con node v26.4.0. El requisito era de enero                                                                                              |
+| A13 — repositorio sin formatear (137 archivos)                      | 2026-07-27 (`256f7d0`) | Formateado entero en un commit aislado. Se agregó `.prettierignore`, que no existía: sin él prettier reescribía 4 `.html`, tres de ellos derivados de un `.md`. `format:check` en verde por primera vez  |
+| A12 — homonimia `Referral`, `ReferralStats`, `DeliveryZone`         | 2026-07-27 (`3988e52`) | Eran **tres** declaraciones por forma, no dos: había una copia anónima inline en cada `.map()`. Nombres propios en `types/referrals.ts` y `types/deliveries.ts`. Detalle en §«La mentira de nulabilidad» |
 
 ---
+
+## La mentira de nulabilidad que destapó A12
+
+Vale la pena dejarlo escrito porque no es un caso aislado del programa de
+referidos: es cómo se ve este fallo desde dentro.
+
+Las dos declaraciones de `DeliveryZone` describían **la misma consulta** —
+`.from('delivery_zones').select('*')` en ambos archivos— y aun así se
+contradecían: una daba `delivery_days` y `color` por no nulos, la otra por
+nulables. El esquema zanja la discusión: ambas columnas se crearon sin
+`NOT NULL` (`022_fase3_crecimiento.sql:106-107`).
+
+Lo que hace instructivo el caso es **por qué nunca se cayó**. Los consumidores
+llevaban guardas que el tipo declaraba imposibles:
+
+```ts
+const getDaysLabel = (days: string[]) => {
+  if (!days || days.length === 0) return 'Sin dias asignados'; // ← inalcanzable según el tipo
+```
+
+Quien escribió el código sabía que podían llegar nulos; solo el tipo no se
+enteró. Esa guarda era lo único que separaba la pantalla de un crash, y estaba
+formalmente marcada como código muerto: cualquiera podía borrarla en una
+limpieza «segura», con el respaldo de TypeScript.
+
+**El sintoma a vigilar:** una guarda defensiva contra un valor que el tipo
+declara imposible. O sobra el `if`, o miente el tipo. Casi siempre miente el
+tipo, porque el `if` lo escribió alguien que había visto el dato real.
 
 ## Cómo se alimenta este backlog
 

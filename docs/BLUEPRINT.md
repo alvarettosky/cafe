@@ -111,13 +111,26 @@ types/
 ├── products.ts           Catálogo padre/variantes (Fase 4)
 ├── portal.ts             PortalProductOption
 ├── sales.ts              SaleCustomerOption
+├── referrals.ts          Referidos: Admin* (toda la tabla) vs Portal* (un cliente)
+├── deliveries.ts         Zonas de entrega, con la nulabilidad real del esquema
 └── backups.ts            Contrato de la API de backups
 ```
 
 **Convención de nombres:** cuando dos superficies necesitan «lo mismo» con
 distinta forma, cada forma lleva nombre propio (`PortalProductOption` vs
-`InventoryProductSummary`) y se importa con alias local si conviene. Nunca dos
-`interface Product` distintas.
+`InventoryProductSummary`). Nunca dos `interface Product` distintas.
+
+El prefijo indica **el universo del dato**, no el archivo que lo consume:
+`Admin*` es lo que agrega sobre toda la tabla, `Portal*` lo que una RPC recorta
+al cliente que consulta. Por eso `AdminReferralStats` y `PortalReferralStats`
+son tipos separados aunque «cuenten lo mismo»: sus campos ni siquiera se llaman
+igual (`total_referrals` vs `total`).
+
+**Sobre los alias de importación.** Se usan cuando el nombre local sigue siendo
+inequívoco en su archivo (`PortalProductOption as Product`). No se usan cuando
+el nombre corto es precisamente el ambiguo: importar `AdminReferralStats as
+ReferralStats` reintroduce en el punto de lectura la ambigüedad que separar los
+tipos venía a eliminar.
 
 ## 5. Estado de despliegue
 

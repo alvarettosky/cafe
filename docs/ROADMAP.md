@@ -16,6 +16,7 @@ Qué se construyó, en qué orden y qué sigue.
 | Umbral exigido  | 80 % en las cuatro métricas                                            | `vitest.config.mts`          |
 | Tipos           | Sin errores                                                            | `npx tsc --noEmit`           |
 | Lint            | 0 errores, 10 warnings                                                 | `npm run lint`               |
+| Formato         | Todo el repo conforme                                                  | `npm run format:check`       |
 | Build           | 21 rutas generadas                                                     | `npm run build`              |
 | Tests E2E       | 7 escritos, **sin ejecutar** en esta verificación                      | ver [BACKLOG](BACKLOG.md) B5 |
 
@@ -40,25 +41,33 @@ Qué se construyó, en qué orden y qué sigue.
 No agrega funcionalidad: paga deuda estructural que ya causó un fallo en
 producción.
 
-| #   | Trabajo                                                          | Estado                       |
-| --- | ---------------------------------------------------------------- | ---------------------------- |
-| 5.1 | Aplicar los tokens del design system y corregir el 404 del fondo | ✅ `bbf34f4`                 |
-| 5.2 | Centralizar los tipos duplicados (`Product` ×7, `Customer` ×2)   | ✅ `07ebdda`                 |
-| 5.3 | Corregir el contrato roto de la API de backups                   | ✅ `5ce639e`                 |
-| 5.4 | Anclar la regla de `.gitignore` que rompía el hook de pre-commit | ✅ `c7d9335`                 |
-| 5.5 | Documentación de gestión (este set de 4 documentos)              | ✅                           |
-| 5.6 | Homonimia restante: `Referral`, `ReferralStats`, `DeliveryZone`  | ⬜ [BACKLOG](BACKLOG.md) A12 |
-| 5.7 | Verificación automática del contrato de las RPC                  | ⬜ [BACKLOG](BACKLOG.md) B4  |
+| #   | Trabajo                                                          | Estado                      |
+| --- | ---------------------------------------------------------------- | --------------------------- |
+| 5.1 | Aplicar los tokens del design system y corregir el 404 del fondo | ✅ `bbf34f4`                |
+| 5.2 | Centralizar los tipos duplicados (`Product` ×7, `Customer` ×2)   | ✅ `07ebdda`                |
+| 5.3 | Corregir el contrato roto de la API de backups                   | ✅ `5ce639e`                |
+| 5.4 | Anclar la regla de `.gitignore` que rompía el hook de pre-commit | ✅ `c7d9335`                |
+| 5.5 | Documentación de gestión (este set de 4 documentos)              | ✅                          |
+| 5.6 | Homonimia restante: `Referral`, `ReferralStats`, `DeliveryZone`  | ✅ `3988e52`                |
+| 5.7 | Formatear el repositorio completo (137 archivos)                 | ✅ `256f7d0`                |
+| 5.8 | Verificación automática del contrato de las RPC                  | ⬜ [BACKLOG](BACKLOG.md) B4 |
+
+Con 5.6 queda cerrada la deuda de tipos que abrió `5ce639e`: no quedan formas
+distintas compartiendo nombre. El caso destapó además que las declaraciones no
+eran dos por forma sino **tres** —había una copia anónima inline en cada
+`.map()`— y que una de ellas mentía sobre la nulabilidad de dos columnas. El
+detalle está en [BACKLOG §«La mentira de nulabilidad»](BACKLOG.md#la-mentira-de-nulabilidad-que-destapó-a12).
 
 ## Siguiente paso vigente
 
-**[BACKLOG](BACKLOG.md) A12 — cerrar la homonimia restante.** Es el mismo patrón
-que produjo el bug `5ce639e`, y los tres casos (`Referral`, `ReferralStats`,
-`DeliveryZone`) tienen formas **distintas** bajo el mismo nombre, que es la
-variante peligrosa: no es duplicación, es ambigüedad.
+**[BACKLOG](BACKLOG.md) B4 — verificar el contrato de las RPC.** Es el techo de
+lo que se puede pagar sin credenciales: la deuda de tipos que TypeScript _sí_
+podía ver ya está saldada, y lo que queda —que una migración cambie una RPC y
+rompa el frontend en silencio— solo se cierra generando los tipos desde el
+esquema real. Requiere `.env.local`; la receta está al final del BACKLOG.
 
-Después, en orden de valor: B4 (contrato de las RPC), A1/A3 (accesibilidad),
-A8/A9 (métricas de recurrencia).
+Sin credenciales de por medio, lo siguiente en valor es A1/A3 (accesibilidad) y
+A8/A9 (métricas de recurrencia, cuyos datos ya existen en `customer_segments`).
 
 ## Al retomar
 
