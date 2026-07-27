@@ -17,15 +17,105 @@ Sustituye a `.claude/TODO.md`, que queda como puntero.
 
 ---
 
+## ✅ P0-SEC — La base estaba abierta a internet. Cerrado el 2026-07-27
+
+Aparecieron **dos fallos independientes** al preparar un commit de formato. Ambos
+verificados contra producción, corregidos y comprobados después.
+
+### Fallo 1 — clave `service_role` en un repositorio público, 189 días
+
+`execute-sql-node.js` entró el **2026-01-19** (`d39823e`) con la clave `service_role`
+incrustada en el fuente. Este repositorio es **público**. Se comprobó que la clave **seguía
+siendo válida**: una consulta a `customers` con ella devolvía HTTP 200. `service_role`
+ignora RLS: lectura y escritura sobre todo.
+
+### Fallo 2 — RLS no protegía nada, y era el más grave
+
+La clave `anon` es **pública por diseño**: viaja en el bundle que sirve Vercel. Lo único
+que la separa de los datos es RLS. Con solo esa clave, cualquiera leía:
+
+```
+customers -> 2 filas    sales -> 1 fila
+inventory -> 3 filas    profiles -> 3 filas
+```
+
+Dos causas distintas bajo el mismo síntoma:
+
+- `sales` y `sale_items` tenían **RLS desactivado**. Sus políticas estaban bien escritas
+  pero **inertes**: una política sin RLS activo no se evalúa. Es el peor modo de fallo,
+  porque `pg_policies` las lista con toda normalidad.
+- `customers`, `inventory` y `profiles` tenían RLS activo y políticas correctas
+  **conviviendo con políticas abiertas**. Las políticas de PostgreSQL son permisivas y se
+  combinan con **OR**: basta una que diga `true` para que las demás sobren. La de
+  `customers` era `ALL` con `USING true` **y `WITH CHECK true`** — cualquiera podía además
+  modificar y **borrar** clientes.
+
+### Qué se hizo, en este orden
+
+| #   | Acción                                                                            | Resultado                                                                                                       |
+| --- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| 1   | Migrar consumidores legítimos a la clave `sb_secret_`                             | Secreto de GitHub y espejo de backups. Probado con `supabase-js`: tabla y storage OK                            |
+| 2   | [`027_cerrar_rls_publico.sql`](../supabase/migrations/027_cerrar_rls_publico.sql) | RLS activo en `sales`/`sale_items`; retiradas las 4 políticas abiertas; `profiles` restringido a la fila propia |
+| 3   | Mover producción a la clave `publishable`                                         | Variable en Vercel + redespliegue. Verificado en el bundle servido                                              |
+| 4   | Desactivar las claves legacy                                                      | `PUT /api-keys/legacy?enabled=false`. **La `service_role` filtrada pasó a 401 en ~60 s**                        |
+| 5   | [`scripts/check-secrets.mjs`](../scripts/check-secrets.mjs) en pre-commit         | Patrón `'*'`, no solo `*.{ts,tsx}`                                                                              |
+
+**Comprobación final:** clave filtrada 401 · anon legacy 401 · lectura anónima 0 filas en
+las 8 tablas probadas · `INSERT` anónimo 401 · las 5 rutas de producción en 200.
+
+### Lo que hay que entender de esto
+
+**La `service_role` legacy no se podía revocar sola.** `DELETE /api-keys/{id}` solo acepta
+UUID y las legacy no lo tienen; `PUT /api-keys/legacy` desactiva `anon` y `service_role`
+**juntas**. Como producción usaba la `anon` legacy, el orden era obligado: primero mover el
+despliegue, después apagar. Intentar apagar antes habría tumbado la aplicación.
+
+**Borrar el archivo no habría servido.** La clave seguía en la historia de git, en los
+forks y en las cachés de GitHub. Lo único que cierra una fuga es **rotar**.
+
+**Nada lo detectó en enero porque no había nada mirando.** Lint mira estilo, `tsc` mira
+tipos, los tests miran comportamiento. Ninguno mira si lo que subes es una credencial. El
+fallo 2 es peor todavía: las **cinco** puertas de `/validate` pasaban en verde con la base
+abierta al mundo, porque ninguna consulta la base real.
+
+**El keep-alive dependía de la clave que matamos.** Al desactivar las legacy dejó de
+funcionar —su alerta saltó correctamente— y hubo que reapuntarlo a la clave publishable.
+Al rotar una credencial hay que buscar **todos** sus consumidores, incluidos los que viven
+fuera del repositorio.
+
+### Riesgo residual
+
+La clave sigue en la historia de git y en cualquier fork; ya no sirve para nada, pero
+**está**. Purgarla exigiría reescribir la historia y un `push --force` a un repositorio
+público, lo cual rompe los clones existentes. No se hizo: rotada la credencial, el beneficio
+es cosmético.
+
+Queda **sin auditar** si alguien llegó a usar la clave durante los 189 días. Los registros
+de Supabase no llegan tan atrás en el plan gratuito.
+
 ## ✅ P0 — RESUELTO el 2026-07-27 (dos días antes de la congelación)
 
-| Acción                                     | Resultado                                                                                                                                                    |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| P0.1 Restaurar el proyecto                 | ✅ `POST /v1/projects/inszvqzpxfqibkjsptsm/restore` → HTTP 200. `INACTIVE` → `COMING_UP` → **`ACTIVE_HEALTHY` en ~200 s**. DNS resuelve otra vez             |
-| P0.2 Verificar que la app sigue sirviendo  | ✅ La anon key desplegada **no fue rotada**: `GET /rest/v1/inventory?select=product_id&limit=0` → HTTP 200 `[]` (RLS devolviendo vacío al anónimo, correcto) |
-| P0.3 Reactivar los workflows               | ✅ Los 6 en `active`. Antes había 4 en `disabled_inactivity`                                                                                                 |
-| P0.4 Romper la circularidad del keep-alive | ✅ Timer de systemd **fuera de GitHub** — ver abajo                                                                                                          |
-| P0.5 Backup fuera de Supabase              | ✅ Espejo local con verificación y vigilante de frescura                                                                                                     |
+| Acción                                     | Resultado                                                                                                                                                                                                 |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P0.1 Restaurar el proyecto                 | ✅ `POST /v1/projects/inszvqzpxfqibkjsptsm/restore` → HTTP 200. `INACTIVE` → `COMING_UP` → **`ACTIVE_HEALTHY` en ~200 s**. DNS resuelve otra vez                                                          |
+| P0.2 Verificar que la app sigue sirviendo  | ⚠️ La anon key desplegada no fue rotada — eso era cierto. Pero la prueba usada, `GET /rest/v1/inventory?select=product_id&limit=0` → `[]`, **no demostraba lo que decía demostrar**: ver la nota de abajo |
+| P0.3 Reactivar los workflows               | ✅ Los 6 en `active`. Antes había 4 en `disabled_inactivity`                                                                                                                                              |
+| P0.4 Romper la circularidad del keep-alive | ✅ Timer de systemd **fuera de GitHub** — ver abajo                                                                                                                                                       |
+| P0.5 Backup fuera de Supabase              | ✅ Espejo local con verificación y vigilante de frescura                                                                                                                                                  |
+
+> **La prueba de P0.2 era vacía, y por eso el fallo 2 sobrevivió medio día más.**
+> Se interpretó la respuesta `[]` como «RLS está devolviendo vacío al anónimo, correcto».
+> Pero la consulta llevaba **`limit=0`**: PostgREST devuelve `[]` con `limit=0` haya RLS o
+> no, haya datos o no. La prueba no podía fallar, así que no probaba nada.
+>
+> La consulta correcta —la misma sin `limit=0`— devolvía **3 filas de inventario a un
+> anónimo**. Se descubrió horas después, por casualidad, revisando otra cosa.
+>
+> **El patrón a reconocer:** una verificación cuyo resultado esperado es «vacío» es
+> sospechosa por definición, porque vacío es también lo que devuelve una consulta rota,
+> mal filtrada o sin permisos. Antes de aceptar un vacío como prueba de seguridad, hay
+> que comprobar que la misma consulta devuelve algo cuando **debe** devolverlo. Aquí
+> bastaba con quitar `limit=0`.
 
 ### P0.4 — Keep-alive externo a GitHub (resuelto 2026-07-27)
 

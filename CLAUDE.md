@@ -25,12 +25,13 @@ verificación — ver `docs/BACKLOG.md` B5.
 
 Antes de proponer un cambio, leer en este orden:
 
-| Documento                                | Para qué                                                                                            |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| [`docs/BLUEPRINT.md`](docs/BLUEPRINT.md) | Por qué el sistema es así. Decisiones D1–D6 y los contratos que TypeScript no protege               |
-| [`docs/ROADMAP.md`](docs/ROADMAP.md)     | Qué se entregó, estado medido y el siguiente paso vigente                                           |
-| [`docs/BACKLOG.md`](docs/BACKLOG.md)     | Pendientes [A]/[B]/[C]/[D]. **§D lista lo ya cerrado con su motivo: leerlo antes de proponer nada** |
-| [`docs/SYLLABUS.md`](docs/SYLLABUS.md)   | Ruta de lectura para entrar al proyecto sin contexto                                                |
+| Documento                                                            | Para qué                                                                                            |
+| -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [`docs/BLUEPRINT.md`](docs/BLUEPRINT.md)                             | Por qué el sistema es así. Decisiones D1–D6 y los contratos que TypeScript no protege               |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md)                                 | Qué se entregó, estado medido y el siguiente paso vigente                                           |
+| [`docs/BACKLOG.md`](docs/BACKLOG.md)                                 | Pendientes [A]/[B]/[C]/[D]. **§D lista lo ya cerrado con su motivo: leerlo antes de proponer nada** |
+| [`docs/SYLLABUS.md`](docs/SYLLABUS.md)                               | Ruta de lectura para entrar al proyecto sin contexto                                                |
+| [`manual-de-usuario-no-tecnico.md`](manual-de-usuario-no-tecnico.md) | Cómo **usar** el sistema. Para quien vende, no para quien programa                                  |
 
 ## Comandos Esenciales
 
@@ -236,7 +237,11 @@ Pre-commit automático (Husky + lint-staged):
 **Flujo**:
 
 1. Cada venta actualiza `customers.last_purchase_date` (trigger)
-2. Con ≥3 compras, `calculate_customer_recurrence` calcula promedio de días entre compras
+2. Con **≥2** compras, `calculate_customer_recurrence` promedia los días entre las
+   **últimas 3**. Verificado el 2026-07-27 leyendo la función en produccion:
+   `IF v_sale_count < 2 THEN` (sale sin sugerir) y `LIMIT 3` sobre las ventas ordenadas.
+   Este documento decia «≥3 compras»: eran dos numeros distintos —el minimo para
+   sugerir y la ventana que se promedia— fundidos en uno solo
 3. En nueva venta, sistema sugiere recurrencia si no está configurada
 4. Usuario puede aceptar sugerencia o definir manualmente
 5. Página `/contactos` muestra clientes que deberían ser contactados según:
