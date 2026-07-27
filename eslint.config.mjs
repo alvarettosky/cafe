@@ -28,7 +28,6 @@ const eslintConfig = defineConfig([
     // k6 load testing scripts (use require imports)
     'tests/load/**',
     // Helper scripts (CommonJS)
-    'execute-sql-node.js',
     'fix-analytics-auto.js',
   ]),
 ]);
