@@ -321,6 +321,26 @@ ninguna lógica especial por prefijo.
   invocar Edge Functions, subir `@supabase/supabase-js` a `>=2.110.4` antes de
   hacerlo deja de ser opcional.
 
+**Verificado empíricamente el 2026-07-27, con el cliente 2.90.1 instalado.**
+Faltaba la ruta más importante y la que nadie había probado: **el login**. Las
+rutas de producción devolvían 200, pero eso no prueba nada — `/login` está
+prerenderizada, y este proyecto ya se dejó engañar por eso una vez (la app
+estuvo 85 días sin backend mostrando esa misma página).
+
+La prueba distingue «la clave es rechazada» de «el usuario no existe», que es
+lo único que importa aquí:
+
+```js
+const c = createClient(URL, PUBLISHABLE_KEY, { auth: { persistSession: false } });
+await c.auth.signInWithPassword({ email: 'noexiste@ejemplo.invalid', password: '…' });
+// -> "Invalid login credentials"   ✅ la clave se aceptó; falló el usuario
+// -> "Invalid API key"             🔴 habría significado login roto en producción
+```
+
+Resultado: `Invalid login credentials`. **El cliente 2.90.1 maneja correctamente
+la clave `sb_publishable_` en Auth**, no solo en tablas y Storage. La migración
+de claves no rompió el acceso.
+
 **No verificado:** el comportamiento exacto de Realtime con claves nuevas en
 `2.90.1` — context7 no devolvió nada específico sobre Realtime + formato de
 clave nueva, y el repo no usa canales Realtime hoy (no se buscó exhaustivamente

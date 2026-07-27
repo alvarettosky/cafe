@@ -135,12 +135,13 @@ sobre **todo lo versionado**, que es lo que ya está publicado.
 
 Ni siquiera con siete fases se cubre todo. Consciente y explícito:
 
-| Qué no se verifica                        | Por qué                                                                                                 |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| **Que RLS proteja de verdad**             | Nada consulta la base como anónimo. El 2026-07-27 las 5 fases pasaron con la base abierta               |
-| **Los _parámetros_ de las RPC**           | La fase 6 comprueba que la función exista, no su firma. Cerrarlo es [BACKLOG](../../docs/BACKLOG.md) B4 |
-| **Lo que se ve en pantalla**              | Una regresión de contraste pasó las 5 fases: ninguna mira píxeles                                       |
-| **Llamadas `.rpc()` con nombre variable** | El extractor solo resuelve literales, y lo dice al correr                                               |
+| Qué no se verifica                        | Por qué                                                                                                                                                                                                                                                    |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Que RLS proteja de verdad**             | Nada consulta la base como anónimo. El 2026-07-27 las 5 fases pasaron con la base abierta                                                                                                                                                                  |
+| **Que el login funcione**                 | Ninguna fase se autentica. `/login` es prerenderizada: devuelve 200 aunque el backend esté caído — así pasaron 85 días sin que nadie lo notara. Comprobación manual en [`docs/REFERENCIAS-OFICIALES.md`](../../docs/REFERENCIAS-OFICIALES.md) §supabase-js |
+| **Los _parámetros_ de las RPC**           | La fase 6 comprueba que la función exista, no su firma. Cerrarlo es [BACKLOG](../../docs/BACKLOG.md) B4                                                                                                                                                    |
+| **Lo que se ve en pantalla**              | Una regresión de contraste pasó las 5 fases: ninguna mira píxeles                                                                                                                                                                                          |
+| **Llamadas `.rpc()` con nombre variable** | El extractor solo resuelve literales, y lo dice al correr                                                                                                                                                                                                  |
 
 ## Fuera de estas siete fases
 
