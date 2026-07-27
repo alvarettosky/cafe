@@ -87,7 +87,7 @@ export default function Dashboard() {
   if (!user) return null; // AuthProvider handles redirect
 
   return (
-    <main className="min-h-screen p-8 bg-[url('/coffee-bg-dark.jpg')] bg-cover bg-center bg-fixed bg-no-repeat relative">
+    <main className="min-h-screen p-8 bg-[url('/coffee-bg-dark.svg')] bg-cover bg-center bg-fixed bg-no-repeat relative">
       {/* Overlay to ensure readability */}
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-0"></div>
 

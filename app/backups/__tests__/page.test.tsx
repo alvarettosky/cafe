@@ -41,9 +41,7 @@ vi.mock('framer-motion', () => ({
 
 // Mock ExportForm component
 vi.mock('@/components/export', () => ({
-  ExportForm: () => (
-    <div data-testid="export-form">Export Form Mock</div>
-  ),
+  ExportForm: () => <div data-testid="export-form">Export Form Mock</div>,
 }));
 
 // Import after mocks
@@ -57,21 +55,21 @@ describe('BackupsPage', () => {
       name: 'cafe-mirador-backup-2026-01-22.zip',
       createdTime: '2026-01-22T02:00:00Z',
       size: '1.5 MB',
-      webViewLink: 'https://storage.example.com/backup-1',
+      downloadUrl: 'https://storage.example.com/backup-1',
     },
     {
       id: 'backup-2',
       name: 'cafe-mirador-backup-2026-01-21.zip',
       createdTime: '2026-01-21T02:00:00Z',
       size: '1.4 MB',
-      webViewLink: 'https://storage.example.com/backup-2',
+      downloadUrl: 'https://storage.example.com/backup-2',
     },
     {
       id: 'backup-3',
       name: 'cafe-mirador-backup-2026-01-20.zip',
       createdTime: '2026-01-20T02:00:00Z',
       size: '1.3 MB',
-      webViewLink: null,
+      downloadUrl: '',
     },
   ];
 
@@ -196,7 +194,9 @@ describe('BackupsPage', () => {
       render(<BackupsPage />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Gestiona backups automaticos y exporta datos manualmente/)).toBeInTheDocument();
+        expect(
+          screen.getByText(/Gestiona backups automaticos y exporta datos manualmente/)
+        ).toBeInTheDocument();
       });
     });
 
@@ -409,12 +409,12 @@ describe('BackupsPage', () => {
       expect(screen.getAllByText('1.5 MB').length).toBeGreaterThan(0);
     });
 
-    it('should display "Abrir" links for backups with webViewLink', async () => {
+    it('should display "Abrir" links for backups with downloadUrl', async () => {
       render(<BackupsPage />);
 
       await waitFor(() => {
         const openLinks = screen.getAllByText('Abrir');
-        expect(openLinks).toHaveLength(2); // First two have webViewLink
+        expect(openLinks).toHaveLength(2); // First two have downloadUrl
       });
     });
 
@@ -482,8 +482,12 @@ describe('BackupsPage', () => {
       render(<BackupsPage />);
 
       await waitFor(() => {
-        expect(screen.getByText(/GOOGLE_DRIVE_CREDENTIALS/)).toBeInTheDocument();
-        expect(screen.getByText(/GOOGLE_DRIVE_FOLDER_ID/)).toBeInTheDocument();
+        // El almacenamiento es Supabase Storage, no Google Drive. Esta
+        // asercion fijaba los nombres de variables de una integracion que ya
+        // no existe, asi que validaba en verde un panel que mandaba al admin a
+        // configurar credenciales equivocadas.
+        expect(screen.getByText(/SUPABASE_SERVICE_ROLE_KEY/)).toBeInTheDocument();
+        expect(screen.getByText(/NEXT_PUBLIC_SUPABASE_URL/)).toBeInTheDocument();
       });
     });
 

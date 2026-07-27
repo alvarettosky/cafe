@@ -21,11 +21,7 @@ import { ProductChart } from '@/components/charts/product-chart';
 import { DateRangeSelector } from '@/components/date-range-selector';
 import { Button } from '@/components/ui/button';
 import { DownloadButton } from '@/components/export';
-import type {
-  AdvancedMetrics,
-  TimeSeriesDataPoint,
-  ProductMetric,
-} from '@/types/analytics';
+import type { AdvancedMetrics, TimeSeriesDataPoint, ProductMetric } from '@/types/analytics';
 
 type PendingCredit = {
   sale_id: string;
@@ -92,9 +88,7 @@ export default function AnalyticsPage() {
   // State for data
   const [metrics, setMetrics] = useState<AdvancedMetrics | null>(null);
   const [timeSeries, setTimeSeries] = useState<TimeSeriesDataPoint[]>([]);
-  const [productPerformance, setProductPerformance] = useState<ProductMetric[]>(
-    []
-  );
+  const [productPerformance, setProductPerformance] = useState<ProductMetric[]>([]);
   const [pendingCredits, setPendingCredits] = useState<PendingCredit[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -231,7 +225,7 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[url('/coffee-bg.jpg')] bg-cover bg-center bg-fixed">
+    <div className="min-h-screen bg-[url('/coffee-bg-dark.svg')] bg-cover bg-center bg-fixed">
       <div className="min-h-screen backdrop-blur-sm bg-black/40">
         <div className="mx-auto max-w-7xl p-6 space-y-6">
           {/* Header */}
@@ -249,9 +243,7 @@ export default function AnalyticsPage() {
               >
                 <ArrowLeft className="h-4 w-4 text-white" />
               </Button>
-              <h1 className="text-4xl font-bold text-white">
-                Analíticas Avanzadas
-              </h1>
+              <h1 className="text-4xl font-bold text-white">Analíticas Avanzadas</h1>
             </div>
             <DownloadButton
               tables={['sales', 'sale_items']}
@@ -276,7 +268,9 @@ export default function AnalyticsPage() {
           >
             <DateRangeSelector
               onPresetChange={handlePresetChange}
-              activePreset={activePreset as "hoy" | "esta-semana" | "este-mes" | "este-trimestre" | "este-año"}
+              activePreset={
+                activePreset as 'hoy' | 'esta-semana' | 'este-mes' | 'este-trimestre' | 'este-año'
+              }
             />
           </motion.div>
 
@@ -349,9 +343,7 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Payment Chart */}
-            {metrics?.payment_breakdown && (
-              <PaymentChart data={metrics.payment_breakdown} />
-            )}
+            {metrics?.payment_breakdown && <PaymentChart data={metrics.payment_breakdown} />}
 
             {/* Product Chart */}
             <ProductChart data={productPerformance} />
@@ -375,13 +367,19 @@ export default function AnalyticsPage() {
                   <thead>
                     <tr className="border-b border-white/20">
                       <th className="text-left py-3 px-4 text-white font-semibold">Cliente</th>
-                      <th className="text-left py-3 px-4 text-white font-semibold">Fecha de Compra</th>
-                      <th className="text-right py-3 px-4 text-white font-semibold">Monto Adeudado</th>
-                      <th className="text-right py-3 px-4 text-white font-semibold">Días Pendiente</th>
+                      <th className="text-left py-3 px-4 text-white font-semibold">
+                        Fecha de Compra
+                      </th>
+                      <th className="text-right py-3 px-4 text-white font-semibold">
+                        Monto Adeudado
+                      </th>
+                      <th className="text-right py-3 px-4 text-white font-semibold">
+                        Días Pendiente
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {pendingCredits.map((credit) => (
+                    {pendingCredits.map(credit => (
                       <tr
                         key={credit.sale_id}
                         className="border-b border-white/10 hover:bg-white/5 transition-colors"
@@ -397,13 +395,15 @@ export default function AnalyticsPage() {
                         <td className="py-3 px-4 text-right font-semibold text-yellow-300">
                           {formatCurrency(credit.amount_due)}
                         </td>
-                        <td className={`py-3 px-4 text-right font-semibold ${
-                          credit.days_pending > 30
-                            ? 'text-red-400'
-                            : credit.days_pending > 15
-                            ? 'text-yellow-400'
-                            : 'text-green-400'
-                        }`}>
+                        <td
+                          className={`py-3 px-4 text-right font-semibold ${
+                            credit.days_pending > 30
+                              ? 'text-red-400'
+                              : credit.days_pending > 15
+                                ? 'text-yellow-400'
+                                : 'text-green-400'
+                          }`}
+                        >
                           {credit.days_pending} días
                         </td>
                       </tr>
@@ -439,12 +439,10 @@ export default function AnalyticsPage() {
             >
               <AlertTriangle className="h-5 w-5 text-yellow-300 flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-semibold text-yellow-200">
-                  Pagos Pendientes
-                </h3>
+                <h3 className="font-semibold text-yellow-200">Pagos Pendientes</h3>
                 <p className="text-yellow-100/80">
-                  Hay {formatCurrency(metrics.pending_credits)} en ventas a crédito
-                  pendientes de cobro.
+                  Hay {formatCurrency(metrics.pending_credits)} en ventas a crédito pendientes de
+                  cobro.
                 </p>
               </div>
             </motion.div>

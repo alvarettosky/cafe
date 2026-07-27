@@ -10,12 +10,7 @@ import { ProductModal } from './product-modal';
 import { InventoryMovements } from './inventory-movements';
 import { DownloadButton } from './export';
 
-interface Product {
-    product_id: string;
-    product_name: string;
-    total_grams_available: number;
-}
-
+import type { InventoryProductSummary as Product } from "@/types/inventory";
 export function InventoryList() {
     const { isAdmin } = useAuth();
     const [products, setProducts] = useState<Product[]>([]);

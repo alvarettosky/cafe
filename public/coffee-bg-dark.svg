@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <radialGradient id="warm" cx="30%" cy="30%" r="90%">
+      <stop offset="0%" stop-color="#3a2416"></stop>
+      <stop offset="60%" stop-color="#1a0f08"></stop>
+      <stop offset="100%" stop-color="#0a0604"></stop>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#warm)"></rect>
+  <g opacity="0.35" fill="#5a3a22">
+    <ellipse cx="120" cy="140" rx="38" ry="24" transform="rotate(-28 120 140)"></ellipse>
+    <ellipse cx="240" cy="90" rx="36" ry="22" transform="rotate(12 240 90)"></ellipse>
+    <ellipse cx="360" cy="180" rx="40" ry="26" transform="rotate(-40 360 180)"></ellipse>
+    <ellipse cx="510" cy="110" rx="34" ry="22" transform="rotate(18 510 110)"></ellipse>
+    <ellipse cx="640" cy="200" rx="38" ry="24" transform="rotate(-20 640 200)"></ellipse>
+    <ellipse cx="180" cy="320" rx="42" ry="26" transform="rotate(25 180 320)"></ellipse>
+    <ellipse cx="320" cy="400" rx="36" ry="22" transform="rotate(-12 320 400)"></ellipse>
+    <ellipse cx="470" cy="360" rx="40" ry="24" transform="rotate(30 470 360)"></ellipse>
+    <ellipse cx="610" cy="420" rx="38" ry="24" transform="rotate(-15 610 420)"></ellipse>
+    <ellipse cx="720" cy="320" rx="36" ry="22" transform="rotate(40 720 320)"></ellipse>
+  </g>
+  <g opacity="0.5" stroke="#2b1810" stroke-width="1.5" fill="none">
+    <path d="M82 140 Q120 128 158 140" transform="rotate(-28 120 140)"></path>
+    <path d="M202 90 Q240 78 278 90" transform="rotate(12 240 90)"></path>
+  </g>
+</svg>

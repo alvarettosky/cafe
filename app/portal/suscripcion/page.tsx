@@ -25,12 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 
-interface Product {
-  id: string;
-  name: string;
-  available: boolean;
-}
-
+import type { PortalProductOption as Product } from "@/types/portal";
 interface SubscriptionItem {
   product_id: string;
   product_name: string;

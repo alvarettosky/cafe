@@ -1,512 +1,553 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
-    Download,
-    ArrowLeft,
-    Shield,
-    Database,
-    Info,
-    Cloud,
-    Clock,
-    CheckCircle,
-    AlertCircle,
-    RefreshCw,
-    ExternalLink,
-    Play,
+  Download,
+  ArrowLeft,
+  Shield,
+  Database,
+  Info,
+  Cloud,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  RefreshCw,
+  ExternalLink,
+  Play,
 } from 'lucide-react';
 import { useAuth } from '@/components/auth-provider';
 import { Button } from '@/components/ui/button';
 import { ExportForm } from '@/components/export';
 import { supabase } from '@/lib/supabase';
 
-interface BackupFile {
-    id: string;
-    name: string;
-    createdTime: string;
-    size: string;
-    webViewLink: string;
-}
-
+import type { BackupFile } from '@/types/backups';
 export default function BackupsPage() {
-    const router = useRouter();
-    const { isAdmin, isLoading: authLoading, session } = useAuth();
-    const [backups, setBackups] = useState<BackupFile[]>([]);
-    const [backupsLoading, setBackupsLoading] = useState(true);
-    const [configured, setConfigured] = useState(false);
-    const [triggerLoading, setTriggerLoading] = useState(false);
-    const [triggerMessage, setTriggerMessage] = useState<{
-        type: 'success' | 'error';
-        text: string;
-    } | null>(null);
+  const router = useRouter();
+  const { isAdmin, isLoading: authLoading, session } = useAuth();
+  const [backups, setBackups] = useState<BackupFile[]>([]);
+  const [backupsLoading, setBackupsLoading] = useState(true);
+  const [configured, setConfigured] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  // Distingue "la peticion fallo" de "respondio bien y dice que no esta
+  // configurado". Son dos problemas distintos y llevan al admin a sitios
+  // distintos; mezclarlos fue justo el fallo que se corrige aqui.
+  const [loadFailed, setLoadFailed] = useState(false);
+  // Momento de la ultima carga, para saber si las URLs firmadas ya caducaron.
+  const ultimaCargaRef = useRef<number | null>(null);
+  const [triggerLoading, setTriggerLoading] = useState(false);
+  const [triggerMessage, setTriggerMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
 
-    // Redirect if not admin
-    useEffect(() => {
-        if (!authLoading && !isAdmin) {
-            router.push('/');
-        }
-    }, [isAdmin, authLoading, router]);
+  // Redirect if not admin
+  useEffect(() => {
+    if (!authLoading && !isAdmin) {
+      router.push('/');
+    }
+  }, [isAdmin, authLoading, router]);
 
-    // Load backup history
-    useEffect(() => {
-        if (isAdmin && session?.access_token) {
-            loadBackups();
-        }
-    }, [isAdmin, session]);
+  // Load backup history
+  useEffect(() => {
+    if (isAdmin && session?.access_token) {
+      loadBackups();
+    }
+  }, [isAdmin, session]);
 
-    const loadBackups = async () => {
-        setBackupsLoading(true);
-        try {
-            const {
-                data: { session: currentSession },
-            } = await supabase.auth.getSession();
+  // Las URLs de descarga son firmadas y caducan en 1 h (route.ts:90), pero esta
+  // pagina solo cargaba al montar: una pestana abierta un rato largo mostraba
+  // enlaces caducados que llevaban a un error de JWT en vez de descargar nada.
+  // Al volver a la pestana se refrescan si ya llevan mas de 45 min emitidos.
+  useEffect(() => {
+    if (!isAdmin || !session?.access_token) return;
 
-            if (!currentSession?.access_token) return;
-
-            const response = await fetch('/api/backups/list', {
-                headers: {
-                    Authorization: `Bearer ${currentSession.access_token}`,
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setBackups(data.backups || []);
-                setConfigured(data.configured);
-            }
-        } catch (error) {
-            console.error('Error loading backups:', error);
-        } finally {
-            setBackupsLoading(false);
-        }
+    const alVolver = () => {
+      if (document.visibilityState !== 'visible') return;
+      const emitidas = ultimaCargaRef.current;
+      if (emitidas && Date.now() - emitidas > 45 * 60 * 1000) {
+        loadBackups();
+      }
     };
 
-    const triggerBackup = async () => {
-        setTriggerLoading(true);
-        setTriggerMessage(null);
+    document.addEventListener('visibilitychange', alVolver);
+    return () => document.removeEventListener('visibilitychange', alVolver);
+  }, [isAdmin, session]);
 
+  const loadBackups = async () => {
+    setBackupsLoading(true);
+    try {
+      const {
+        data: { session: currentSession },
+      } = await supabase.auth.getSession();
+
+      if (!currentSession?.access_token) return;
+
+      const response = await fetch('/api/backups/list', {
+        headers: {
+          Authorization: `Bearer ${currentSession.access_token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setBackups(data.backups || []);
+        setConfigured(data.configured);
+        // La ruta explica por que no esta configurado; sin esto el mensaje se
+        // recibia y se descartaba, y la pagina inventaba su propia causa.
+        setLoadError(data.configured ? null : (data.message ?? null));
+        setLoadFailed(false);
+      } else {
+        // Un 401/403/500 NO es "sin configurar". Antes se caia en el else
+        // implicito y `configured` se quedaba en su false inicial, asi que un
+        // fallo de sesion o de Storage se mostraba como falta de configuracion
+        // y el admin iba a tocar variables de entorno que estaban bien.
+        let detalle = `HTTP ${response.status}`;
         try {
-            const {
-                data: { session: currentSession },
-            } = await supabase.auth.getSession();
-
-            if (!currentSession?.access_token) {
-                setTriggerMessage({ type: 'error', text: 'Sesion expirada' });
-                return;
-            }
-
-            const response = await fetch('/api/backups/trigger', {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${currentSession.access_token}`,
-                },
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                setTriggerMessage({ type: 'success', text: data.message });
-            } else {
-                setTriggerMessage({
-                    type: 'error',
-                    text: data.error || 'Error al ejecutar backup',
-                });
-            }
-        } catch (error) {
-            setTriggerMessage({ type: 'error', text: 'Error de conexion' });
-        } finally {
-            setTriggerLoading(false);
+          const cuerpo = await response.json();
+          if (cuerpo?.error) detalle = `${cuerpo.error} (HTTP ${response.status})`;
+        } catch {
+          // respuesta sin JSON: nos quedamos con el codigo
         }
-    };
-
-    if (authLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-        );
+        setLoadError(detalle);
+        setLoadFailed(true);
+      }
+    } catch (error) {
+      console.error('Error loading backups:', error);
+      setLoadError(error instanceof Error ? error.message : 'Error de red');
+      setLoadFailed(true);
+    } finally {
+      ultimaCargaRef.current = Date.now();
+      setBackupsLoading(false);
     }
+  };
 
-    if (!isAdmin) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-                <Shield className="h-16 w-16 text-muted-foreground" />
-                <h1 className="text-2xl font-bold">Acceso Restringido</h1>
-                <p className="text-muted-foreground">
-                    Solo administradores pueden acceder a esta seccion.
-                </p>
-                <Button onClick={() => router.push('/')}>
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Volver al Dashboard
-                </Button>
-            </div>
-        );
+  const triggerBackup = async () => {
+    setTriggerLoading(true);
+    setTriggerMessage(null);
+
+    try {
+      const {
+        data: { session: currentSession },
+      } = await supabase.auth.getSession();
+
+      if (!currentSession?.access_token) {
+        setTriggerMessage({ type: 'error', text: 'Sesion expirada' });
+        return;
+      }
+
+      const response = await fetch('/api/backups/trigger', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${currentSession.access_token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setTriggerMessage({ type: 'success', text: data.message });
+      } else {
+        setTriggerMessage({
+          type: 'error',
+          text: data.error || 'Error al ejecutar backup',
+        });
+      }
+    } catch (error) {
+      setTriggerMessage({ type: 'error', text: 'Error de conexion' });
+    } finally {
+      setTriggerLoading(false);
     }
+  };
 
-    const lastBackup = backups[0];
-    const nextBackupTime = getNextBackupTime();
-
+  if (authLoading) {
     return (
-        <div className="min-h-screen p-4 md:p-8 bg-gradient-to-br from-background via-background to-primary/5">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="max-w-4xl mx-auto"
-            >
-                {/* Header */}
-                <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-4">
-                        <Button variant="ghost" size="icon" onClick={() => router.push('/')}>
-                            <ArrowLeft className="h-5 w-5" />
-                        </Button>
-                        <div>
-                            <h1 className="text-3xl font-bold flex items-center gap-3">
-                                <Database className="h-8 w-8 text-primary" />
-                                Backups y Exportacion
-                            </h1>
-                            <p className="text-muted-foreground mt-1">
-                                Gestiona backups automaticos y exporta datos manualmente
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Backup Status Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                    {/* Last Backup Card */}
-                    <div className="p-4 border rounded-lg bg-card">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div
-                                className={`p-2 rounded-full ${
-                                    lastBackup
-                                        ? 'bg-green-100 dark:bg-green-900/30'
-                                        : 'bg-yellow-100 dark:bg-yellow-900/30'
-                                }`}
-                            >
-                                {lastBackup ? (
-                                    <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-                                ) : (
-                                    <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-                                )}
-                            </div>
-                            <div>
-                                <h3 className="font-medium">Ultimo Backup</h3>
-                                {lastBackup ? (
-                                    <p className="text-sm text-muted-foreground">
-                                        {formatDate(lastBackup.createdTime)}
-                                    </p>
-                                ) : (
-                                    <p className="text-sm text-muted-foreground">Sin backups</p>
-                                )}
-                            </div>
-                        </div>
-                        {lastBackup && (
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">{lastBackup.size}</span>
-                                {lastBackup.webViewLink && (
-                                    <a
-                                        href={lastBackup.webViewLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-primary hover:underline flex items-center gap-1"
-                                    >
-                                        Ver en Drive <ExternalLink className="h-3 w-3" />
-                                    </a>
-                                )}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Next Backup Card */}
-                    <div className="p-4 border rounded-lg bg-card">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/30">
-                                <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <div>
-                                <h3 className="font-medium">Proximo Backup</h3>
-                                <p className="text-sm text-muted-foreground">{nextBackupTime}</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={triggerBackup}
-                                disabled={triggerLoading || !configured}
-                            >
-                                {triggerLoading ? (
-                                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                                ) : (
-                                    <Play className="h-4 w-4 mr-2" />
-                                )}
-                                Ejecutar Ahora
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={loadBackups}
-                                disabled={backupsLoading}
-                            >
-                                <RefreshCw
-                                    className={`h-4 w-4 ${backupsLoading ? 'animate-spin' : ''}`}
-                                />
-                            </Button>
-                        </div>
-                        {triggerMessage && (
-                            <p
-                                className={`text-sm mt-2 ${
-                                    triggerMessage.type === 'success'
-                                        ? 'text-green-600'
-                                        : 'text-red-600'
-                                }`}
-                            >
-                                {triggerMessage.text}
-                            </p>
-                        )}
-                    </div>
-                </div>
-
-                {/* Backup History */}
-                {configured && (
-                    <div className="mb-8">
-                        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                            <Cloud className="h-5 w-5" />
-                            Historial de Backups en Google Drive
-                        </h2>
-                        {backupsLoading ? (
-                            <div className="p-8 border rounded-lg flex items-center justify-center">
-                                <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
-                            </div>
-                        ) : backups.length === 0 ? (
-                            <div className="p-8 border rounded-lg text-center text-muted-foreground">
-                                No hay backups almacenados en Google Drive
-                            </div>
-                        ) : (
-                            <div className="border rounded-lg overflow-hidden">
-                                <table className="w-full">
-                                    <thead className="bg-muted/50">
-                                        <tr>
-                                            <th className="text-left p-3 text-sm font-medium">
-                                                Nombre
-                                            </th>
-                                            <th className="text-left p-3 text-sm font-medium">
-                                                Fecha
-                                            </th>
-                                            <th className="text-left p-3 text-sm font-medium">
-                                                Tamano
-                                            </th>
-                                            <th className="text-right p-3 text-sm font-medium">
-                                                Acciones
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y">
-                                        {backups.map((backup) => (
-                                            <tr key={backup.id} className="hover:bg-muted/30">
-                                                <td className="p-3 text-sm">{backup.name}</td>
-                                                <td className="p-3 text-sm text-muted-foreground">
-                                                    {formatDate(backup.createdTime)}
-                                                </td>
-                                                <td className="p-3 text-sm text-muted-foreground">
-                                                    {backup.size}
-                                                </td>
-                                                <td className="p-3 text-right">
-                                                    {backup.webViewLink && (
-                                                        <a
-                                                            href={backup.webViewLink}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-                                                        >
-                                                            <ExternalLink className="h-4 w-4" />
-                                                            Abrir
-                                                        </a>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Configuration Notice */}
-                {!configured && !backupsLoading && (
-                    <div className="mb-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                        <div className="flex items-start gap-3">
-                            <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
-                            <div>
-                                <h3 className="font-medium text-yellow-800 dark:text-yellow-300 mb-2">
-                                    Backups Automaticos No Configurados
-                                </h3>
-                                <p className="text-sm text-yellow-700 dark:text-yellow-400 mb-2">
-                                    Para habilitar backups automaticos a Google Drive, configura:
-                                </p>
-                                <ul className="text-sm text-yellow-700 dark:text-yellow-400 list-disc list-inside space-y-1">
-                                    <li>GOOGLE_DRIVE_CREDENTIALS (Service account JSON)</li>
-                                    <li>GOOGLE_DRIVE_FOLDER_ID (ID de carpeta destino)</li>
-                                    <li>RESEND_API_KEY (Opcional, para notificaciones)</li>
-                                    <li>NOTIFICATION_EMAIL (Opcional, email destino)</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Info Box */}
-                <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <div className="flex items-start gap-3">
-                        <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-                        <div>
-                            <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-2">
-                                Exportacion Manual de Datos
-                            </h3>
-                            <ul className="text-sm text-blue-700 dark:text-blue-400 space-y-1">
-                                <li>Selecciona las tablas que deseas exportar.</li>
-                                <li>
-                                    El formato Excel (.xlsx) crea una hoja por cada tabla seleccionada.
-                                </li>
-                                <li>Puedes filtrar ventas y contactos por rango de fechas.</li>
-                                <li>
-                                    Limite: 10,000 registros por tabla para evitar archivos muy grandes.
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Export Form */}
-                <ExportForm />
-
-                {/* Quick Export Buttons */}
-                <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <QuickExportCard
-                        title="Inventario Completo"
-                        description="Stock actual de todos los productos"
-                        tables={['inventory']}
-                    />
-                    <QuickExportCard
-                        title="Clientes"
-                        description="Datos de clientes con recurrencia"
-                        tables={['customers', 'customer_contacts']}
-                    />
-                    <QuickExportCard
-                        title="Reporte de Ventas"
-                        description="Ventas con detalle de items"
-                        tables={['sales', 'sale_items']}
-                    />
-                </div>
-            </motion.div>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <Shield className="h-16 w-16 text-muted-foreground" />
+        <h1 className="text-2xl font-bold">Acceso Restringido</h1>
+        <p className="text-muted-foreground">Solo administradores pueden acceder a esta seccion.</p>
+        <Button onClick={() => router.push('/')}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Volver al Dashboard
+        </Button>
+      </div>
+    );
+  }
+
+  const lastBackup = backups[0];
+  const nextBackupTime = getNextBackupTime();
+
+  return (
+    <div className="min-h-screen p-4 md:p-8 bg-gradient-to-br from-background via-background to-primary/5">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-4xl mx-auto"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => router.push('/')}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold flex items-center gap-3">
+                <Database className="h-8 w-8 text-primary" />
+                Backups y Exportacion
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                Gestiona backups automaticos y exporta datos manualmente
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Backup Status Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          {/* Last Backup Card */}
+          <div className="p-4 border rounded-lg bg-card">
+            <div className="flex items-center gap-3 mb-3">
+              <div
+                className={`p-2 rounded-full ${
+                  lastBackup
+                    ? 'bg-green-100 dark:bg-green-900/30'
+                    : 'bg-yellow-100 dark:bg-yellow-900/30'
+                }`}
+              >
+                {lastBackup ? (
+                  <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                )}
+              </div>
+              <div>
+                <h3 className="font-medium">Ultimo Backup</h3>
+                {lastBackup ? (
+                  <p className="text-sm text-muted-foreground">
+                    {formatDate(lastBackup.createdTime)}
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Sin backups</p>
+                )}
+              </div>
+            </div>
+            {lastBackup && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">{lastBackup.size}</span>
+                {lastBackup.downloadUrl && (
+                  <a
+                    href={lastBackup.downloadUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline flex items-center gap-1"
+                  >
+                    Ver en Drive <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Next Backup Card */}
+          <div className="p-4 border rounded-lg bg-card">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/30">
+                <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="font-medium">Proximo Backup</h3>
+                <p className="text-sm text-muted-foreground">{nextBackupTime}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={triggerBackup}
+                disabled={triggerLoading || !configured}
+              >
+                {triggerLoading ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Play className="h-4 w-4 mr-2" />
+                )}
+                Ejecutar Ahora
+              </Button>
+              <Button size="sm" variant="ghost" onClick={loadBackups} disabled={backupsLoading}>
+                <RefreshCw className={`h-4 w-4 ${backupsLoading ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
+            {triggerMessage && (
+              <p
+                className={`text-sm mt-2 ${
+                  triggerMessage.type === 'success' ? 'text-green-600' : 'text-red-600'
+                }`}
+              >
+                {triggerMessage.text}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Backup History */}
+        {configured && (
+          <div className="mb-8">
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Cloud className="h-5 w-5" />
+              Historial de Backups en Google Drive
+            </h2>
+            {backupsLoading ? (
+              <div className="p-8 border rounded-lg flex items-center justify-center">
+                <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : backups.length === 0 ? (
+              <div className="p-8 border rounded-lg text-center text-muted-foreground">
+                No hay backups almacenados en Google Drive
+              </div>
+            ) : (
+              <div className="border rounded-lg overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="text-left p-3 text-sm font-medium">Nombre</th>
+                      <th className="text-left p-3 text-sm font-medium">Fecha</th>
+                      <th className="text-left p-3 text-sm font-medium">Tamano</th>
+                      <th className="text-right p-3 text-sm font-medium">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {backups.map(backup => (
+                      <tr key={backup.id} className="hover:bg-muted/30">
+                        <td className="p-3 text-sm">{backup.name}</td>
+                        <td className="p-3 text-sm text-muted-foreground">
+                          {formatDate(backup.createdTime)}
+                        </td>
+                        <td className="p-3 text-sm text-muted-foreground">{backup.size}</td>
+                        <td className="p-3 text-right">
+                          {backup.downloadUrl && (
+                            <a
+                              href={backup.downloadUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              Abrir
+                            </a>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* La peticion fallo: es un error, no una falta de configuracion. */}
+        {loadFailed && !backupsLoading && (
+          <div className="mb-8 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-red-800 dark:text-red-300 mb-2">
+                  No se pudo consultar el historial de backups
+                </h3>
+                <p className="text-sm text-red-700 dark:text-red-400">
+                  {loadError ?? 'Error desconocido'}
+                </p>
+                <p className="mt-2 text-sm text-red-700 dark:text-red-400">
+                  Esto no significa que los backups falten: la consulta no pudo completarse. Si la
+                  sesion caduco, vuelve a iniciarla; si persiste, revisa los logs del servidor.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Configuration Notice */}
+        {!configured && !loadFailed && !backupsLoading && (
+          <div className="mb-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-yellow-800 dark:text-yellow-300 mb-2">
+                  Backups Automaticos No Configurados
+                </h3>
+                <p className="text-sm text-yellow-700 dark:text-yellow-400 mb-2">
+                  Los backups se guardan en Supabase Storage. Para habilitarlos, configura:
+                </p>
+                <ul className="text-sm text-yellow-700 dark:text-yellow-400 list-disc list-inside space-y-1">
+                  <li>SUPABASE_SERVICE_ROLE_KEY (obligatoria)</li>
+                  <li>NEXT_PUBLIC_SUPABASE_URL (obligatoria)</li>
+                  <li>RESEND_API_KEY (Opcional, para notificaciones)</li>
+                  <li>NOTIFICATION_EMAIL (Opcional, email destino)</li>
+                </ul>
+                {loadError && (
+                  <p className="mt-2 text-sm text-yellow-700 dark:text-yellow-400">
+                    Detalle del servidor: {loadError}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Info Box */}
+        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="flex items-start gap-3">
+            <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+            <div>
+              <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-2">
+                Exportacion Manual de Datos
+              </h3>
+              <ul className="text-sm text-blue-700 dark:text-blue-400 space-y-1">
+                <li>Selecciona las tablas que deseas exportar.</li>
+                <li>El formato Excel (.xlsx) crea una hoja por cada tabla seleccionada.</li>
+                <li>Puedes filtrar ventas y contactos por rango de fechas.</li>
+                <li>Limite: 10,000 registros por tabla para evitar archivos muy grandes.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Export Form */}
+        <ExportForm />
+
+        {/* Quick Export Buttons */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <QuickExportCard
+            title="Inventario Completo"
+            description="Stock actual de todos los productos"
+            tables={['inventory']}
+          />
+          <QuickExportCard
+            title="Clientes"
+            description="Datos de clientes con recurrencia"
+            tables={['customers', 'customer_contacts']}
+          />
+          <QuickExportCard
+            title="Reporte de Ventas"
+            description="Ventas con detalle de items"
+            tables={['sales', 'sale_items']}
+          />
+        </div>
+      </motion.div>
+    </div>
+  );
 }
 
 interface QuickExportCardProps {
-    title: string;
-    description: string;
-    tables: string[];
+  title: string;
+  description: string;
+  tables: string[];
 }
 
 function QuickExportCard({ title, description, tables }: QuickExportCardProps) {
-    const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-    const handleQuickExport = async () => {
-        setIsLoading(true);
-        try {
-            const {
-                data: { session: currentSession },
-            } = await supabase.auth.getSession();
+  const handleQuickExport = async () => {
+    setIsLoading(true);
+    try {
+      const {
+        data: { session: currentSession },
+      } = await supabase.auth.getSession();
 
-            if (!currentSession?.access_token) {
-                return;
-            }
+      if (!currentSession?.access_token) {
+        return;
+      }
 
-            const response = await fetch('/api/export', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${currentSession.access_token}`,
-                },
-                body: JSON.stringify({
-                    tables,
-                    format: 'xlsx',
-                }),
-            });
+      const response = await fetch('/api/export', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${currentSession.access_token}`,
+        },
+        body: JSON.stringify({
+          tables,
+          format: 'xlsx',
+        }),
+      });
 
-            if (response.ok) {
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${title.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.xlsx`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-            }
-        } catch (error) {
-            console.error('Quick export error:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error('Quick export error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    return (
-        <div className="p-4 border rounded-lg hover:border-primary/50 transition-colors">
-            <h3 className="font-medium mb-1">{title}</h3>
-            <p className="text-sm text-muted-foreground mb-3">{description}</p>
-            <Button
-                variant="outline"
-                size="sm"
-                onClick={handleQuickExport}
-                disabled={isLoading}
-                className="w-full"
-            >
-                {isLoading ? (
-                    <span className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
-                ) : (
-                    <Download className="h-4 w-4 mr-2" />
-                )}
-                Exportar
-            </Button>
-        </div>
-    );
+  return (
+    <div className="p-4 border rounded-lg hover:border-primary/50 transition-colors">
+      <h3 className="font-medium mb-1">{title}</h3>
+      <p className="text-sm text-muted-foreground mb-3">{description}</p>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleQuickExport}
+        disabled={isLoading}
+        className="w-full"
+      >
+        {isLoading ? (
+          <span className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+        ) : (
+          <Download className="h-4 w-4 mr-2" />
+        )}
+        Exportar
+      </Button>
+    </div>
+  );
 }
 
 function formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleString('es-ES', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
+  const date = new Date(dateString);
+  return date.toLocaleString('es-ES', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 function getNextBackupTime(): string {
-    const now = new Date();
-    const next = new Date(now);
+  const now = new Date();
+  const next = new Date(now);
 
-    // Next run is at 2:00 AM UTC
-    next.setUTCHours(2, 0, 0, 0);
+  // Next run is at 2:00 AM UTC
+  next.setUTCHours(2, 0, 0, 0);
 
-    // If it's already past 2 AM UTC today, move to tomorrow
-    if (now >= next) {
-        next.setDate(next.getDate() + 1);
-    }
+  // If it's already past 2 AM UTC today, move to tomorrow
+  if (now >= next) {
+    next.setDate(next.getDate() + 1);
+  }
 
-    return next.toLocaleString('es-ES', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZoneName: 'short',
-    });
+  return next.toLocaleString('es-ES', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  });
 }

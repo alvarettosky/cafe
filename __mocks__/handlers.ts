@@ -1,13 +1,10 @@
-import { http, HttpResponse } from 'msw'
-import type {
-  AdvancedMetrics,
-  TimeSeriesDataPoint,
-  ProductMetric,
-} from '../types'
-import type { InventoryMovement } from '../types/inventory'
-import type { VariantForSale } from '../types/products'
+import { http, HttpResponse } from 'msw';
+import type { AdvancedMetrics, TimeSeriesDataPoint, ProductMetric } from '../types';
+import type { InventoryMovement } from '../types/inventory';
+import type { VariantForSale } from '../types/products';
+import type { BackupFile } from '../types/backups';
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://test.supabase.co'
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://test.supabase.co';
 
 // Mock data generators
 const mockAdvancedMetrics: AdvancedMetrics = {
@@ -60,7 +57,7 @@ const mockAdvancedMetrics: AdvancedMetrics = {
   ],
   inventory_value: 25000.0,
   low_stock_items: 3,
-}
+};
 
 const mockTimeSeriesData: TimeSeriesDataPoint[] = [
   {
@@ -87,7 +84,7 @@ const mockTimeSeriesData: TimeSeriesDataPoint[] = [
     sales_count: 5,
     avg_ticket: 125.0,
   },
-]
+];
 
 const mockProductPerformance: ProductMetric[] = [
   {
@@ -111,7 +108,7 @@ const mockProductPerformance: ProductMetric[] = [
     profit: 600.0,
     profit_margin: 40.0,
   },
-]
+];
 
 // Mock data matches database schema (product_id), not TypeScript interface (id)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -134,7 +131,7 @@ const mockInventoryItems: any[] = [
     total_grams_available: 2000,
     last_updated: '2024-01-15T10:00:00Z',
   },
-]
+];
 
 const mockSales = [
   {
@@ -161,14 +158,14 @@ const mockSales = [
     payment_method: 'pending',
     status: 'pending',
   },
-]
+];
 
 const mockDashboardStats = {
   total_inventory_grams: 10000,
   sales_today: 15,
   low_stock_count: 3,
   roasted_coffee_lbs: 22.0,
-}
+};
 
 // Mock inventory movements (Kardex)
 const mockInventoryMovements: InventoryMovement[] = [
@@ -209,7 +206,7 @@ const mockInventoryMovements: InventoryMovement[] = [
     created_at: '2024-01-13T09:00:00Z',
     performer_email: 'admin@test.com',
   },
-]
+];
 
 // Mock variants for sale
 const mockVariantsForSale: VariantForSale[] = [
@@ -222,7 +219,7 @@ const mockVariantsForSale: VariantForSale[] = [
     presentation: 'libra',
     grind_type: 'grano',
     weight_grams: 500,
-    base_price: 10.00,
+    base_price: 10.0,
     stock_grams: 5000,
     has_stock: true,
   },
@@ -235,7 +232,7 @@ const mockVariantsForSale: VariantForSale[] = [
     presentation: 'media_libra',
     grind_type: 'grano',
     weight_grams: 250,
-    base_price: 5.50,
+    base_price: 5.5,
     stock_grams: 5000,
     has_stock: true,
   },
@@ -248,7 +245,7 @@ const mockVariantsForSale: VariantForSale[] = [
     presentation: 'libra',
     grind_type: 'molido_medio',
     weight_grams: 500,
-    base_price: 10.00,
+    base_price: 10.0,
     stock_grams: 3000,
     has_stock: true,
   },
@@ -261,7 +258,7 @@ const mockVariantsForSale: VariantForSale[] = [
     presentation: 'libra',
     grind_type: 'grano',
     weight_grams: 500,
-    base_price: 15.00,
+    base_price: 15.0,
     stock_grams: 2000,
     has_stock: true,
   },
@@ -274,48 +271,63 @@ const mockVariantsForSale: VariantForSale[] = [
     presentation: 'libra',
     grind_type: 'grano',
     weight_grams: 500,
-    base_price: 15.00,
+    base_price: 15.0,
     stock_grams: 0,
     has_stock: false,
   },
-]
+];
 
 // Mock customer price info
 const mockCustomerPriceInfo = {
   product_id: '1',
-  price_per_lb: 8.00,
-  price_per_half_lb: 4.40,
+  price_per_lb: 8.0,
+  price_per_half_lb: 4.4,
   discount_applied: 20.0,
   price_list_name: 'Mayoristas',
-}
+};
 
 // Mock export data
-const mockExportBlob = new Uint8Array([80, 75, 3, 4]) // Minimal XLSX header bytes
+const mockExportBlob = new Uint8Array([80, 75, 3, 4]); // Minimal XLSX header bytes
 
-// Mock backup data
-const mockBackups = [
+// Mock backup data.
+// La forma debe seguir a `BackupFile` de types/backups.ts, que es lo que emite
+// GET /api/backups/list.
+//
+// CAUSA RAIZ del incidente de 2026-07, en el orden correcto: la ruta SIEMPRE
+// emitio `downloadUrl`. Quien se desvio fue el consumidor, app/backups/page.tsx,
+// que leia un `webViewLink` que la API nunca produjo — y este mock copiaba el
+// error del consumidor en vez del contrato del productor. Por eso los tests
+// pasaban en verde mientras los enlaces de descarga no se renderizaban en
+// produccion.
+//
+// (Este comentario nacio invertido: el reemplazo masivo que arreglo el bug
+// tambien reescribio la palabra dentro del propio comentario que lo explicaba.)
+//
+// Si vuelve el reporte "la pagina de Backups no muestra enlaces": el campo
+// correcto es `downloadUrl`. No lo renombres.
+const mockBackups: BackupFile[] = [
   {
     id: 'backup-1',
     name: 'cafe-mirador-backup-2026-01-22.zip',
     createdTime: '2026-01-22T02:00:00Z',
     size: '1.5 MB',
-    webViewLink: 'https://storage.example.com/backup-1',
+    downloadUrl: 'https://storage.example.com/backup-1',
   },
   {
     id: 'backup-2',
     name: 'cafe-mirador-backup-2026-01-21.zip',
     createdTime: '2026-01-21T02:00:00Z',
     size: '1.4 MB',
-    webViewLink: 'https://storage.example.com/backup-2',
+    downloadUrl: 'https://storage.example.com/backup-2',
   },
   {
     id: 'backup-3',
     name: 'cafe-mirador-backup-2026-01-20.zip',
     createdTime: '2026-01-20T02:00:00Z',
     size: '1.3 MB',
-    webViewLink: null,
+    downloadUrl: '',
   },
-]
+];
 
 // MSW Handlers
 export const handlers = [
@@ -324,38 +336,42 @@ export const handlers = [
     return HttpResponse.json({
       backups: mockBackups,
       configured: true,
-    })
+    });
   }),
 
   // Mock /api/backups/trigger endpoint
   http.post('/api/backups/trigger', () => {
     return HttpResponse.json({
       message: 'Backup iniciado correctamente',
-    })
+    });
   }),
 
   // Mock /api/export endpoint
   http.post('/api/export', async ({ request }) => {
     // Check authorization
-    const authHeader = request.headers.get('authorization')
+    const authHeader = request.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
-      return HttpResponse.json({ error: 'No autorizado' }, { status: 401 })
+      return HttpResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const body = await request.json() as { tables: string[]; format: string; dateRange?: unknown }
-    const { tables, format } = body
+    const body = (await request.json()) as {
+      tables: string[];
+      format: string;
+      dateRange?: unknown;
+    };
+    const { tables, format } = body;
 
     if (!tables || tables.length === 0) {
-      return HttpResponse.json({ error: 'Debe seleccionar al menos una tabla' }, { status: 400 })
+      return HttpResponse.json({ error: 'Debe seleccionar al menos una tabla' }, { status: 400 });
     }
 
-    const filename = tables.length === 1
-      ? `${tables[0]}-2026-01-23.${format}`
-      : `export-2026-01-23.${format}`
+    const filename =
+      tables.length === 1 ? `${tables[0]}-2026-01-23.${format}` : `export-2026-01-23.${format}`;
 
-    const contentType = format === 'csv'
-      ? 'text/csv; charset=utf-8'
-      : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    const contentType =
+      format === 'csv'
+        ? 'text/csv; charset=utf-8'
+        : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
     return new HttpResponse(mockExportBlob, {
       status: 200,
@@ -363,39 +379,38 @@ export const handlers = [
         'Content-Type': contentType,
         'Content-Disposition': `attachment; filename="${filename}"`,
       },
-    })
+    });
   }),
-
 
   // Mock get_advanced_metrics RPC
   http.post(`${SUPABASE_URL}/rest/v1/rpc/get_advanced_metrics`, () => {
-    return HttpResponse.json(mockAdvancedMetrics)
+    return HttpResponse.json(mockAdvancedMetrics);
   }),
 
   // Mock get_sales_time_series RPC
   http.post(`${SUPABASE_URL}/rest/v1/rpc/get_sales_time_series`, () => {
-    return HttpResponse.json(mockTimeSeriesData)
+    return HttpResponse.json(mockTimeSeriesData);
   }),
 
   // Mock get_product_performance RPC
   http.post(`${SUPABASE_URL}/rest/v1/rpc/get_product_performance`, () => {
-    return HttpResponse.json(mockProductPerformance)
+    return HttpResponse.json(mockProductPerformance);
   }),
 
   // Mock get_dashboard_stats RPC
   http.post(`${SUPABASE_URL}/rest/v1/rpc/get_dashboard_stats`, () => {
-    return HttpResponse.json(mockDashboardStats)
+    return HttpResponse.json(mockDashboardStats);
   }),
 
   // Mock process_coffee_sale RPC
   http.post(`${SUPABASE_URL}/rest/v1/rpc/process_coffee_sale`, () => {
-    return HttpResponse.json({ success: true })
+    return HttpResponse.json({ success: true });
   }),
 
   // Mock inventory GET (select all)
   http.get(`${SUPABASE_URL}/rest/v1/inventory`, ({ request }) => {
-    const url = new URL(request.url)
-    const head = url.searchParams.get('head')
+    const url = new URL(request.url);
+    const head = url.searchParams.get('head');
 
     // HEAD request for count
     if (head === 'true') {
@@ -404,82 +419,82 @@ export const handlers = [
         headers: {
           'Content-Range': `0-0/${mockInventoryItems.length}`,
         },
-      })
+      });
     }
 
-    return HttpResponse.json(mockInventoryItems)
+    return HttpResponse.json(mockInventoryItems);
   }),
 
   // Mock inventory POST (insert)
   http.post(`${SUPABASE_URL}/rest/v1/inventory`, async ({ request }) => {
-    const body = await request.json()
-    const newItem = Array.isArray(body) ? body[0] : body
+    const body = await request.json();
+    const newItem = Array.isArray(body) ? body[0] : body;
     return HttpResponse.json([
       {
         ...newItem,
         product_id: Math.random().toString(36).substring(7),
         last_updated: new Date().toISOString(),
       },
-    ])
+    ]);
   }),
 
   // Mock inventory PATCH (update)
   http.patch(`${SUPABASE_URL}/rest/v1/inventory`, async ({ request }) => {
-    const body = await request.json()
-    return HttpResponse.json([body])
+    const body = await request.json();
+    return HttpResponse.json([body]);
   }),
 
   // Mock inventory DELETE
   http.delete(`${SUPABASE_URL}/rest/v1/inventory`, () => {
-    return new HttpResponse(null, { status: 204 })
+    return new HttpResponse(null, { status: 204 });
   }),
 
   // Mock sales GET (select all)
   http.get(`${SUPABASE_URL}/rest/v1/sales`, () => {
-    return HttpResponse.json(mockSales)
+    return HttpResponse.json(mockSales);
   }),
 
   // Mock sales POST (insert)
   http.post(`${SUPABASE_URL}/rest/v1/sales`, async ({ request }) => {
-    const body = await request.json()
-    const newSale = Array.isArray(body) ? body[0] : body
+    const body = await request.json();
+    const newSale = Array.isArray(body) ? body[0] : body;
     return HttpResponse.json([
       {
         ...newSale,
         id: Math.random().toString(36).substring(7),
         created_at: new Date().toISOString(),
       },
-    ])
+    ]);
   }),
 
   // Mock get_inventory_movements RPC (Kardex)
   http.post(`${SUPABASE_URL}/rest/v1/rpc/get_inventory_movements`, () => {
-    return HttpResponse.json(mockInventoryMovements)
+    return HttpResponse.json(mockInventoryMovements);
   }),
 
   // Mock restock_inventory RPC
   http.post(`${SUPABASE_URL}/rest/v1/rpc/restock_inventory`, () => {
-    return HttpResponse.json({ success: true })
+    return HttpResponse.json({ success: true });
   }),
 
   // Mock register_inventory_loss RPC
   http.post(`${SUPABASE_URL}/rest/v1/rpc/register_inventory_loss`, () => {
-    return HttpResponse.json({ success: true })
+    return HttpResponse.json({ success: true });
   }),
 
   // Mock register_inventory_movement RPC
   http.post(`${SUPABASE_URL}/rest/v1/rpc/register_inventory_movement`, () => {
-    return HttpResponse.json({ success: true })
+    return HttpResponse.json({ success: true });
   }),
 
   // Mock get_variants_for_sale RPC (Product Variants)
   http.post(`${SUPABASE_URL}/rest/v1/rpc/get_variants_for_sale`, () => {
-    return HttpResponse.json(mockVariantsForSale)
+    return HttpResponse.json(mockVariantsForSale);
   }),
 
   // Mock get_product_price_for_customer RPC (Dynamic Pricing)
   http.post(`${SUPABASE_URL}/rest/v1/rpc/get_product_price_for_customer`, () => {
-    return HttpResponse.json(mockCustomerPriceInfo)
+    return HttpResponse.json(mockCustomerPriceInfo);
   }),
 
   // Mock customers GET
@@ -499,7 +514,7 @@ export const handlers = [
         customer_type: 'retail',
         email: 'maria@test.com',
       },
-    ])
+    ]);
   }),
 
   // Mock price_lists GET
@@ -519,7 +534,7 @@ export const handlers = [
         discount_percentage: 15.0,
         is_active: true,
       },
-    ])
+    ]);
   }),
 
   // Mock profiles GET (for auth)
@@ -531,6 +546,6 @@ export const handlers = [
         approved: true,
         email: 'admin@test.com',
       },
-    ])
+    ]);
   }),
-]
+];
