@@ -116,6 +116,23 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: npm run check:rpc
 
+      # El verificador se prueba a si mismo ANTES de que su veredicto cuente.
+      # Sin red: ejerce el clasificador con los siete casos reales observados.
+      - name: Autoprueba del detector de exposicion anonima
+        run: npm run check:anon:autotest
+
+      # Pregunta a la base, con la MISMA clave publica que va en el bundle, si
+      # alguna tabla o vista devuelve datos a un anonimo. Nacio el 2026-08-07:
+      # cuatro vistas sin `security_invoker` filtraban nombre, telefono, email y
+      # valor de vida de los clientes, y ni RLS ni politicas ni el contrato de
+      # RPC podian verlo, porque una vista no es una tabla ni una funcion.
+      - name: Ninguna tabla ni vista expone datos a un anonimo
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: npm run check:anon
+
   build:
     name: Build
     runs-on: ubuntu-latest

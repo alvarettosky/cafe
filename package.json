@@ -23,6 +23,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:rpc": "node scripts/check-rpc-contract.mjs",
+    "check:anon": "node scripts/check-anon-exposure.mjs",
+    "check:anon:autotest": "node scripts/check-anon-exposure.mjs --autotest",
     "check:secrets": "git ls-files | xargs node scripts/check-secrets.mjs",
     "backup": "npx tsx scripts/backup/run-backup.ts"
   },
