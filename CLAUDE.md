@@ -15,9 +15,9 @@ Sistema de gestión para venta de café por libras y medias libras, con tienda o
 | 3    | Crecimiento y Escalabilidad    | ✅ Completado |
 | 4    | Arquitectura POS Profesional   | ✅ Completado |
 
-**Testing** (medido 2026-07-27 con `npm test` y `npm run test:coverage`):
-876 tests unitarios en 39 archivos, todos en verde. Cobertura: líneas 93,23 % ·
-sentencias 91,46 % · ramas 87,83 % · funciones 88,76 % (umbral exigido: 80 % en
+**Testing** (medido 2026-08-07 con `npm test` y `npm run test:coverage`):
+889 tests unitarios en 41 archivos, todos en verde. Cobertura: líneas 93,15 % ·
+sentencias 91,31 % · ramas 87,81 % · funciones 88,38 % (umbral exigido: 80 % en
 las cuatro).
 
 **E2E** (medido el 2026-07-27 en el CI de GitHub, al mergear): **23 tests de
@@ -41,7 +41,7 @@ Antes de proponer un cambio, leer en este orden:
 
 | Archivo                                                                                                             | Qué es                                                                                                                                           |
 | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [`.claude/commands/validate.md`](.claude/commands/validate.md)                                                      | El comando **`/validate`**: 7 fases en orden, con su línea base medida y §«El hueco que queda»                                                   |
+| [`.claude/commands/validate.md`](.claude/commands/validate.md)                                                      | El comando **`/validate`**: 8 fases en orden, con su línea base medida y §«El hueco que queda»                                                   |
 | [`.claude/TODO.md`](.claude/TODO.md)                                                                                | **Puntero, no lista.** Los pendientes vivos están en [`docs/BACKLOG.md`](docs/BACKLOG.md). No lo reactives: dos listas garantizan que una mienta |
 | [`.claude/MCP_SETUP_INSTRUCTIONS.md`](.claude/MCP_SETUP_INSTRUCTIONS.md) · [`setup-mcps.sh`](.claude/setup-mcps.sh) | Configuración de los MCP que este proyecto usa                                                                                                   |
 | [`.claude/skills/enable-required-mcps.md`](.claude/skills/enable-required-mcps.md)                                  | Skill de activación de MCP                                                                                                                       |
@@ -73,10 +73,11 @@ sabía cuántos más había.
 
 ### Verificadores propios del repositorio
 
-| Script                                                             | Comando                 | Contra qué protege                                                                                          |
-| ------------------------------------------------------------------ | ----------------------- | ----------------------------------------------------------------------------------------------------------- |
-| [`scripts/check-rpc-contract.mjs`](scripts/check-rpc-contract.mjs) | `npm run check:rpc`     | Que el código llame a una RPC que no existe en la base. Cazó `get_dashboard_stats` (404 en producción)      |
-| [`scripts/check-secrets.mjs`](scripts/check-secrets.mjs)           | `npm run check:secrets` | Credenciales commiteadas. Cazó una `service_role` de 189 días y un PAT de 188, ambos en un repo **público** |
+| Script                                                               | Comando                 | Contra qué protege                                                                                                                       |
+| -------------------------------------------------------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| [`scripts/check-rpc-contract.mjs`](scripts/check-rpc-contract.mjs)   | `npm run check:rpc`     | Que el código llame a una RPC que no existe en la base. Cazó `get_dashboard_stats` (404 en producción)                                   |
+| [`scripts/check-secrets.mjs`](scripts/check-secrets.mjs)             | `npm run check:secrets` | Credenciales commiteadas. Cazó una `service_role` de 189 días y un PAT de 188, ambos en un repo **público**                              |
+| [`scripts/check-anon-exposure.mjs`](scripts/check-anon-exposure.mjs) | `npm run check:anon`    | Que una tabla o **vista** devuelva datos a un anónimo. Cazó 4 vistas sin `security_invoker` que filtraban clientes, costos y proveedores |
 
 **Dónde corre cada uno, y por qué no en el mismo sitio:**
 
@@ -103,7 +104,7 @@ npm start                # Servidor producción local
 
 > **Sobre `setup_env.sh`.** Este archivo creaba un entorno Node aislado en
 > `.node_env/` y durante un tiempo fue obligatorio activarlo en cada terminal.
-> Ya no lo es: el directorio `.node_env/` no existe, y lint, `tsc`, los 876
+> Ya no lo es: el directorio `.node_env/` no existe, y lint, `tsc`, los 889
 > tests y el build pasan con el Node del sistema (verificado con v26.4.0 el
 > 2026-07-27). El script se conserva por si hace falta fijar la versión en una
 > máquina con un Node antiguo.
@@ -170,6 +171,7 @@ Pre-commit automático (Husky + lint-staged):
 /inventario     → Gestión de inventario con Kardex de movimientos
 /precios        → Gestión de listas de precios diferenciados (solo admin)
 /backups        → Exportación de datos CSV/XLSX y gestión de backups (solo admin)
+/ventas/nueva   → Alta de venta (ruta propia, además del modal del dashboard)
 
 # Portal de Cliente (Fase 2)
 /portal             → Dashboard del cliente (último pedido, próximo pedido, acciones rápidas)
@@ -232,7 +234,8 @@ Pre-commit automático (Husky + lint-staged):
 - `generate_customer_magic_link(p_customer_id)` - Genera enlace mágico con URL de WhatsApp
 - `validate_customer_magic_link(p_token)` - Valida token y crea sesión
 - `validate_customer_session(p_session_token)` - Verifica validez de sesión
-- `invalidate_customer_session(p_session_token)` - Cierra sesión del cliente
+- `logout_customer_session(p_session_token)` - Cierra sesión del cliente.
+  Este documento la llamaba `invalidate_customer_session`, que **no existe en la base**
 - `get_customer_portal_dashboard(p_customer_id)` - Dashboard completo del cliente
 - `get_customer_order_history(p_customer_id, p_limit, p_offset)` - Historial de pedidos
 - `get_products_for_customer_order()` - Lista productos disponibles
@@ -240,7 +243,8 @@ Pre-commit automático (Husky + lint-staged):
 - `update_customer_profile(p_customer_id, p_phone, p_email, p_address)` - Actualiza perfil
 - `get_pending_customer_orders()` - Lista pedidos pendientes (staff)
 - `confirm_customer_order(p_sale_id, p_items_with_prices)` - Confirma pedido con precios
-- `reject_customer_order(p_sale_id, p_reason)` - Rechaza pedido
+- `cancel_customer_order(p_sale_id)` - Cancela pedido.
+  Este documento la llamaba `reject_customer_order(p_sale_id, p_reason)`, que **no existe en la base**
 - `get_customer_subscription(p_customer_id)` - Obtiene suscripción activa
 - `upsert_customer_subscription(p_customer_id, p_frequency_days, p_items)` - Crea/actualiza suscripción
 - `toggle_subscription_status(p_customer_id, p_action)` - Pausa/reanuda/omite/cancela
@@ -259,8 +263,10 @@ Pre-commit automático (Husky + lint-staged):
 **Arquitectura POS Profesional (Fase 4):**
 
 - `get_inventory_movements(p_product_id, p_limit, p_offset, p_movement_type, p_date_from, p_date_to)` - Historial de movimientos de inventario (Kardex)
-- `add_inventory_movement(p_product_id, p_movement_type, p_quantity_grams, p_reason, p_unit_cost, p_batch_number)` - Registra movimiento manual de inventario
-- `get_products_with_variants()` - Lista productos con sus variantes
+- `register_inventory_movement(p_product_id, p_movement_type, p_quantity_grams, p_reference_id, p_reason, ...)` - Registra movimiento manual de inventario.
+  Este documento la llamaba `add_inventory_movement`, que **no existe en la base**
+- `get_product_with_variants(p_product_id)` - Producto con sus variantes (**singular**).
+  Este documento la llamaba `get_products_with_variants()`, que **no existe en la base**
 - `get_variants_for_sale()` - Variantes disponibles para venta con stock
 
 **Row Level Security (RLS):**
@@ -337,7 +343,8 @@ Página `/analytics` con:
 RPCs para analytics:
 
 - `get_advanced_metrics(start_date, end_date)`
-- `get_time_series_data(start_date, end_date, interval)` (intervals: day/week/month)
+- `get_sales_time_series(start_date, end_date, granularity)` (granularity: day/week/month).
+  Este documento la llamaba `get_time_series_data`, que **no existe en la base**
 
 ### Sistema de Exportación
 

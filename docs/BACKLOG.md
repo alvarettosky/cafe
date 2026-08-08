@@ -3,7 +3,7 @@
 Pendientes reales, clasificados por lo que hace falta para cerrarlos.
 Sustituye a `.claude/TODO.md`, que queda como puntero.
 
-- **Última verificación contra el código:** 2026-07-27
+- **Última verificación contra el código:** 2026-08-07
 - **Documentos hermanos:** [BLUEPRINT](BLUEPRINT.md) · [ROADMAP](ROADMAP.md) · [SYLLABUS](SYLLABUS.md) · [README](../README.md) · [CLAUDE.md](../CLAUDE.md)
 
 ## Clasificación
@@ -14,6 +14,71 @@ Sustituye a `.claude/TODO.md`, que queda como puntero.
 | **[B]** | Requiere una fuente externa (cuenta, clave, aprobación de terceros) |
 | **[C]** | Requiere juicio humano o una decisión de producto                   |
 | **[D]** | Bloqueado por una dependencia                                       |
+
+---
+
+## ✅ P0-SEC-4 — Cuatro vistas filtraban datos de clientes. Cerrado el 2026-08-07 (`030`)
+
+**La base seguía abierta, por un tipo de objeto que nadie había mirado.** 027
+cerró tablas, 029 cerró funciones. Las **vistas** no son ni una cosa ni la otra:
+no tienen RLS propio, así que no aparecen en `pg_class.relrowsecurity` ni en
+`pg_policies`, y ninguna de las dos revisiones pasó por ellas.
+
+Medido contra producción con la clave **publishable** — la que viaja en el bundle
+y por tanto tiene cualquiera:
+
+| Objeto                                           | Antes de `030`                                                                     | Después             |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------- | ------------------- |
+| `customers` / `sales` / `inventory` / `profiles` | `[]`                                                                               | `[]`                |
+| `customer_segments`                              | **2 filas**: `full_name`, `phone`, `email`, `last_purchase_date`, `lifetime_value` | `permission denied` |
+| `inventory_from_variants`                        | **3 filas**: `cost_per_gram`, `supplier`                                           | `permission denied` |
+| `inventory_movement_summary`                     | **2 filas**                                                                        | `permission denied` |
+| `inventory_for_pricing`                          | **3 filas**                                                                        | `permission denied` |
+
+Causa: las cuatro se crearon sin `security_invoker`, así que Postgres las evalúa
+con los permisos de su **propietario** y saltan el RLS de las tablas base. Y
+`anon` tenía `SELECT` sobre las cuatro.
+
+Hoy la base tiene datos de demo (2 clientes), así que lo filtrado es poco. **Pero
+el histórico real son 53 clientes identificables**, y la decisión de cargarlos al
+CRM sigue abierta ([C]): de haberse cargado antes de este hallazgo, la fuga habría
+sido de las 53 personas.
+
+`inventory_for_pricing` no la crea **ninguna migración de este repo**: se creó a
+mano en el dashboard. Nadie la consulta desde el código.
+
+**Lo que se hizo:**
+
+1. [`030_cerrar_vistas_security_definer.sql`](../supabase/migrations/030_cerrar_vistas_security_definer.sql)
+   — `security_invoker = on` + `REVOKE SELECT FROM anon, PUBLIC` + `GRANT` explícito
+   a `authenticated`, con verificación que **aborta la transacción** si algo no
+   surtió efecto. Probada antes en transacción revertida, comprobando después que
+   el `ROLLBACK` había dejado las vistas intactas.
+2. [`scripts/check-anon-exposure.mjs`](../scripts/check-anon-exposure.mjs) —
+   fase 8 de `/validate` y paso del CI. No revisa una lista de sospechosos:
+   **pregunta a la base qué objetos hay y los prueba todos**, para que el próximo
+   objeto quede cubierto sin que nadie se acuerde.
+3. Nueve tests que fijan el criterio del verificador (`scripts/__tests__/`).
+
+**Las tres lecciones**
+
+1. **Revisar el mecanismo que conoces no dice nada del que no estás mirando.**
+   RLS y políticas describen tablas. La pregunta correcta no era «¿está el RLS
+   activo?» sino «¿qué devuelve la base a un anónimo?», que es agnóstica al tipo
+   de objeto.
+2. **Un control negativo cuyo sabotaje no llega a entrar es un verde falso.** Al
+   probar el verificador con una vista trampa, la primera corrida dio VERDE: la
+   trampa existía en `pg_class` pero PostgREST aún no la publicaba. Sin comprobar
+   que la trampa era **realmente accesible** (`[{"n":1}]` por HTTP), se habría
+   apuntado «el gate no detecta» o, peor, «el gate está bien».
+3. **Una credencial muerta convierte cualquier auditoría en un aprobado.** La
+   primera sonda usó la clave de `.env.local`, legacy desactivada el 2026-07-27:
+   todo devolvía 401. Por eso el verificador exige un control positivo — al menos
+   un objeto respondiendo 200 — antes de emitir veredicto.
+
+⚠️ **`.env.local` tiene la clave legacy**, no la publishable. Lo creó `vercel link`.
+Cualquier cosa que dependa de él contra la base real fallará con «Legacy API keys
+are disabled» (entra en [A], abajo).
 
 ---
 
@@ -358,21 +423,26 @@ dejaron como estaban — ya caían dentro de la franja y su horario es indiferen
 
 ## A — Automatizable ahora
 
-| #   | Pendiente                                                   | Notas                                                                                                                                                                                                                                                                                                                                          |
-| --- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A1  | Warnings de accesibilidad en `Dialog` (falta `Description`) | Radix los emite en consola; 10 warnings de ESLint conviven aparte                                                                                                                                                                                                                                                                              |
-| A2  | Modo oscuro/claro con toggle                                | Hoy el dark es fijo (`<html className="dark">`)                                                                                                                                                                                                                                                                                                |
-| A3  | Accesibilidad: etiquetas ARIA y navegación por teclado      |                                                                                                                                                                                                                                                                                                                                                |
-| A4  | Caché de consultas frecuentes                               | El dashboard reconsulta en cada montaje                                                                                                                                                                                                                                                                                                        |
-| A5  | Lazy loading de componentes pesados                         | `app/portal/suscripcion/page.tsx` son 707 líneas                                                                                                                                                                                                                                                                                               |
-| A6  | Optimización de imágenes                                    |                                                                                                                                                                                                                                                                                                                                                |
-| A7  | Service Worker / PWA                                        |                                                                                                                                                                                                                                                                                                                                                |
-| A8  | Dashboard de métricas de recurrencia                        | Los datos ya existen (`customer_segments`)                                                                                                                                                                                                                                                                                                     |
-| A9  | Gráficas de predicción de ventas basadas en recurrencia     | Depende de A8 para no duplicar consultas                                                                                                                                                                                                                                                                                                       |
-| A10 | Animaciones de transición                                   | framer-motion ya está en el proyecto                                                                                                                                                                                                                                                                                                           |
-| A11 | Etiqueta «Ver en Drive» en `/backups`                       | **Es un fósil**: el almacenamiento es Supabase Storage desde la migración; ya no hay Drive. Cambiar el texto y su aserción en el test                                                                                                                                                                                                          |
-| A15 | **`get_products_for_customer_order` devuelve SQL inválido** | HTTP 400 · `42803: column "inventory.product_name" must appear in the GROUP BY clause`. La página de nuevo pedido del portal **no puede listar productos**: es un `json_agg(...)` con `ORDER BY product_name` sin agrupar. Preexistente; se descubrió el 2026-07-27 al probar los permisos de las RPC del portal, no por un reporte de usuario |
-| A14 | Zona de entrega sin color se pinta transparente             | `delivery-zones-manager.tsx` no aplica `background-color` cuando `color` es null; el componente hermano `delivery-zone-select.tsx` usa gris `#9CA3AF`. Unificar en el gris es un cambio de producto, no de tipos: por eso se dejó fuera de A12                                                                                                 |
+| #   | Pendiente                                                   | Notas                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| --- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A1  | Warnings de accesibilidad en `Dialog` (falta `Description`) | Radix los emite en consola; 10 warnings de ESLint conviven aparte                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| A2  | Modo oscuro/claro con toggle                                | Hoy el dark es fijo (`<html className="dark">`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| A3  | Accesibilidad: etiquetas ARIA y navegación por teclado      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| A4  | Caché de consultas frecuentes                               | El dashboard reconsulta en cada montaje                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| A5  | Lazy loading de componentes pesados                         | `app/portal/suscripcion/page.tsx` son 707 líneas                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| A6  | Optimización de imágenes                                    |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| A7  | Service Worker / PWA                                        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| A8  | Dashboard de métricas de recurrencia                        | Los datos ya existen (`customer_segments`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| A9  | Gráficas de predicción de ventas basadas en recurrencia     | Depende de A8 para no duplicar consultas                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| A10 | Animaciones de transición                                   | framer-motion ya está en el proyecto                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| A11 | Etiqueta «Ver en Drive» en `/backups`                       | **Es un fósil**: el almacenamiento es Supabase Storage desde la migración; ya no hay Drive. Cambiar el texto y su aserción en el test                                                                                                                                                                                                                                                                                                                                                                                         |
+| A15 | **`get_products_for_customer_order` devuelve SQL inválido** | HTTP 400 · `42803: column "inventory.product_name" must appear in the GROUP BY clause`. La página de nuevo pedido del portal **no puede listar productos**: es un `json_agg(...)` con `ORDER BY product_name` sin agrupar. Preexistente; se descubrió el 2026-07-27 al probar los permisos de las RPC del portal, no por un reporte de usuario                                                                                                                                                                                |
+| A14 | Zona de entrega sin color se pinta transparente             | `delivery-zones-manager.tsx` no aplica `background-color` cuando `color` es null; el componente hermano `delivery-zone-select.tsx` usa gris `#9CA3AF`. Unificar en el gris es un cambio de producto, no de tipos: por eso se dejó fuera de A12                                                                                                                                                                                                                                                                                |
+| A16 | **`.env.local` tiene la clave `anon` LEGACY, desactivada**  | Lo creó `vercel link` antes de la rotación del 2026-07-27. Cualquier cosa que lo use contra la base real falla con `Legacy API keys are disabled`. La viva es la publishable (`~/.config/cafe-mirador/anon.key` en local, secreto `NEXT_PUBLIC_SUPABASE_ANON_KEY` en CI). Descubierto porque una sonda de auditoría dio 401 en todo y casi se lee como «nada expuesto»                                                                                                                                                        |
+| A17 | **62 funciones con `search_path` mutable**                  | `get_advisors` security, nivel WARN. En funciones `SECURITY DEFINER` es un vector de escalada: quien controle el `search_path` puede colar objetos propios. Se cierra con `ALTER FUNCTION … SET search_path = public, pg_temp` en una migración por lotes. Medido 2026-08-07                                                                                                                                                                                                                                                  |
+| A18 | Protección de contraseñas filtradas desactivada             | `auth_leaked_password_protection` — Supabase puede contrastar contra HaveIBeenPwned. Es un interruptor del dashboard, no código                                                                                                                                                                                                                                                                                                                                                                                               |
+| A19 | **21 funciones en la base que nadie invoca**                | Medido comparando `pg_proc` con las 38 `.rpc()` del código. Seis son triggers (legítimas). Las demás son features **a medias o abandonadas**: `edit_sale`/`can_edit_sale` (CLAUDE.md las documenta como críticas y ningún componente las llama), `confirm_customer_order`, `cancel_customer_order`, `get_pending_customer_orders`, `apply_referral_code`, `complete_referral_on_purchase`, `get_subscriptions_due_today`. Decidir una por una: cablear o borrar. Es el equivalente aquí del «método que existe y nadie llama» |
+| A20 | **Tres `.html` derivados versionados en el repo público**   | `README.html`, `SUPABASE_SETUP.html`, `DEPLOY_NETLIFY.html`, ~626 KB cada uno. Un derivado no se actualiza solo: publica lo que el `.md` ya borró, y este repositorio es público. O se regeneran en el mismo commit que su fuente, o salen del índice y van al `.gitignore`                                                                                                                                                                                                                                                   |
 
 ## B — Requiere fuente externa
 

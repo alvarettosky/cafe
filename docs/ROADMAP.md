@@ -2,23 +2,27 @@
 
 Qué se construyó, en qué orden y qué sigue.
 
-- **Última verificación contra el código:** 2026-07-27
+- **Última verificación contra el código:** 2026-08-07
 - **Documentos hermanos:** [BLUEPRINT](BLUEPRINT.md) · [BACKLOG](BACKLOG.md) · [SYLLABUS](SYLLABUS.md) · [README](../README.md) · [CLAUDE.md](../CLAUDE.md)
 
 ---
 
 ## Estado actual, medido
 
-| Indicador       | Valor                                                                   | Cómo se comprobó            |
-| --------------- | ----------------------------------------------------------------------- | --------------------------- |
-| Tests unitarios | **876 en 39 archivos, todos en verde**                                  | `npm test`                  |
-| Cobertura       | Líneas 93,23 % · Sentencias 91,46 % · Ramas 87,83 % · Funciones 88,76 % | `npm run test:coverage`     |
-| Umbral exigido  | 80 % en las cuatro métricas                                             | `vitest.config.mts`         |
-| Tipos           | Sin errores                                                             | `npx tsc --noEmit`          |
-| Lint            | 0 errores, 10 warnings                                                  | `npm run lint`              |
-| Formato         | Todo el repo conforme                                                   | `npm run format:check`      |
-| Build           | **23 páginas estáticas** (21 rutas + `/_not-found` y raíz)              | `npm run build`             |
-| Tests E2E       | **23 en verde × 3 navegadores** (chromium, firefox, webkit)             | CI de GitHub, run del merge |
+| Indicador          | Valor                                                                   | Cómo se comprobó            |
+| ------------------ | ----------------------------------------------------------------------- | --------------------------- |
+| Tests unitarios    | **889 en 41 archivos, todos en verde**                                  | `npm test`                  |
+| Cobertura          | Líneas 93,15 % · Sentencias 91,31 % · Ramas 87,81 % · Funciones 88,38 % | `npm run test:coverage`     |
+| Umbral exigido     | 80 % en las cuatro métricas                                             | `vitest.config.mts`         |
+| Tipos              | Sin errores                                                             | `npx tsc --noEmit`          |
+| Lint               | 0 errores, 10 warnings                                                  | `npm run lint`              |
+| Formato            | Todo el repo conforme                                                   | `npm run format:check`      |
+| Build              | **21 rutas** (18 estáticas + 3 dinámicas)                               | `npm run build`             |
+| Tests E2E          | **23 en verde × 3 navegadores** (chromium, firefox, webkit)             | CI de GitHub, run del merge |
+| Contrato de RPC    | **38 invocadas, 38 existen** en la base                                 | `npm run check:rpc` / MCP   |
+| Exposición anónima | **0 objetos de `public` devuelven datos** a la clave pública            | `npm run check:anon`        |
+| RLS                | 21 tablas, **todas** con RLS activo                                     | `pg_class.relrowsecurity`   |
+| Funciones `anon`   | **13** (la lista blanca del portal, `029`)                              | `has_function_privilege`    |
 
 ## Fases entregadas
 
@@ -61,14 +65,37 @@ eran dos por forma sino **tres** —había una copia anónima inline en cada
 `.map()`— y que una de ellas mentía sobre la nulabilidad de dos columnas. El
 detalle está en [BACKLOG §«La mentira de nulabilidad»](BACKLOG.md#la-mentira-de-nulabilidad-que-destapó-a12).
 
+## Objetivos del ciclo de endurecimiento (2026-08-07)
+
+Cada uno con el comando o consulta que lo demuestra. Un objetivo sin criterio
+ejecutable no es un objetivo, es una intención.
+
+| OE   | Objetivo                                                         | Criterio ejecutable                                        | Estado                                   |
+| ---- | ---------------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------- |
+| OE9  | Ningún objeto de `public` devuelve datos a un anónimo            | `npm run check:anon` en verde, con su autoprueba           | ✅ cerrado (`030` + fase 8)              |
+| OE10 | El verificador de exposición detecta una fuga real, no simulada  | Trampa accesible por HTTP ⇒ el gate sale con 1             | ✅ verificado y retirado con rastro cero |
+| OE11 | Toda cifra medida dice lo mismo en los 6 archivos que la repiten | `grep` de la cifra vieja no devuelve nada                  | ✅ cerrado (tests, cobertura, build)     |
+| OE12 | Toda RPC citada en la documentación existe en la base            | `comm` entre las citadas y `pg_proc`                       | ✅ cerrado (5 fantasmas corregidas)      |
+| OE13 | Las funciones `SECURITY DEFINER` fijan su `search_path`          | `get_advisors security` sin `function_search_path_mutable` | ⬜ abierto — BACKLOG A17 (62 casos)      |
+| OE14 | Ninguna función de la base queda sin llamador ni sin motivo      | `pg_proc` menos las `.rpc()` del código = solo triggers    | ⬜ abierto — BACKLOG A19 (21 casos)      |
+| OE15 | El portal puede listar productos                                 | `get_products_for_customer_order` devuelve 200             | ⬜ abierto — BACKLOG A15                 |
+
 ## Siguiente paso vigente
 
-**Primero, y no es código: [BACKLOG](BACKLOG.md) §P0-SEC-2 — revocar el token
-`cafedesalento` (`sbp_8099…`).** Estuvo 188 días en el repositorio público y
-sigue vivo. Da acceso a la cuenta de Supabase entera, no a una base. Solo puede
-hacerlo el dueño de la cuenta, desde el dashboard.
+**[BACKLOG](BACKLOG.md) A15 — `get_products_for_customer_order` devuelve SQL
+inválido** (`42803`, HTTP 400). Es el único pendiente que rompe algo que un
+cliente usa: la página de nuevo pedido del portal **no puede listar productos**.
+Está por delante de cualquier mejora porque no es deuda, es una función caída.
 
-Después, **[BACKLOG](BACKLOG.md) B4 — la firma de las RPC.** Su mitad fácil ya
+Después, **A17** (62 funciones con `search_path` mutable: una migración por lotes
+cierra los 62 de golpe) y **A19** (decidir, una por una, si las 21 funciones sin
+llamador se cablean o se borran).
+
+~~Revocar el token `cafedesalento`~~ — **hecho el 2026-07-27**, verificado con
+HTTP 401 contra la Management API. Este documento seguía pidiéndolo once días
+después: un pendiente cumplido que nadie tachó se lee como trabajo vivo.
+
+Y **[BACKLOG](BACKLOG.md) B4 — la firma de las RPC.** Su mitad fácil ya
 está cerrada: `npm run check:rpc` garantiza que las RPC invocadas **existan**, y
 eso bastaba para el bug del dashboard. Lo que queda es más fino — que los
 **parámetros** cuadren— y exige generar los tipos desde el esquema real con
@@ -80,6 +107,6 @@ A8/A9 (métricas de recurrencia, cuyos datos ya existen en `customer_segments`).
 ## Al retomar
 
 1. Leer [BACKLOG §D](BACKLOG.md#d--cerrado-y-por-qué) antes de proponer nada.
-2. Correr `npm test` y confirmar **876/876** antes de tocar código.
+2. Correr `npm test` y confirmar **889/889** antes de tocar código.
 3. Nada de `git add -A`: [BLUEPRINT §5](BLUEPRINT.md#5-estado-de-despliegue)
    explica por qué el repo público no puede recibir datos de clientes.

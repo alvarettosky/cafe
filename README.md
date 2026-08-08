@@ -92,7 +92,7 @@ MSW (mocks de API) · Stryker (mutation testing) · k6 (carga)
 
 ## Requisitos previos
 
-1. **Node.js**: el proyecto pasa lint, `tsc`, los 876 tests unitarios y el
+1. **Node.js**: el proyecto pasa lint, `tsc`, los 889 tests unitarios y el
    build con el Node del sistema — verificado con v26.4.0 el 2026-07-27. No
    hace falta ningún entorno aislado.
 2. **Supabase**: proyecto configurado (ver [`SUPABASE_SETUP.md`](SUPABASE_SETUP.md)).
@@ -120,8 +120,8 @@ npm run dev                 # Servidor de desarrollo → http://localhost:3000
 
 | Indicador       | Valor                                                                           |
 | --------------- | ------------------------------------------------------------------------------- |
-| Tests unitarios | **876 en 39 archivos, todos en verde**                                          |
-| Cobertura       | Líneas 93,23 % · Sentencias 91,46 % · Ramas 87,83 % · Funciones 88,76 %         |
+| Tests unitarios | **889 en 41 archivos, todos en verde**                                          |
+| Cobertura       | Líneas 93,15 % · Sentencias 91,31 % · Ramas 87,81 % · Funciones 88,38 %         |
 | Umbral exigido  | 80 % en las cuatro métricas (`vitest.config.mts`)                               |
 | Tests E2E       | **23 en verde × 3 navegadores** (chromium, firefox, webkit), en el CI de GitHub |
 
