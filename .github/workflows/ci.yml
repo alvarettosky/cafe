@@ -126,12 +126,17 @@ jobs:
       # cuatro vistas sin `security_invoker` filtraban nombre, telefono, email y
       # valor de vida de los clientes, y ni RLS ni politicas ni el contrato de
       # RPC podian verlo, porque una vista no es una tabla ni una funcion.
+      # `--strict` es lo que impide el verde vacio: sin secretos el script
+      # sale con 1 en vez de con 0. GitHub Actions NO inyecta secretos en los
+      # PR desde forks y este repositorio es publico, asi que sin esto un PR
+      # de fork ensenaba una marca verde junto a un paso que afirma que nada
+      # esta expuesto, sin haber tocado la base.
       - name: Ninguna tabla ni vista expone datos a un anonimo
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-        run: npm run check:anon
+        run: npm run check:anon -- --strict
 
   build:
     name: Build

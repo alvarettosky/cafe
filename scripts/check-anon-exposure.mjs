@@ -36,79 +36,74 @@
  *
  *   1. DESCUBRE con `SUPABASE_SERVICE_ROLE_KEY`: PostgREST publica su esquema
  *      OpenAPI en la raiz de `/rest/v1/`, y con la clave de servicio lista los
- *      25 objetos de `public` (21 tablas + 4 vistas). Con la clave anonima ese
- *      mismo endpoint devuelve 0 objetos — por eso el descubrimiento no puede
- *      hacerse con ella.
- *   2. PRUEBA cada objeto con la clave PUBLICA (`NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+ *      objetos de `public`. Con la clave anonima ese mismo endpoint devuelve 0
+ *      objetos — por eso el descubrimiento no puede hacerse con ella.
+ *   2. CONTRASTA el corpus descubierto con `anon-baseline.json` (ver abajo).
+ *   3. PRUEBA cada objeto con la clave PUBLICA (`NEXT_PUBLIC_SUPABASE_ANON_KEY`,
  *      o `~/.config/cafe-mirador/anon.key` en local). Es literalmente lo que
  *      tiene a mano cualquiera que abra el bundle de la web.
- *   3. FALLA si algun objeto devuelve una sola fila.
+ *   4. FALLA si algun objeto devuelve una sola fila, si aparece un objeto
+ *      alcanzable que no estaba declarado, o si el corpus encoge.
  *
  * ---------------------------------------------------------------------------
- * EL CONTROL POSITIVO NO ES OPCIONAL
+ * TRES COSAS QUE ESTE SCRIPT APRENDIO A LA MALA
  * ---------------------------------------------------------------------------
  *
- * Al investigar la fuga, la primera sonda uso la clave de `.env.local`, que es
- * una **legacy desactivada el 2026-07-27**. Todas las peticiones devolvieron
- * 401 y el resultado se habria leido como "nada expuesto". Era ceguera, no
- * seguridad.
+ * 1. **El control positivo no es opcional.** La primera sonda de la
+ *    investigacion uso la clave de `.env.local`, una legacy desactivada el
+ *    2026-07-27: todas las peticiones devolvieron 401 y el resultado se habria
+ *    leido como "nada expuesto". Por eso se exige haber ALCANZADO la base
+ *    antes de emitir veredicto.
  *
- * Por eso este script EXIGE que al menos un objeto responda 200 antes de
- * emitir veredicto. Si todo da 401, la conclusion no es "cerrado": es
- * **SONDA MUERTA**, y sale con error. Un cero solo vale cuando se ha
- * demostrado que la sonda podia ver algo.
+ * 2. **Vacio no es lo mismo que protegido.** Una tabla recien creada siempre
+ *    esta vacia; si `anon` puede leerla, el dia que entren filas seran
+ *    publicas y ninguna corrida intermedia lo habria dicho. Por eso NO basta
+ *    con "no devolvio filas": el conjunto de objetos ALCANZABLES (los que
+ *    responden 200, aunque sea con `[]`) se compara contra una linea base
+ *    declarada, y cualquiera nuevo hace fallar el gate.
+ *
+ * 3. **Lo que no se prueba no se puede aprobar.** El corpus sale del esquema
+ *    de PostgREST, que se cachea. Si el descubrimiento devuelve menos objetos
+ *    de los declarados, el veredicto no es "todo bien": es que la sonda no vio
+ *    todo, y eso falla.
  *
  * Uso:
  *   node scripts/check-anon-exposure.mjs
- *   node scripts/check-anon-exposure.mjs --autotest   # se prueba a si mismo
+ *   node scripts/check-anon-exposure.mjs --autotest    # se prueba a si mismo
+ *   node scripts/check-anon-exposure.mjs --strict      # faltar credenciales = fallo
+ *   node scripts/check-anon-exposure.mjs --actualizar-linea-base
  */
+import { readFileSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { pathToFileURL } from 'node:url';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const ALLOWLIST = new Set([
-  // Objetos que PUEDEN devolver datos a un anonimo, con su motivo.
-  // Hoy esta vacia a proposito: el portal de cliente llega como `anon` pero
-  // solo invoca RPC (`grep "\\.from('" app/portal` no devuelve nada), asi que
-  // ninguna tabla ni vista necesita lectura anonima.
-]);
+const AQUI = dirname(fileURLToPath(import.meta.url));
+const RUTA_LINEA_BASE = join(AQUI, 'anon-baseline.json');
 
 // Lo que este verificador NO mira, dicho en voz alta para que nadie lo lea
 // como cobertura que no tiene:
-//   - Funciones ejecutables por `anon` (las cubre 029 con su lista blanca de 13
-//     y `mcp__supabase__get_advisors`).
-//   - Storage buckets.
-//   - Escritura anonima (INSERT/UPDATE/DELETE): aqui solo se prueba lectura.
 const NO_MIRA = [
   'funciones RPC ejecutables por anon (ver 029 y get_advisors)',
   'buckets de Storage',
   'escritura anonima: solo se comprueba SELECT',
-  'objetos que PostgREST aun no ha recargado en su cache de esquema',
+  'RLS entre roles AUTENTICADOS (aprobado vs no aprobado): aqui solo se sondea como anon',
 ];
-
-// ⚠️ LIMITACION MEDIDA, no supuesta (2026-08-07). Al probar la deteccion con una
-// vista trampa expuesta a `anon`, la primera corrida dio VERDE: PostgREST cachea
-// su esquema, seguia publicando 25 objetos y el 26 no llegaba a probarse. Con
-// `NOTIFY pgrst, 'reload schema'` aparecieron los 26 y el gate fallo como debia.
-//
-// Consecuencia practica: este verificador ve lo que PostgREST expone AHORA, no
-// lo que hay en `pg_class`. En CI eso basta —corre mucho despues del DDL— pero
-// justo tras aplicar una migracion puede ir un paso por detras.
-//
-// Y la leccion que casi cuesta el hallazgo: la primera prueba de deteccion se
-// habria apuntado como "el gate no detecto nada" cuando lo que fallaba era que
-// **la trampa nunca llego a estar puesta**. Antes de creerse un control
-// negativo, hay que comprobar que el sabotaje entro de verdad.
 
 /**
  * Clasifica UNA respuesta. Aislada a proposito: es lo que el autotest ejerce.
+ *
+ * ⚠️ EL ORDEN IMPORTA. El codigo de estado se mira ANTES que el texto: una
+ * clave muerta nunca devuelve 200, asi que un 200 con filas es siempre FUGA
+ * aunque el contenido de una fila contenga por casualidad "Invalid API key"
+ * (`customers.notes`, `inventory_movements.reason` y las observaciones de
+ * ventas son texto libre que escribe una persona). Al reves, la fuga se
+ * disfrazaba de sonda muerta.
+ *
  * @returns {'FUGA'|'OK_VACIO'|'OK_SIN_PRIVILEGIO'|'SONDA_MUERTA'|'INDETERMINADO'}
  */
 export function clasificar(status, body) {
-  const texto = typeof body === 'string' ? body : JSON.stringify(body ?? '');
-
-  // Una clave legacy desactivada devuelve 401 con este mensaje. Si se contara
-  // como "cerrado", una credencial muerta pondria todo el gate en verde.
-  if (/legacy api keys are disabled/i.test(texto)) return 'SONDA_MUERTA';
-  if (/invalid api key|no api key found/i.test(texto)) return 'SONDA_MUERTA';
-
   if (status === 200) {
     let filas;
     try {
@@ -120,6 +115,13 @@ export function clasificar(status, body) {
     return filas.length > 0 ? 'FUGA' : 'OK_VACIO';
   }
 
+  const texto = typeof body === 'string' ? body : JSON.stringify(body ?? '');
+
+  // Una clave legacy desactivada o invalida devuelve 401 con estos mensajes.
+  // Contarlo como "cerrado" dejaria que una credencial muerta aprobara la base.
+  if (/legacy api keys are disabled/i.test(texto)) return 'SONDA_MUERTA';
+  if (/invalid api key|no api key found/i.test(texto)) return 'SONDA_MUERTA';
+
   // 42501 = permission denied. Es el estado bueno: no hay ni privilegio.
   if ((status === 401 || status === 403) && /42501|permission denied/i.test(texto)) {
     return 'OK_SIN_PRIVILEGIO';
@@ -129,9 +131,13 @@ export function clasificar(status, body) {
   return 'INDETERMINADO';
 }
 
+/** Un objeto es ALCANZABLE por anon si la peticion llega a la base y responde. */
+export function esAlcanzable(veredicto) {
+  return veredicto === 'FUGA' || veredicto === 'OK_VACIO';
+}
+
 function autotest() {
   const casos = [
-    // [status, body, esperado, por que importa]
     [200, [{ id: 1, full_name: 'x' }], 'FUGA', 'una fila devuelta es la fuga que motivo el script'],
     [200, [], 'OK_VACIO', 'vacio con la sonda viva es el estado bueno'],
     [
@@ -149,6 +155,19 @@ function autotest() {
     [401, { message: 'Invalid API key' }, 'SONDA_MUERTA', 'clave rota: tampoco es un aprobado'],
     [500, 'Internal Server Error', 'INDETERMINADO', 'no pude verlo != no hay nada'],
     [200, 'esto no es json', 'INDETERMINADO', 'respuesta ilegible no se cuenta como vacia'],
+    // El caso que ordena el status ANTES que el texto:
+    [
+      200,
+      [{ id: 1, notes: 'el cliente reporta Invalid API key al entrar' }],
+      'FUGA',
+      'una fuga cuyo TEXTO menciona una clave invalida sigue siendo fuga',
+    ],
+    [
+      200,
+      [{ id: 2, reason: 'Legacy API keys are disabled, se rehizo el movimiento' }],
+      'FUGA',
+      'idem con el mensaje de clave legacy dentro de una fila',
+    ],
   ];
 
   let fallos = 0;
@@ -161,8 +180,7 @@ function autotest() {
     );
   }
 
-  // Control de falsos positivos: el clasificador NO debe marcar FUGA en nada
-  // que no sea una respuesta 200 con filas.
+  // Control de falsos positivos: nada que no sea un 200 con filas debe ser FUGA.
   const falsosPositivos = casos.filter(
     ([s, b, esp]) => esp !== 'FUGA' && clasificar(s, b) === 'FUGA'
   );
@@ -173,6 +191,14 @@ function autotest() {
     console.log('  ✓ ningun falso positivo sobre los casos buenos');
   }
 
+  // Un 200 SIEMPRE cuenta como alcanzado: es lo que sostiene el control positivo.
+  if (!esAlcanzable('OK_VACIO') || !esAlcanzable('FUGA') || esAlcanzable('SONDA_MUERTA')) {
+    console.log('  ✗ esAlcanzable no distingue "llegue a la base" de "no llegue"');
+    fallos++;
+  } else {
+    console.log('  ✓ esAlcanzable cuenta 200 (con y sin filas) y descarta las claves muertas');
+  }
+
   console.log(
     fallos === 0
       ? '\n✅ AUTOTEST OK — detecta el caso malo y no dispara con los buenos'
@@ -181,38 +207,56 @@ function autotest() {
   return fallos === 0 ? 0 : 1;
 }
 
-async function leerClaveLocal() {
+function leerClaveLocal() {
   try {
-    const { readFileSync } = await import('node:fs');
-    const { homedir } = await import('node:os');
     return readFileSync(`${homedir()}/.config/cafe-mirador/anon.key`, 'utf8').trim();
   } catch {
     return '';
   }
 }
 
+function leerLineaBase() {
+  try {
+    return JSON.parse(readFileSync(RUTA_LINEA_BASE, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
 async function main() {
-  if (process.argv.includes('--autotest')) process.exit(autotest());
+  const args = process.argv.slice(2);
+  if (args.includes('--autotest')) process.exit(autotest());
+
+  // En CI faltar credenciales NO puede ser un aprobado: los secretos no se
+  // inyectan en PRs desde forks, y este repositorio es publico, asi que sin
+  // modo estricto el paso saldria verde sin haber tocado la base.
+  const estricto = args.includes('--strict') || process.env.CI === 'true';
+  const actualizarBase = args.includes('--actualizar-linea-base');
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const servicio = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || (await leerClaveLocal());
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || leerClaveLocal();
 
   if (!url || !servicio || !anon) {
-    console.log(
-      '\n⚠️  OMITIDO — falta NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY o la clave publica.'
-    );
-    console.log(
-      '   NO se comprobo si algun objeto expone datos a un anonimo. Esto NO es un aprobado.'
-    );
-    console.log('   En CI los tres existen y la comprobacion corre.\n');
+    const faltan = [
+      !url && 'NEXT_PUBLIC_SUPABASE_URL',
+      !servicio && 'SUPABASE_SERVICE_ROLE_KEY',
+      !anon && 'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+    ].filter(Boolean);
+    console.log(`\n⚠️  NO SE COMPROBO NADA — faltan: ${faltan.join(', ')}.`);
+    console.log('   Esto NO es un aprobado: no se sabe si algun objeto expone datos.');
+    if (estricto) {
+      console.error('\n❌ Modo estricto (--strict o CI=true): un verificador que no puede correr');
+      console.error('   no puede dar por buena la base. Revisa los secretos del entorno.');
+      process.exit(1);
+    }
+    console.log('   (fuera de CI se sale con 0 para no romper un commit sin conexion)\n');
     process.exit(0);
   }
 
   const cab = k => ({ apikey: k, Authorization: `Bearer ${k}` });
 
-  // 1. Descubrir. Con la clave anonima esto devuelve 0 objetos: hace falta la
-  //    de servicio, y por eso el gate no puede correr solo con la publica.
+  // 1. Descubrir.
   const esquema = await fetch(`${url}/rest/v1/`, { headers: cab(servicio) }).then(r => r.json());
   const objetos = Object.keys(esquema.definitions ?? {}).sort();
   if (objetos.length === 0) {
@@ -225,32 +269,78 @@ async function main() {
   const veredictos = new Map();
   for (const obj of objetos) {
     const r = await fetch(`${url}/rest/v1/${obj}?select=*&limit=1`, { headers: cab(anon) });
-    const cuerpo = await r.text();
-    veredictos.set(obj, clasificar(r.status, cuerpo));
+    veredictos.set(obj, clasificar(r.status, await r.text()));
   }
 
-  // 3. Control positivo OBLIGATORIO antes de emitir veredicto.
-  const vio = [...veredictos.values()].filter(v => v === 'OK_VACIO').length;
-  const muertas = [...veredictos.values()].filter(v => v === 'SONDA_MUERTA').length;
-  if (muertas > 0 || vio === 0) {
-    console.error('\n❌ SONDA MUERTA — la clave publica no esta autenticando contra la base.');
+  const fugas = objetos.filter(o => veredictos.get(o) === 'FUGA');
+  const dudosos = objetos.filter(o => veredictos.get(o) === 'INDETERMINADO');
+  const muertas = objetos.filter(o => veredictos.get(o) === 'SONDA_MUERTA');
+  const alcanzables = objetos.filter(o => esAlcanzable(veredictos.get(o)));
+
+  // 3. LAS FUGAS SE REPORTAN PRIMERO, pase lo que pase con el resto.
+  //    Antes el guard del control positivo se evaluaba antes que esto, asi que
+  //    un colapso total del RLS (todo devuelve filas ⇒ cero OK_VACIO) se
+  //    imprimia como "sonda muerta" y no se nombraba ni un objeto.
+  if (fugas.length) {
+    console.error(`\n❌ FUGA: ${fugas.length} objetos devuelven datos a un anonimo:`);
+    for (const o of fugas) console.error(`   - ${o}`);
     console.error(
-      `   ${muertas} respuestas de clave invalida/legacy, ${vio} objetos alcanzados con exito.`
+      '\n   Revisa si es una vista sin `security_invoker` (ver 030) o un GRANT a anon.'
     );
+  }
+
+  // 4. Control positivo: hay que haber ALCANZADO la base. Un 401 de permiso
+  //    tambien prueba que la peticion llego, asi que cuenta.
+  const llegoALaBase =
+    alcanzables.length > 0 || objetos.some(o => veredictos.get(o) === 'OK_SIN_PRIVILEGIO');
+  if (muertas.length > 0 || !llegoALaBase) {
+    console.error('\n❌ SONDA MUERTA — la clave publica no esta autenticando contra la base.');
+    console.error(`   ${muertas.length} respuestas de clave invalida/legacy.`);
     console.error('   Un "no hay nada expuesto" sacado de aqui seria ceguera, no seguridad.');
     process.exit(1);
   }
 
-  const fugas = objetos.filter(o => veredictos.get(o) === 'FUGA' && !ALLOWLIST.has(o));
-  const dudosos = objetos.filter(o => veredictos.get(o) === 'INDETERMINADO');
+  // 5. Linea base: vacio NO es lo mismo que protegido.
+  const base = leerLineaBase();
+  if (actualizarBase) {
+    const nueva = {
+      medido: new Date().toISOString().slice(0, 10),
+      nota: 'Objetos que PostgREST expone y, de ellos, los que anon alcanza (200, aunque sea []). Un objeto alcanzable nuevo exige revision consciente: si esta vacio hoy, sus filas de manana serian publicas.',
+      objetos,
+      alcanzables_por_anon: alcanzables,
+    };
+    writeFileSync(RUTA_LINEA_BASE, JSON.stringify(nueva, null, 2) + '\n');
+    console.log(
+      `\n📝 Linea base reescrita: ${objetos.length} objetos, ${alcanzables.length} alcanzables.`
+    );
+    process.exit(0);
+  }
 
-  console.log(
-    `Control positivo: ${vio} objetos respondieron 200 con lista vacia (la sonda ve la base).`
-  );
-  console.log(
-    `Sin privilegio  : ${[...veredictos.values()].filter(v => v === 'OK_SIN_PRIVILEGIO').length}`
-  );
-  console.log(`\nEste verificador NO mira: ${NO_MIRA.join(' · ')}`);
+  let derivaBase = false;
+  if (!base) {
+    console.error(
+      `\n❌ Falta ${RUTA_LINEA_BASE}. Generala con --actualizar-linea-base y revisala.`
+    );
+    derivaBase = true;
+  } else {
+    const nuevosAlcanzables = alcanzables.filter(o => !base.alcanzables_por_anon.includes(o));
+    const desaparecidos = base.objetos.filter(o => !objetos.includes(o));
+    if (nuevosAlcanzables.length) {
+      console.error(
+        `\n❌ ${nuevosAlcanzables.length} objeto(s) ALCANZABLES por anon sin declarar:`
+      );
+      for (const o of nuevosAlcanzables) console.error(`   - ${o}`);
+      console.error('   Hoy pueden estar vacios; sus filas de manana serian publicas.');
+      derivaBase = true;
+    }
+    if (desaparecidos.length) {
+      console.error(`\n❌ ${desaparecidos.length} objeto(s) de la linea base NO aparecieron en el`);
+      console.error('   descubrimiento. O se borraron, o el cache de esquema de PostgREST va');
+      console.error('   por detras — y lo que no se prueba no se puede aprobar:');
+      for (const o of desaparecidos) console.error(`   - ${o}`);
+      derivaBase = true;
+    }
+  }
 
   if (dudosos.length) {
     console.error(
@@ -258,26 +348,22 @@ async function main() {
     );
     for (const o of dudosos) console.error(`   - ${o}`);
   }
-  if (fugas.length) {
-    console.error(
-      `\n❌ FUGA: ${fugas.length} objetos devuelven datos a un anonimo con la clave publica:`
-    );
-    for (const o of fugas) console.error(`   - ${o}`);
-    console.error(
-      '\n   Revisa si es una vista sin `security_invoker` (ver 030) o un GRANT a anon.'
-    );
-  }
 
-  if (fugas.length || dudosos.length) process.exit(1);
+  console.log(
+    `\nAlcanzados por anon: ${alcanzables.length} · sin privilegio: ${objetos.length - alcanzables.length - dudosos.length}`
+  );
+  console.log(`Este verificador NO mira: ${NO_MIRA.join(' · ')}`);
+
+  if (fugas.length || dudosos.length || derivaBase) process.exit(1);
   console.log('\n✅ Ningun objeto de public devuelve datos a un anonimo.\n');
 }
 
 // Solo se ejecuta cuando se invoca como script. Sin este guard, importar
 // `clasificar` desde un test dispararia la comprobacion entera contra la red.
-const invocadoDirectamente =
-  process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href;
-
-if (invocadoDirectamente) {
+// `pathToFileURL` y no una plantilla `file://${argv[1]}`: la segunda no maneja
+// rutas con `#`, `?` o `%`, y un desajuste ahi haria que el script no corriera
+// y saliera con 0 — el verde falso exacto contra el que avisa la cabecera.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch(e => {
     console.error('❌ El verificador reviento:', e.message);
     process.exit(1);

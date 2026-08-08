@@ -172,7 +172,11 @@ async function setupMocksOnContext(context: BrowserContext) {
         return;
       }
 
-      if (url.includes('/rpc/get_time_series_data')) {
+      // `get_sales_time_series` es el nombre REAL de la función en la base.
+      // Este interceptor decía `get_time_series_data`, que no existe: nunca
+      // casaba con la petición de app/analytics/page.tsx y la gráfica se
+      // renderizaba vacía mientras la suite seguía en verde.
+      if (url.includes('/rpc/get_sales_time_series')) {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -247,8 +251,10 @@ async function setupMocksOnContext(context: BrowserContext) {
         return;
       }
 
-      // Add inventory movement
-      if (url.includes('/rpc/add_inventory_movement')) {
+      // Registrar movimiento de inventario. El nombre real es
+      // `register_inventory_movement`; este interceptor decía
+      // `add_inventory_movement`, que no existe en la base.
+      if (url.includes('/rpc/register_inventory_movement')) {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -276,21 +282,14 @@ async function setupMocksOnContext(context: BrowserContext) {
         return;
       }
 
-      // Products with variants (used by InventoryList component)
-      if (url.includes('/rpc/get_products_with_variants')) {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify([
-            {
-              product_id: 'p1',
-              product_name: 'Café E2E Test',
-              total_grams_available: 5000,
-            },
-          ]),
-        });
-        return;
-      }
+      // Aquí había un interceptor para `/rpc/get_products_with_variants`
+      // rotulado «used by InventoryList component». Estaba muerto dos veces:
+      // esa RPC no existe en la base (la real es `get_product_with_variants`,
+      // en singular, y no la llama nadie), y `components/inventory-list.tsx`
+      // no invoca ninguna RPC — lee `from('inventory')`, que ya se intercepta
+      // más abajo. Se retira en vez de renombrarse: un interceptor que no
+      // corresponde a ninguna petición real solo sirve para dar la impresión
+      // de cobertura.
 
       if (url.includes('/rest/v1/inventory')) {
         await route.fulfill({

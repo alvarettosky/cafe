@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { clasificar } from '../check-anon-exposure.mjs';
+import { clasificar, esAlcanzable } from '../check-anon-exposure.mjs';
 
 /**
  * Estos tests fijan el criterio con el que `check-anon-exposure.mjs` decide si
@@ -58,5 +58,47 @@ describe('check-anon-exposure · clasificacion de respuestas', () => {
   it('acepta el cuerpo como string sin cambiar el veredicto', () => {
     expect(clasificar(200, JSON.stringify([{ n: 1 }]))).toBe('FUGA');
     expect(clasificar(200, '[]')).toBe('OK_VACIO');
+  });
+
+  /**
+   * El codigo de estado se mira ANTES que el texto. Una clave muerta nunca
+   * devuelve 200, asi que un 200 con filas es siempre FUGA — aunque una de
+   * esas filas contenga por casualidad la frase que identifica a una clave
+   * invalida. `customers.notes` y `inventory_movements.reason` son texto libre
+   * que escribe una persona: basta una nota de soporte para que la fuga se
+   * disfrazara de sonda muerta y el objeto no apareciera en la lista.
+   */
+  describe('el status manda sobre el texto del cuerpo', () => {
+    it('una fuga cuyo contenido menciona "Invalid API key" sigue siendo fuga', () => {
+      expect(
+        clasificar(200, [{ id: 1, notes: 'el cliente reporta Invalid API key al entrar' }])
+      ).toBe('FUGA');
+    });
+
+    it('una fuga cuyo contenido menciona la clave legacy sigue siendo fuga', () => {
+      expect(
+        clasificar(200, [
+          { id: 2, reason: 'Legacy API keys are disabled, se rehizo el movimiento' },
+        ])
+      ).toBe('FUGA');
+    });
+  });
+
+  /**
+   * `esAlcanzable` sostiene el control positivo. Tiene que contar los 200
+   * CON filas: si solo contara los vacios, un colapso total del RLS —todo
+   * devuelve filas— daria cero alcanzados y el gate lo reportaria como clave
+   * muerta, mandando a rotar credenciales con la base abierta de par en par.
+   */
+  describe('esAlcanzable · qué prueba que la sonda llegó a la base', () => {
+    it('cuenta los 200, con y sin filas', () => {
+      expect(esAlcanzable('OK_VACIO')).toBe(true);
+      expect(esAlcanzable('FUGA')).toBe(true);
+    });
+
+    it('no cuenta una clave muerta ni una respuesta ilegible', () => {
+      expect(esAlcanzable('SONDA_MUERTA')).toBe(false);
+      expect(esAlcanzable('INDETERMINADO')).toBe(false);
+    });
   });
 });

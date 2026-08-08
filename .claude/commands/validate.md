@@ -68,7 +68,7 @@ su propio estilo.
 npm test
 ```
 
-**Pasa si:** **889/889 en 41 archivos** (línea base 2026-08-07).
+**Pasa si:** **893/893 en 41 archivos** (línea base 2026-08-07).
 
 - Si el número **baja**, hay una regresión.
 - Si el número **sube**, se agregaron tests: actualiza la línea base aquí y en
@@ -146,7 +146,17 @@ npm run check:anon            # luego pregunta a la base
 
 **Pasa si:** ningún objeto de `public` devuelve una sola fila a un cliente que
 usa la clave publishable — la misma que viaja en el bundle de producción y que,
-por tanto, tiene cualquiera.
+por tanto, tiene cualquiera — **y** el conjunto de objetos que ese cliente
+alcanza sigue siendo el declarado en
+[`scripts/anon-baseline.json`](../../scripts/anon-baseline.json).
+
+⚠️ **Vacío no es lo mismo que protegido.** Una tabla recién creada siempre está
+vacía: si `anon` puede leerla, devuelve `200 []` y pasaría por sana hasta el día
+en que entren filas — ya públicas. Por eso el criterio no es solo «no devolvió
+filas», sino que el conjunto de objetos **alcanzables** coincida con la línea
+base. Un objeto alcanzable nuevo, aunque esté vacío, hace fallar la fase y exige
+una decisión consciente: `npm run check:anon -- --actualizar-linea-base` la
+reescribe, y ese diff se revisa como cualquier otro.
 
 Esta fase existe por una fuga **real, medida el 2026-08-07 contra producción**:
 cuatro vistas (`customer_segments`, `inventory_movement_summary`,
@@ -172,8 +182,14 @@ veredicto; si todo da 401, el resultado es **SONDA MUERTA** y sale con error.
 
 ⚠️ Necesita las tres variables (`NEXT_PUBLIC_SUPABASE_URL`,
 `SUPABASE_SERVICE_ROLE_KEY` para descubrir y `NEXT_PUBLIC_SUPABASE_ANON_KEY` para
-probar). En local toma la última de `~/.config/cafe-mirador/anon.key`. Sin ellas
-avisa y sale con 0 — **ese aviso no es un aprobado**. En CI las tres existen.
+probar). En local toma la última de `~/.config/cafe-mirador/anon.key`.
+
+**Sin ellas, fuera de CI avisa y sale con 0** para no romper un commit sin
+conexión — ese aviso no es un aprobado. **En CI sale con 1**: el paso pasa
+`--strict`, y `CI=true` lo activa igualmente. Sin eso, un PR desde un fork
+—donde GitHub no inyecta secretos y este repositorio es público— mostraba una
+marca verde junto a un paso que afirma que nada está expuesto, sin haber tocado
+la base.
 
 ---
 
@@ -181,15 +197,16 @@ avisa y sale con 0 — **ese aviso no es un aprobado**. En CI las tres existen.
 
 Ni siquiera con ocho fases se cubre todo. Consciente y explícito:
 
-| Qué no se verifica                        | Por qué                                                                                                                                                                                                                                                    |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Escritura anónima**                     | La fase 8 solo comprueba `SELECT`. Que nadie pueda **leer** no prueba que nadie pueda **insertar** o **borrar**                                                                                                                                            |
-| **Buckets de Storage**                    | Ninguna fase mira Storage. Los backups viven ahí                                                                                                                                                                                                           |
-| **Objetos recién creados**                | La fase 8 descubre por el esquema de PostgREST, que se cachea: justo tras aplicar una migración puede ir un paso por detrás (medido el 2026-08-07 al probar el gate con una vista trampa)                                                                  |
-| **Que el login funcione**                 | Ninguna fase se autentica. `/login` es prerenderizada: devuelve 200 aunque el backend esté caído — así pasaron 85 días sin que nadie lo notara. Comprobación manual en [`docs/REFERENCIAS-OFICIALES.md`](../../docs/REFERENCIAS-OFICIALES.md) §supabase-js |
-| **Los _parámetros_ de las RPC**           | La fase 6 comprueba que la función exista, no su firma. Cerrarlo es [BACKLOG](../../docs/BACKLOG.md) B4                                                                                                                                                    |
-| **Lo que se ve en pantalla**              | Una regresión de contraste pasó las 5 fases: ninguna mira píxeles                                                                                                                                                                                          |
-| **Llamadas `.rpc()` con nombre variable** | El extractor solo resuelve literales, y lo dice al correr                                                                                                                                                                                                  |
+| Qué no se verifica                        | Por qué                                                                                                                                                                                                                                                                                                                           |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Que el RLS separe roles AUTENTICADOS**  | La fase 8 sondea **solo como anónimo**. El agujero que cerró la migración `029` estaba en el otro lado: una política sobre `sales` que ignoraba `profiles.approved` dejaba que cualquier cuenta recién registrada leyera el historial entero. Si se reintroduce, anon sigue denegado, las 8 fases salen en verde y nada lo señala |
+| **Escritura anónima**                     | La fase 8 solo comprueba `SELECT`. Que nadie pueda **leer** no prueba que nadie pueda **insertar** o **borrar**                                                                                                                                                                                                                   |
+| **Buckets de Storage**                    | Ninguna fase mira Storage. Los backups viven ahí                                                                                                                                                                                                                                                                                  |
+| **Objetos recién creados**                | La fase 8 descubre por el esquema de PostgREST, que se cachea: justo tras aplicar una migración puede ir un paso por detrás (medido el 2026-08-07 al probar el gate con una vista trampa)                                                                                                                                         |
+| **Que el login funcione**                 | Ninguna fase se autentica. `/login` es prerenderizada: devuelve 200 aunque el backend esté caído — así pasaron 85 días sin que nadie lo notara. Comprobación manual en [`docs/REFERENCIAS-OFICIALES.md`](../../docs/REFERENCIAS-OFICIALES.md) §supabase-js                                                                        |
+| **Los _parámetros_ de las RPC**           | La fase 6 comprueba que la función exista, no su firma. Cerrarlo es [BACKLOG](../../docs/BACKLOG.md) B4                                                                                                                                                                                                                           |
+| **Lo que se ve en pantalla**              | Una regresión de contraste pasó las 5 fases: ninguna mira píxeles                                                                                                                                                                                                                                                                 |
+| **Llamadas `.rpc()` con nombre variable** | El extractor solo resuelve literales, y lo dice al correr                                                                                                                                                                                                                                                                         |
 
 ## Fuera de estas ocho fases
 

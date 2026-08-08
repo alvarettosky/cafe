@@ -29,6 +29,11 @@ const TABLES_TO_EXPORT = [
   'referrals',
   'inventory_movements',
   'whatsapp_templates',
+  // Faltaba. La base tiene 21 tablas y esta lista respaldaba 20: un restore
+  // dejaba sin recuperar la configuración de precios por tipo de cliente
+  // (5 filas en producción el 2026-08-07). Lo destapó comparar el conteo
+  // declarado en FICHA_TECNICA («20») con el medido contra `pg_class` («21»).
+  'customer_type_price_lists',
 ];
 
 interface ExportResult {

@@ -16,7 +16,7 @@ Sistema de gestión para venta de café por libras y medias libras, con tienda o
 | 4    | Arquitectura POS Profesional   | ✅ Completado |
 
 **Testing** (medido 2026-08-07 con `npm test` y `npm run test:coverage`):
-889 tests unitarios en 41 archivos, todos en verde. Cobertura: líneas 93,15 % ·
+893 tests unitarios en 41 archivos, todos en verde. Cobertura: líneas 93,15 % ·
 sentencias 91,31 % · ramas 87,81 % · funciones 88,38 % (umbral exigido: 80 % en
 las cuatro).
 
@@ -104,7 +104,7 @@ npm start                # Servidor producción local
 
 > **Sobre `setup_env.sh`.** Este archivo creaba un entorno Node aislado en
 > `.node_env/` y durante un tiempo fue obligatorio activarlo en cada terminal.
-> Ya no lo es: el directorio `.node_env/` no existe, y lint, `tsc`, los 889
+> Ya no lo es: el directorio `.node_env/` no existe, y lint, `tsc`, los 893
 > tests y el build pasan con el Node del sistema (verificado con v26.4.0 el
 > 2026-07-27). El script se conserva por si hace falta fijar la versión en una
 > máquina con un Node antiguo.
@@ -581,7 +581,7 @@ Deploy:
 El sistema ejecuta backups diarios a las 2:00 AM UTC con las siguientes características:
 
 - **Almacenamiento**: Supabase Storage (bucket `backups`)
-- **Formato**: ZIP con JSON por cada tabla (20 tablas)
+- **Formato**: ZIP con JSON por cada tabla (**21 tablas**)
 - **Notificaciones**: Email via Resend (opcional)
 - **Retención automática**:
   - Diarios: últimos 7 días
@@ -593,21 +593,21 @@ El sistema ejecuta backups diarios a las 2:00 AM UTC con las siguientes caracter
 
 ```
 scripts/backup/
-├── export-tables.ts      # Exporta 20 tablas a JSON
+├── export-tables.ts      # Exporta 21 tablas a JSON
 ├── upload-supabase.ts    # Sube backup ZIP a Supabase Storage
 ├── cleanup-retention.ts  # Limpia backups según política de retención
 ├── send-notification.ts  # Envía notificación por email (opcional)
 └── run-backup.ts         # Orquestador principal
 ```
 
-**Tablas Respaldadas (20):**
+**Tablas Respaldadas (21):**
 
 ```
 profiles, products, product_variants, inventory, customers,
 customer_contacts, customer_auth, price_lists, price_list_items,
 delivery_zones, sales, sale_items, deliveries, delivery_items,
 customer_subscriptions, subscription_items, referral_program_config,
-referrals, inventory_movements, whatsapp_templates
+referrals, inventory_movements, whatsapp_templates, customer_type_price_lists
 ```
 
 **Variables de Entorno Requeridas (GitHub Secrets):**

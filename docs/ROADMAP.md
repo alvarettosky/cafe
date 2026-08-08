@@ -11,7 +11,7 @@ Qué se construyó, en qué orden y qué sigue.
 
 | Indicador          | Valor                                                                   | Cómo se comprobó            |
 | ------------------ | ----------------------------------------------------------------------- | --------------------------- |
-| Tests unitarios    | **889 en 41 archivos, todos en verde**                                  | `npm test`                  |
+| Tests unitarios    | **893 en 41 archivos, todos en verde**                                  | `npm test`                  |
 | Cobertura          | Líneas 93,15 % · Sentencias 91,31 % · Ramas 87,81 % · Funciones 88,38 % | `npm run test:coverage`     |
 | Umbral exigido     | 80 % en las cuatro métricas                                             | `vitest.config.mts`         |
 | Tipos              | Sin errores                                                             | `npx tsc --noEmit`          |
@@ -113,6 +113,6 @@ A8/A9 (métricas de recurrencia, cuyos datos ya existen en `customer_segments`).
 ## Al retomar
 
 1. Leer [BACKLOG §D](BACKLOG.md#d--cerrado-y-por-qué) antes de proponer nada.
-2. Correr `npm test` y confirmar **889/889** antes de tocar código.
+2. Correr `npm test` y confirmar **893/893** antes de tocar código.
 3. Nada de `git add -A`: [BLUEPRINT §5](BLUEPRINT.md#5-estado-de-despliegue)
    explica por qué el repo público no puede recibir datos de clientes.
