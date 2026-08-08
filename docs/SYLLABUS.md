@@ -110,3 +110,14 @@ cuatro patrones que se repiten:
 2. **Mocks que mienten** — el mock copia al consumidor en vez del productor.
 3. **Documentación fósil** — afirmaciones ciertas en enero, falsas en julio.
 4. **Patrones de `.gitignore` sin anclar** — `backups/` casaba con código fuente.
+5. **Verificadores que aprueban sin mirar** — un `[]` de una consulta con
+   `limit=0`, un backup con `success` que nadie restauró, un gate que salía con 0
+   cuando le faltaban los secretos. Ver
+   [`.claude/commands/validate.md`](../.claude/commands/validate.md) §«El hueco que
+   queda» y [`scripts/restore-drill.sh`](../scripts/restore-drill.sh).
+6. **Cosas que solo viven en producción** — seis funciones y una vista que ninguna
+   migración creaba. Las encontró el paso de paridad del ensayo de restauración.
+
+Antes de tocar la base, lee también
+[`docs/BACKLOG.md` §P0-BACKUP](BACKLOG.md) y §P0-SEC-4: son los dos incidentes que
+explican por qué hay ocho fases de validación y un ensayo de restauración diario.

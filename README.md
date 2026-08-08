@@ -153,6 +153,20 @@ ejecuta cinco fases en orden y se detiene en la primera que falla: lint →
 tipos (`tsc`) → formato → tests unitarios con cobertura → build de
 producción.
 
+### Ensayo de restauración
+
+```bash
+./scripts/restore-drill.sh          # requiere Docker
+```
+
+Reconstruye la base entera en un Postgres efímero **desde el esquema que viaja
+dentro del último backup**, le carga sus datos y comprueba que nada de lo que
+produción expone se quede fuera. Existe porque el backup diario llevaba meses
+respaldando 20 de las 21 tablas y reportando éxito: nadie lo había restaurado
+nunca. Corre a diario en CI ([`restore-drill.yml`](.github/workflows/restore-drill.yml))
+y en cada push que toque migraciones o el exportador. Detalle en
+[`docs/BACKLOG.md` §P0-BACKUP](docs/BACKLOG.md).
+
 ### CI/CD
 
 - **Pre-commit**: lint con auto-fix, formato, type-check y tests relacionados con los archivos modificados (Husky + lint-staged)
