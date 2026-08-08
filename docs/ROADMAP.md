@@ -70,26 +70,32 @@ detalle está en [BACKLOG §«La mentira de nulabilidad»](BACKLOG.md#la-mentira
 Cada uno con el comando o consulta que lo demuestra. Un objetivo sin criterio
 ejecutable no es un objetivo, es una intención.
 
-| OE   | Objetivo                                                         | Criterio ejecutable                                        | Estado                                   |
-| ---- | ---------------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------- |
-| OE9  | Ningún objeto de `public` devuelve datos a un anónimo            | `npm run check:anon` en verde, con su autoprueba           | ✅ cerrado (`030` + fase 8)              |
-| OE10 | El verificador de exposición detecta una fuga real, no simulada  | Trampa accesible por HTTP ⇒ el gate sale con 1             | ✅ verificado y retirado con rastro cero |
-| OE11 | Toda cifra medida dice lo mismo en los 6 archivos que la repiten | `grep` de la cifra vieja no devuelve nada                  | ✅ cerrado (tests, cobertura, build)     |
-| OE12 | Toda RPC citada en la documentación existe en la base            | `comm` entre las citadas y `pg_proc`                       | ✅ cerrado (5 fantasmas corregidas)      |
-| OE13 | Las funciones `SECURITY DEFINER` fijan su `search_path`          | `get_advisors security` sin `function_search_path_mutable` | ⬜ abierto — BACKLOG A17 (62 casos)      |
-| OE14 | Ninguna función de la base queda sin llamador ni sin motivo      | `pg_proc` menos las `.rpc()` del código = solo triggers    | ⬜ abierto — BACKLOG A19 (21 casos)      |
-| OE15 | El portal puede listar productos                                 | `get_products_for_customer_order` devuelve 200             | ⬜ abierto — BACKLOG A15                 |
+| OE   | Objetivo                                                         | Criterio ejecutable                                        | Estado                                              |
+| ---- | ---------------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------- |
+| OE9  | Ningún objeto de `public` devuelve datos a un anónimo            | `npm run check:anon` en verde, con su autoprueba           | ✅ cerrado (`030` + fase 8)                         |
+| OE10 | El verificador de exposición detecta una fuga real, no simulada  | Trampa accesible por HTTP ⇒ el gate sale con 1             | ✅ verificado y retirado con rastro cero            |
+| OE11 | Toda cifra medida dice lo mismo en los 6 archivos que la repiten | `grep` de la cifra vieja no devuelve nada                  | ✅ cerrado (tests, cobertura, build)                |
+| OE12 | Toda RPC citada en la documentación existe en la base            | `comm` entre las citadas y `pg_proc`                       | ✅ cerrado (5 fantasmas corregidas)                 |
+| OE13 | Las funciones `SECURITY DEFINER` fijan su `search_path`          | `get_advisors security` sin `function_search_path_mutable` | ⬜ abierto — BACKLOG A17 (62 casos)                 |
+| OE14 | Ninguna función de la base queda sin llamador ni sin motivo      | `pg_proc` menos las `.rpc()` del código = solo triggers    | ⬜ abierto — BACKLOG A19 (21 casos)                 |
+| OE15 | El portal puede listar productos                                 | `get_products_for_customer_order` devuelve 200             | ✅ cerrado (`031`) — 10 productos, orden de la base |
 
 ## Siguiente paso vigente
 
-**[BACKLOG](BACKLOG.md) A15 — `get_products_for_customer_order` devuelve SQL
-inválido** (`42803`, HTTP 400). Es el único pendiente que rompe algo que un
-cliente usa: la página de nuevo pedido del portal **no puede listar productos**.
-Está por delante de cualquier mejora porque no es deuda, es una función caída.
+**[BACKLOG](BACKLOG.md) A21 — el portal listaría productos duplicados.** Salió al
+arreglar A15: la RPC ya responde, pero devuelve **10 entradas para 4 productos**
+porque `inventory` guarda una fila por lote y las diez están migradas al modelo
+de variantes. No se arregla dentro de la RPC —`create_customer_order` valida el
+stock contra la fila concreta— sino decidiendo si el portal pasa al modelo nuevo
+(`products`/`product_variants`) o si se consolida `inventory`. Es la decisión que
+más valor desbloquea, y es de arquitectura.
 
-Después, **A17** (62 funciones con `search_path` mutable: una migración por lotes
-cierra los 62 de golpe) y **A19** (decidir, una por una, si las 21 funciones sin
-llamador se cablean o se borran).
+En paralelo, sin decisiones de por medio: **A17** (62 funciones con `search_path`
+mutable: una migración por lotes cierra los 62 de golpe) y **A19** (decidir, una
+por una, si las 21 funciones sin llamador se cablean o se borran).
+
+~~A15 — la RPC del portal devolvía SQL inválido~~ — **cerrada el 2026-08-07**
+(`031`), verificada llamándola con la clave del portal.
 
 ~~Revocar el token `cafedesalento`~~ — **hecho el 2026-07-27**, verificado con
 HTTP 401 contra la Management API. Este documento seguía pidiéndolo once días
