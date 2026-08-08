@@ -114,6 +114,35 @@ export async function exportTables(outputDir?: string): Promise<ExportResult> {
     }
   }
 
+  // El ESQUEMA viaja con los datos.
+  //
+  // Hasta el 2026-08-07 el ZIP eran solo JSON de filas. Con eso no se
+  // reconstruye nada: no hay tablas, ni funciones, ni políticas, ni triggers.
+  // La restauración dependía de que quien la intentara tuviera a mano el repo
+  // **en la misma versión** que produjo los datos — y el ensayo de restauración
+  // demostró que ni siquiera el repo bastaba (ver `014` y BACKLOG §P0-BACKUP).
+  //
+  // Copiando aquí las migraciones, el archivo que se guarda fuera de Supabase
+  // es autosuficiente: esquema + datos, coherentes entre sí porque se empaquetan
+  // en el mismo instante.
+  const migracionesOrigen = path.join(__dirname, '..', '..', 'supabase', 'migrations');
+  let migracionesCopiadas = 0;
+  try {
+    const destino = path.join(backupDir, 'schema');
+    fs.mkdirSync(destino, { recursive: true });
+    for (const archivo of fs.readdirSync(migracionesOrigen).filter(f => f.endsWith('.sql'))) {
+      fs.copyFileSync(path.join(migracionesOrigen, archivo), path.join(destino, archivo));
+      migracionesCopiadas++;
+    }
+    console.log(`  Schema: ${migracionesCopiadas} migraciones incluidas en el backup`);
+  } catch (err) {
+    // No se silencia: un backup sin esquema es un backup a medias, y hay que
+    // enterarse ahora y no el día de la restauración.
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    console.error(`  ERROR copiando el esquema al backup: ${msg}`);
+    result.tables.push({ name: '_schema', rowCount: 0, error: msg });
+  }
+
   // Create metadata file
   const metadata = {
     timestamp,
@@ -121,6 +150,7 @@ export async function exportTables(outputDir?: string): Promise<ExportResult> {
     tables: result.tables,
     totalRows: result.tables.reduce((sum, t) => sum + t.rowCount, 0),
     errors: result.tables.filter(t => t.error).length,
+    schemaMigrations: migracionesCopiadas,
   };
 
   fs.writeFileSync(path.join(backupDir, '_metadata.json'), JSON.stringify(metadata, null, 2));

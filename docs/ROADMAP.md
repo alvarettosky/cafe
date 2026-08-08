@@ -23,7 +23,8 @@ Qué se construyó, en qué orden y qué sigue.
 | Exposición anónima | **0 objetos de `public` devuelven datos** a la clave pública            | `npm run check:anon`         |
 | RLS                | 21 tablas, **todas** con RLS activo                                     | `pg_class.relrowsecurity`    |
 | Funciones `anon`   | **13** (la lista blanca del portal, `029`)                              | `has_function_privilege`     |
-| Restauración       | **34 migraciones, 21 tablas, 53 filas** desde el último backup real     | `./scripts/restore-drill.sh` |
+| Restauración       | **37 migraciones, 21 tablas, 53 filas** desde el esquema del propio ZIP | `./scripts/restore-drill.sh` |
+| Paridad de esquema | **24 objetos y 54 RPC** de producción salen de las migraciones          | paso 6 del ensayo            |
 
 ## Fases entregadas
 
@@ -71,28 +72,37 @@ detalle está en [BACKLOG §«La mentira de nulabilidad»](BACKLOG.md#la-mentira
 Cada uno con el comando o consulta que lo demuestra. Un objetivo sin criterio
 ejecutable no es un objetivo, es una intención.
 
-| OE   | Objetivo                                                         | Criterio ejecutable                                        | Estado                                              |
-| ---- | ---------------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------- |
-| OE9  | Ningún objeto de `public` devuelve datos a un anónimo            | `npm run check:anon` en verde, con su autoprueba           | ✅ cerrado (`030` + fase 8)                         |
-| OE10 | El verificador de exposición detecta una fuga real, no simulada  | Trampa accesible por HTTP ⇒ el gate sale con 1             | ✅ verificado y retirado con rastro cero            |
-| OE11 | Toda cifra medida dice lo mismo en los 6 archivos que la repiten | `grep` de la cifra vieja no devuelve nada                  | ✅ cerrado (tests, cobertura, build)                |
-| OE12 | Toda RPC citada en la documentación existe en la base            | `comm` entre las citadas y `pg_proc`                       | ✅ cerrado (5 fantasmas corregidas)                 |
-| OE13 | Las funciones `SECURITY DEFINER` fijan su `search_path`          | `get_advisors security` sin `function_search_path_mutable` | ⬜ abierto — BACKLOG A17 (62 casos)                 |
-| OE14 | Ninguna función de la base queda sin llamador ni sin motivo      | `pg_proc` menos las `.rpc()` del código = solo triggers    | ⬜ abierto — BACKLOG A19 (21 casos)                 |
-| OE15 | El portal puede listar productos                                 | `get_products_for_customer_order` devuelve 200             | ✅ cerrado (`031`) — 10 productos, orden de la base |
-| OE16 | El último backup sirve para restaurar la base                    | `./scripts/restore-drill.sh` en verde                      | ✅ cerrado — 34 migraciones, 21 tablas, 53 filas    |
+| OE   | Objetivo                                                         | Criterio ejecutable                                        | Estado                                               |
+| ---- | ---------------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------- |
+| OE9  | Ningún objeto de `public` devuelve datos a un anónimo            | `npm run check:anon` en verde, con su autoprueba           | ✅ cerrado (`030` + fase 8)                          |
+| OE10 | El verificador de exposición detecta una fuga real, no simulada  | Trampa accesible por HTTP ⇒ el gate sale con 1             | ✅ verificado y retirado con rastro cero             |
+| OE11 | Toda cifra medida dice lo mismo en los 6 archivos que la repiten | `grep` de la cifra vieja no devuelve nada                  | ✅ cerrado (tests, cobertura, build)                 |
+| OE12 | Toda RPC citada en la documentación existe en la base            | `comm` entre las citadas y `pg_proc`                       | ✅ cerrado (5 fantasmas corregidas)                  |
+| OE13 | Las funciones `SECURITY DEFINER` fijan su `search_path`          | `get_advisors security` sin `function_search_path_mutable` | ⬜ abierto — BACKLOG A17 (62 casos)                  |
+| OE14 | Ninguna función de la base queda sin llamador ni sin motivo      | `pg_proc` menos las `.rpc()` del código = solo triggers    | ⬜ abierto — BACKLOG A19 (21 casos)                  |
+| OE15 | El portal puede listar productos                                 | `get_products_for_customer_order` devuelve 200             | ✅ cerrado (`031`) — 10 productos, orden de la base  |
+| OE16 | El último backup sirve para restaurar la base                    | `./scripts/restore-drill.sh` en verde                      | ✅ cerrado — 34 migraciones, 21 tablas, 53 filas     |
+| OE17 | Nada existe solo en producción: todo sale de una migración       | Paso 6 del ensayo: paridad producción ↔ reconstruido       | ✅ cerrado (`033` + `034`) — 6 funciones versionadas |
+| OE18 | El portal no muestra productos duplicados                        | La RPC devuelve tantas entradas como nombres únicos        | ✅ cerrado (`032`) — 4 productos, 4 nombres          |
 
 ## Siguiente paso vigente
 
-**[BACKLOG](BACKLOG.md) A21 — el portal listaría productos duplicados.** Salió al
-arreglar A15: la RPC ya responde, pero devuelve **10 entradas para 4 productos**
-porque `inventory` guarda una fila por lote y las diez están migradas al modelo
-de variantes. No se arregla dentro de la RPC —`create_customer_order` valida el
-stock contra la fila concreta— sino decidiendo si el portal pasa al modelo nuevo
-(`products`/`product_variants`) o si se consolida `inventory`. Es la decisión que
-más valor desbloquea, y es de arquitectura.
+**[BACKLOG](BACKLOG.md) A17 — 62 funciones con `search_path` mutable.** Es el
+único hallazgo de seguridad abierto y se cierra con una migración por lotes.
 
-En paralelo, sin decisiones de por medio: **A17** (62 funciones con `search_path`
+Después **A19**: decidir, una por una, si las 21 funciones sin llamador se
+cablean o se borran. Ahora es más urgente que antes, porque `034` acaba de
+versionar seis de ellas **incluida `edit_sale`, que está rota** (referencia
+columnas que ya no existen en `inventory`).
+
+Y como trabajo de fondo, no urgente: **migrar el portal a
+`products`/`product_variants`**, que es el modelo que ya usa el POS interno.
+`032` quitó los duplicados agrupando sobre `inventory`, pero el portal sigue
+siendo la única parte del sistema que lee el modelo viejo.
+
+~~A21 — el portal listaría productos duplicados~~ — **cerrado el 2026-08-07** (`032`).
+
+Lo de siempre, sin decisiones de por medio: **A17** (62 funciones con `search_path`
 mutable: una migración por lotes cierra los 62 de golpe) y **A19** (decidir, una
 por una, si las 21 funciones sin llamador se cablean o se borran).
 

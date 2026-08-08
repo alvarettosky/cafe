@@ -12,7 +12,6 @@
     "delivery_items",
     "delivery_zones",
     "inventory",
-    "inventory_for_pricing",
     "inventory_from_variants",
     "inventory_movement_summary",
     "inventory_movements",

@@ -97,7 +97,7 @@ unzip -q -o "$BACKUP" -d "$TRABAJO/datos" || { rojo "❌ El ZIP no se puede desc
 
 # --- 1. Postgres efimero -----------------------------------------------------
 echo ""
-echo "[1/5] Levantando Postgres efimero…"
+echo "[1/6] Levantando Postgres efimero…"
 docker rm -f "$CONTENEDOR" >/dev/null 2>&1
 docker run -d --name "$CONTENEDOR" -e POSTGRES_PASSWORD=drill -e POSTGRES_DB=drill \
   -p "$PUERTO":5432 postgres:17 >/dev/null || { rojo "❌ No se pudo levantar el contenedor."; exit 1; }
@@ -113,7 +113,7 @@ psql_drill -tAc "select 1" >/dev/null 2>&1 || { rojo "❌ Postgres no respondio.
 # y columnas de `auth.users`. En Supabase lo pone la plataforma; aqui hay que
 # ponerlo a mano, y por eso este bloque forma parte del ensayo: describe con
 # precision de que depende el esquema ademas de sus propias migraciones.
-echo "[2/5] Andamiaje de Supabase (roles, esquema auth)…"
+echo "[2/6] Andamiaje de Supabase (roles, esquema auth)…"
 psql_drill -q <<'SQL' >/dev/null 2>&1
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 DO $$ BEGIN CREATE ROLE anon NOLOGIN;                    EXCEPTION WHEN duplicate_object THEN NULL; END $$;
@@ -140,8 +140,20 @@ CREATE OR REPLACE FUNCTION auth.email() RETURNS text AS $$ SELECT nullif(current
 SQL
 
 # --- 3. El esquema, desde las migraciones versionadas ------------------------
-echo "[3/5] Aplicando migraciones de supabase/migrations/…"
-docker cp "$RAIZ/supabase/migrations" "$CONTENEDOR":/mig >/dev/null 2>&1
+# El esquema sale del PROPIO BACKUP si lo trae (desde 2026-08-07 el ZIP incluye
+# `schema/`). Es la unica forma de probar que el archivo guardado fuera de
+# Supabase es autosuficiente: si se usara siempre el repo, el ensayo estaria
+# comprobando el repo de HOY contra datos de ayer, que no es la situacion real
+# de una restauracion.
+if [ -d "$TRABAJO/datos/schema" ] && [ -n "$(ls -A "$TRABAJO/datos/schema" 2>/dev/null)" ]; then
+  ORIGEN_ESQUEMA="$TRABAJO/datos/schema"
+  echo "[3/6] Aplicando el esquema que viene DENTRO del backup ($(ls "$ORIGEN_ESQUEMA"/*.sql | wc -l) migraciones)…"
+else
+  ORIGEN_ESQUEMA="$RAIZ/supabase/migrations"
+  echo "[3/6] El backup NO trae esquema: usando supabase/migrations/ del repo…"
+  echo "      (backup anterior al 2026-08-07; el ZIP deberia ser autosuficiente)"
+fi
+docker cp "$ORIGEN_ESQUEMA" "$CONTENEDOR":/mig >/dev/null 2>&1
 SALIDA_MIG="$(docker exec "$CONTENEDOR" bash -c '
 ok=0; fallo=0
 for f in $(ls /mig/*.sql | grep -E "/[0-9]{3}[a-z]?_" | sort); do
@@ -166,7 +178,7 @@ echo "  migraciones aplicadas: $OKS · fallidas: $FALLIDAS"
 # --- 4. Los datos del backup -------------------------------------------------
 # `session_replication_role = replica` desactiva triggers y comprobacion de FK,
 # que es lo que hace cualquier restauracion: los datos ya eran consistentes.
-echo "[4/5] Cargando los datos del backup…"
+echo "[4/6] Cargando los datos del backup…"
 docker cp "$TRABAJO/datos" "$CONTENEDOR":/datos >/dev/null 2>&1
 CARGA="$(docker exec "$CONTENEDOR" bash -c '
 cargadas=0; fallidas=0; filas=0
@@ -206,7 +218,7 @@ echo "  tablas cargadas: $CARGADAS · con problemas: $FCARGA · filas restaurada
 
 # --- 5. Cobertura: ¿el backup trae TODAS las tablas del esquema? -------------
 # Este es el chequeo que faltaba el dia que el backup respaldaba 20 de 21.
-echo "[5/5] Cobertura del backup…"
+echo "[5/6] Cobertura del backup…"
 TABLAS_ESQUEMA="$(psql_drill -tAc "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE' ORDER BY 1" | tr -d '\r')"
 SIN_RESPALDO=""
 for t in $TABLAS_ESQUEMA; do
@@ -236,6 +248,46 @@ if [ -n "$FUTURO_SIN_RESPALDO" ]; then
   FALLOS=$((FALLOS+1))
 else
   echo "  el exportador cubre las $(echo "$TABLAS_ESQUEMA" | wc -w) tablas del esquema"
+fi
+
+# --- 6. Paridad con produccion ----------------------------------------------
+# Reconstruir "algo que acepta los datos" no basta: hay que reconstruir LA base.
+# Si en produccion vive un objeto que ninguna migracion crea —paso con
+# `inventory_for_pricing`, creada a mano en el dashboard— el dia de la
+# restauracion aparece de menos y nadie se entera hasta que algo lo llama.
+echo "[6/6] Paridad con produccion…"
+if [ -n "${NEXT_PUBLIC_SUPABASE_URL:-}" ] && [ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ]; then
+  PROD_JSON="$(curl -s "$NEXT_PUBLIC_SUPABASE_URL/rest/v1/" \
+    -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY")"
+  PROD_OBJETOS="$(printf '%s' "$PROD_JSON" | python3 -c "import sys,json;print('\n'.join(sorted(json.load(sys.stdin).get('definitions',{}))))" 2>/dev/null)"
+  # `len('/rpc/')` y no un 6 a ojo: con el 6 se comia la primera letra de cada
+  # nombre y la comparacion reprobaba las 54 funciones de golpe. Un verificador
+  # que suspende el 100% esta roto, no ha encontrado algo.
+  PROD_RPC="$(printf '%s' "$PROD_JSON" | python3 -c "import sys,json;P='/rpc/';print('\n'.join(sorted(p[len(P):] for p in json.load(sys.stdin).get('paths',{}) if p.startswith(P))))" 2>/dev/null)"
+
+  LOCAL_OBJETOS="$(psql_drill -tAc "SELECT c.relname FROM pg_class c WHERE c.relnamespace='public'::regnamespace AND c.relkind IN ('r','v') ORDER BY 1" | tr -d '\r')"
+  LOCAL_RPC="$(psql_drill -tAc "SELECT DISTINCT p.proname FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' ORDER BY 1" | tr -d '\r')"
+
+  if [ -z "$PROD_OBJETOS" ]; then
+    rojo "  ✗ no se pudo leer el esquema de produccion; la paridad queda SIN COMPROBAR"
+    FALLOS=$((FALLOS+1))
+  else
+    FALTAN_OBJ=""; for o in $PROD_OBJETOS; do echo "$LOCAL_OBJETOS" | grep -qx "$o" || FALTAN_OBJ="$FALTAN_OBJ $o"; done
+    FALTAN_RPC=""; for f in $PROD_RPC;     do echo "$LOCAL_RPC"     | grep -qx "$f" || FALTAN_RPC="$FALTAN_RPC $f"; done
+    if [ -n "$FALTAN_OBJ" ]; then
+      rojo "  ✗ objetos que existen en PRODUCCION y no en la base reconstruida:$FALTAN_OBJ"
+      rojo "    Viven solo en produccion: si se pierde, se pierden. Versionalos o retiralos."
+      FALLOS=$((FALLOS+1))
+    fi
+    if [ -n "$FALTAN_RPC" ]; then
+      rojo "  ✗ funciones que existen en PRODUCCION y no en la base reconstruida:$FALTAN_RPC"
+      FALLOS=$((FALLOS+1))
+    fi
+    [ -z "$FALTAN_OBJ$FALTAN_RPC" ] && \
+      echo "  todo lo que produccion expone ($(echo "$PROD_OBJETOS" | wc -w) objetos, $(echo "$PROD_RPC" | wc -w) RPC) sale de las migraciones"
+  fi
+else
+  echo "  sin credenciales: paridad con produccion NO comprobada (no es un aprobado)"
 fi
 
 echo ""
