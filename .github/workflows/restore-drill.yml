@@ -1,0 +1,42 @@
+name: Restore Drill
+
+# Prueba que el ULTIMO backup real sirve para restaurar la base.
+#
+# Existe porque el 2026-08-07 se descubrio que el backup diario llevaba meses
+# respaldando 20 de las 21 tablas y reportando "success" cada noche. Nadie lo
+# vio porque nunca se habia intentado restaurar: bastaba con que el ZIP
+# existiera. Un backup que no se ha restaurado nunca no es un backup.
+#
+# Corre DESPUES del backup diario (04:20 UTC), sobre el artefacto que ese
+# backup acaba de subir. No toca produccion: levanta un Postgres efimero,
+# reconstruye el esquema desde supabase/migrations/ y le carga los datos.
+
+on:
+  schedule:
+    # 06:00 UTC = 01:00 hora Colombia. Va detras del daily-backup para probar
+    # el ZIP del dia, no el de ayer.
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+  # Tambien en cada push que toque el esquema, el exportador o el propio ensayo:
+  # son los tres sitios donde se rompe la capacidad de restaurar.
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**'
+      - 'scripts/backup/**'
+      - 'scripts/restore-drill.sh'
+      - '.github/workflows/restore-drill.yml'
+
+jobs:
+  drill:
+    name: Ensayo de restauracion
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensayo de restauracion sobre el ultimo backup
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: ./scripts/restore-drill.sh

@@ -192,11 +192,28 @@ GRANT EXECUTE ON FUNCTION get_dashboard_stats() TO authenticated;
 -- Se toma la definicion viva con `pg_get_functiondef`, se sustituye SOLO ese
 -- predicado y se vuelve a crear. Asi no hay que copiar aqui un cuerpo de 80
 -- lineas que quedaria desincronizado en cuanto alguien toque la funcion.
+-- ⚠️ HAY MAS DE UNA VERSION VIEJA DEL PREDICADO, y darlo por una sola hacia
+-- que esta migracion ABORTARA en cualquier base reconstruida desde cero.
+-- Medido con `scripts/restore-drill.sh` el 2026-08-07: al aplicar las
+-- migraciones en orden, `get_advanced_metrics` queda con la version de
+-- `018_advanced_metrics_rpc.sql`, que usa `< reorder_point` **sin COALESCE**.
+-- La de produccion, en cambio, tenia `< COALESCE(reorder_point, 1000)` porque
+-- venia de un arreglo aplicado a mano. Reconocer solo esa ultima convertia la
+-- migracion en un muro: exception, transaccion abortada, base sin reconstruir.
+--
+-- El guard no se relaja: si aparece un predicado que NO esta en esta lista pero
+-- la funcion si calcula stock bajo, se sigue abortando, que es lo que protege
+-- contra unificar a ciegas dos pantallas que discrepan.
 DO $$
 DECLARE
     def TEXT;
-    viejo CONSTANT TEXT := '< COALESCE(reorder_point, 1000)';
     nuevo CONSTANT TEXT := '<= COALESCE(reorder_point, 2500)';
+    variantes CONSTANT TEXT[] := ARRAY[
+        '< COALESCE(reorder_point, 1000)',  -- la que tenia produccion en 2026-07
+        '< reorder_point'                   -- la de 018: la que queda al reconstruir
+    ];
+    v TEXT;
+    aplicado BOOLEAN := false;
 BEGIN
     SELECT pg_get_functiondef(p.oid) INTO def
     FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
@@ -207,14 +224,25 @@ BEGIN
         RAISE NOTICE 'get_advanced_metrics no existe; nada que unificar';
     ELSIF position(nuevo in def) > 0 THEN
         RAISE NOTICE 'get_advanced_metrics ya usa el umbral unificado; nada que hacer';
-    ELSIF position(viejo in def) = 0 THEN
-        -- Falla ruidosamente. Si el predicado no es el esperado, aplicar el
-        -- reemplazo a ciegas dejaria las dos pantallas discrepando en silencio,
-        -- que es justo el defecto que esta migracion viene a cerrar.
-        RAISE EXCEPTION 'get_advanced_metrics no contiene el predicado esperado (%). Revisar a mano antes de unificar el umbral.', viejo;
     ELSE
-        EXECUTE replace(def, viejo, nuevo);
-        RAISE NOTICE 'get_advanced_metrics: umbral unificado con get_dashboard_stats';
+        FOREACH v IN ARRAY variantes LOOP
+            IF position(v in def) > 0 THEN
+                EXECUTE replace(def, v, nuevo);
+                aplicado := true;
+                RAISE NOTICE 'get_advanced_metrics: umbral unificado (venia de "%")', v;
+                EXIT;
+            END IF;
+        END LOOP;
+
+        IF NOT aplicado THEN
+            IF position('reorder_point' in def) > 0 THEN
+                -- Calcula stock bajo con un predicado que no reconocemos:
+                -- aqui SI hay que parar y mirarlo a mano.
+                RAISE EXCEPTION 'get_advanced_metrics usa un predicado de stock bajo desconocido. Revisar a mano antes de unificar el umbral.';
+            ELSE
+                RAISE NOTICE 'get_advanced_metrics no calcula stock bajo; nada que unificar';
+            END IF;
+        END IF;
     END IF;
 END $$;
 

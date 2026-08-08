@@ -17,6 +17,51 @@ Sustituye a `.claude/TODO.md`, que queda como puntero.
 
 ---
 
+## ✅ P0-BACKUP — El backup no era restaurable. Cerrado el 2026-08-07 (`014` + ensayo)
+
+**Un backup que nunca se ha restaurado no es un backup: es un archivo.** El
+workflow diario llevaba meses en `success`, subía su ZIP y ahí terminaba toda la
+comprobación. Al intentar restaurarlo por primera vez salieron **tres cosas, y
+las tres impedían recuperarse de un desastre**:
+
+| Qué                                                    | Medido                                                                                           |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| El backup respaldaba **20 de 21 tablas**               | Faltaba `customer_type_price_lists` (5 filas): un restore perdía los precios por tipo de cliente |
+| **El esquema no era reconstruible** desde el repo      | `021` fallaba: `column c.typical_recurrence_days does not exist`                                 |
+| El guard de `029` **abortaba en cualquier base nueva** | Esperaba un predicado que en producción se había creado a mano                                   |
+
+**La causa de fondo del segundo punto:** hay **dos directorios de migraciones**.
+`supabase/migrations/` es el canónico, pero `migrations/` (en la raíz, sin
+numerar) contiene piezas de las que el canónico depende —`customer_contacts` y
+las columnas de recurrencia— que alguien aplicó a mano en su día. Reconstruir
+siguiendo el orden canónico era **imposible**, y nadie podía saberlo sin probarlo.
+
+**Lo que se hizo:**
+
+1. [`014_recurrencia_columnas_y_contactos.sql`](../supabase/migrations/014_recurrencia_columnas_y_contactos.sql)
+   — trae el eslabón perdido al orden canónico, idempotente (en producción no
+   cambia nada).
+2. `029` reconoce las **dos** variantes reales del predicado de stock bajo en vez
+   de una, sin relajar el guard: sigue abortando ante un predicado desconocido.
+3. `customer_type_price_lists` añadida a `TABLES_TO_EXPORT`.
+4. [`scripts/restore-drill.sh`](../scripts/restore-drill.sh) — **el ensayo**:
+   levanta un Postgres efímero, reconstruye el esquema desde las migraciones,
+   carga el último ZIP real y comprueba cobertura. Cableado en
+   [`restore-drill.yml`](../.github/workflows/restore-drill.yml): a diario tras
+   el backup, y en cada push que toque migraciones, el exportador o el ensayo.
+
+**Verificado ejecutando, no declarando** (2026-08-07): 34 migraciones aplicadas,
+0 fallidas · 21 tablas cargadas · 53 filas restauradas · cobertura completa. Y el
+ensayo **detecta la regresión**: con un ZIP al que se le quitó `customers.json`
+—comprobando antes que el sabotaje estaba dentro— falla y sale con 1.
+
+⚠️ **Lo que el ensayo NO prueba:** que el esquema reconstruido sea idéntico al de
+producción. Prueba que se puede levantar uno que acepta los datos. Objetos
+creados a mano en el dashboard (como `inventory_for_pricing`) siguen sin estar en
+ninguna migración: viven solo en producción, y si se pierde, se pierden.
+
+---
+
 ## ✅ P0-SEC-4 — Cuatro vistas filtraban datos de clientes. Cerrado el 2026-08-07 (`030`)
 
 **La base seguía abierta, por un tipo de objeto que nadie había mirado.** 027

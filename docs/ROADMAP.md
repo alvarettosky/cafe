@@ -9,20 +9,21 @@ Qué se construyó, en qué orden y qué sigue.
 
 ## Estado actual, medido
 
-| Indicador          | Valor                                                                   | Cómo se comprobó            |
-| ------------------ | ----------------------------------------------------------------------- | --------------------------- |
-| Tests unitarios    | **893 en 41 archivos, todos en verde**                                  | `npm test`                  |
-| Cobertura          | Líneas 93,15 % · Sentencias 91,31 % · Ramas 87,81 % · Funciones 88,38 % | `npm run test:coverage`     |
-| Umbral exigido     | 80 % en las cuatro métricas                                             | `vitest.config.mts`         |
-| Tipos              | Sin errores                                                             | `npx tsc --noEmit`          |
-| Lint               | 0 errores, 10 warnings                                                  | `npm run lint`              |
-| Formato            | Todo el repo conforme                                                   | `npm run format:check`      |
-| Build              | **21 rutas** (18 estáticas + 3 dinámicas)                               | `npm run build`             |
-| Tests E2E          | **23 en verde × 3 navegadores** (chromium, firefox, webkit)             | CI de GitHub, run del merge |
-| Contrato de RPC    | **38 invocadas, 38 existen** en la base                                 | `npm run check:rpc` / MCP   |
-| Exposición anónima | **0 objetos de `public` devuelven datos** a la clave pública            | `npm run check:anon`        |
-| RLS                | 21 tablas, **todas** con RLS activo                                     | `pg_class.relrowsecurity`   |
-| Funciones `anon`   | **13** (la lista blanca del portal, `029`)                              | `has_function_privilege`    |
+| Indicador          | Valor                                                                   | Cómo se comprobó             |
+| ------------------ | ----------------------------------------------------------------------- | ---------------------------- |
+| Tests unitarios    | **893 en 41 archivos, todos en verde**                                  | `npm test`                   |
+| Cobertura          | Líneas 93,15 % · Sentencias 91,31 % · Ramas 87,81 % · Funciones 88,38 % | `npm run test:coverage`      |
+| Umbral exigido     | 80 % en las cuatro métricas                                             | `vitest.config.mts`          |
+| Tipos              | Sin errores                                                             | `npx tsc --noEmit`           |
+| Lint               | 0 errores, 10 warnings                                                  | `npm run lint`               |
+| Formato            | Todo el repo conforme                                                   | `npm run format:check`       |
+| Build              | **21 rutas** (18 estáticas + 3 dinámicas)                               | `npm run build`              |
+| Tests E2E          | **23 en verde × 3 navegadores** (chromium, firefox, webkit)             | CI de GitHub, run del merge  |
+| Contrato de RPC    | **38 invocadas, 38 existen** en la base                                 | `npm run check:rpc` / MCP    |
+| Exposición anónima | **0 objetos de `public` devuelven datos** a la clave pública            | `npm run check:anon`         |
+| RLS                | 21 tablas, **todas** con RLS activo                                     | `pg_class.relrowsecurity`    |
+| Funciones `anon`   | **13** (la lista blanca del portal, `029`)                              | `has_function_privilege`     |
+| Restauración       | **34 migraciones, 21 tablas, 53 filas** desde el último backup real     | `./scripts/restore-drill.sh` |
 
 ## Fases entregadas
 
@@ -79,6 +80,7 @@ ejecutable no es un objetivo, es una intención.
 | OE13 | Las funciones `SECURITY DEFINER` fijan su `search_path`          | `get_advisors security` sin `function_search_path_mutable` | ⬜ abierto — BACKLOG A17 (62 casos)                 |
 | OE14 | Ninguna función de la base queda sin llamador ni sin motivo      | `pg_proc` menos las `.rpc()` del código = solo triggers    | ⬜ abierto — BACKLOG A19 (21 casos)                 |
 | OE15 | El portal puede listar productos                                 | `get_products_for_customer_order` devuelve 200             | ✅ cerrado (`031`) — 10 productos, orden de la base |
+| OE16 | El último backup sirve para restaurar la base                    | `./scripts/restore-drill.sh` en verde                      | ✅ cerrado — 34 migraciones, 21 tablas, 53 filas    |
 
 ## Siguiente paso vigente
 

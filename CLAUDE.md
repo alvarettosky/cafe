@@ -73,11 +73,12 @@ sabía cuántos más había.
 
 ### Verificadores propios del repositorio
 
-| Script                                                               | Comando                 | Contra qué protege                                                                                                                       |
-| -------------------------------------------------------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| [`scripts/check-rpc-contract.mjs`](scripts/check-rpc-contract.mjs)   | `npm run check:rpc`     | Que el código llame a una RPC que no existe en la base. Cazó `get_dashboard_stats` (404 en producción)                                   |
-| [`scripts/check-secrets.mjs`](scripts/check-secrets.mjs)             | `npm run check:secrets` | Credenciales commiteadas. Cazó una `service_role` de 189 días y un PAT de 188, ambos en un repo **público**                              |
-| [`scripts/check-anon-exposure.mjs`](scripts/check-anon-exposure.mjs) | `npm run check:anon`    | Que una tabla o **vista** devuelva datos a un anónimo. Cazó 4 vistas sin `security_invoker` que filtraban clientes, costos y proveedores |
+| Script                                                               | Comando                      | Contra qué protege                                                                                                                                                                                                                  |
+| -------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`scripts/check-rpc-contract.mjs`](scripts/check-rpc-contract.mjs)   | `npm run check:rpc`          | Que el código llame a una RPC que no existe en la base. Cazó `get_dashboard_stats` (404 en producción)                                                                                                                              |
+| [`scripts/check-secrets.mjs`](scripts/check-secrets.mjs)             | `npm run check:secrets`      | Credenciales commiteadas. Cazó una `service_role` de 189 días y un PAT de 188, ambos en un repo **público**                                                                                                                         |
+| [`scripts/check-anon-exposure.mjs`](scripts/check-anon-exposure.mjs) | `npm run check:anon`         | Que una tabla o **vista** devuelva datos a un anónimo. Cazó 4 vistas sin `security_invoker` que filtraban clientes, costos y proveedores                                                                                            |
+| [`scripts/restore-drill.sh`](scripts/restore-drill.sh)               | `./scripts/restore-drill.sh` | Que el backup **no se pueda restaurar**. Reconstruye la base en un Postgres efímero desde `supabase/migrations/` y le carga el último ZIP real. Cazó que el backup respaldaba 20 de 21 tablas y que el esquema no era reconstruible |
 
 **Dónde corre cada uno, y por qué no en el mismo sitio:**
 

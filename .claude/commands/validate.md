@@ -210,12 +210,13 @@ Ni siquiera con ocho fases se cubre todo. Consciente y explícito:
 
 ## Fuera de estas ocho fases
 
-| Suite              | Comando                 | Por qué no está arriba                                      |
-| ------------------ | ----------------------- | ----------------------------------------------------------- |
-| E2E (Playwright)   | `npx playwright test`   | Tarda minutos. **Sí corre en CI**: 23 tests × 3 navegadores |
-| Base de datos      | `npm run test:db`       | Necesita `.env.local` con credenciales reales de Supabase   |
-| Mutación (Stryker) | `npm run test:mutation` | Minutos, no segundos. Es para nightly, no para cada cambio  |
-| Carga (k6)         | `npm run test:load`     | Golpea el despliegue real                                   |
+| Suite                  | Comando                      | Por qué no está arriba                                                                                                         |
+| ---------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| E2E (Playwright)       | `npx playwright test`        | Tarda minutos. **Sí corre en CI**: 23 tests × 3 navegadores                                                                    |
+| Base de datos          | `npm run test:db`            | Necesita `.env.local` con credenciales reales de Supabase                                                                      |
+| Mutación (Stryker)     | `npm run test:mutation`      | Minutos, no segundos. Es para nightly, no para cada cambio                                                                     |
+| Carga (k6)             | `npm run test:load`          | Golpea el despliegue real                                                                                                      |
+| Ensayo de restauración | `./scripts/restore-drill.sh` | Necesita Docker y tarda minutos. **Corre en CI a diario** tras el backup, y en cada push que toque migraciones o el exportador |
 
 ## Reglas
 
