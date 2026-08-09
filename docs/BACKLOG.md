@@ -17,6 +17,40 @@ Sustituye a `.claude/TODO.md`, que queda como puntero.
 
 ---
 
+## ✅ P0-RESTAURACION-2 — El ensayo no miraba las columnas. Cerrado el 2026-08-09 (`039`)
+
+`036` funcionaba en producción y **reventaba al reconstruir la base solo desde
+el repositorio**: `ERROR 42703: column "custom_price" does not exist`. Era
+correcta contra la única base donde alguien la había probado, y falsa contra la
+única que importa el día de un desastre.
+
+La causa de fondo: el paso 6 del ensayo comparaba **objetos y funciones** entre
+producción y la base reconstruida, y ahí paraba. Ampliado a **columnas**,
+aparecieron cuatro; dos de ellas deriva real que nadie había versionado —
+`price_list_items.custom_price` y `price_lists.discount_percent`—, y las dos
+las lee el camino que decide el precio de una venta.
+
+**Tercer escalón del mismo modo de fallo, un nivel más abajo cada vez:**
+
+| Migración   | Qué vivía solo en producción             | Qué no lo miraba                                                |
+| ----------- | ---------------------------------------- | --------------------------------------------------------------- |
+| `030`       | cuatro **vistas** sin `security_invoker` | `pg_class.relrowsecurity` y `pg_policies`, que describen tablas |
+| `033`/`034` | seis **funciones**                       | la comparación de tablas                                        |
+| `039`       | dos **columnas**                         | la comparación de objetos y funciones                           |
+
+Cada vez, la comprobación existente miraba justo un nivel por encima del sitio
+donde estaba el problema.
+
+⚠️ **Y un tercer hallazgo, sobre el ensayo mismo:** en local elige el ZIP con
+`ls -t` sobre el **espejo** (`~/Backups/cafe-mirador/`), que solo se refresca
+con el timer diario. El 2026-08-09 probó el backup de las 03:45 mientras el de
+las 16:57 llevaba media hora en el bucket. No es un fallo de corrección —el
+espejo es el artefacto de recuperación local— pero sí un riesgo: puede dar por
+bueno un backup viejo mientras el reciente está roto. En CI no pasa (no hay
+espejo, baja el último). Pendiente **A24**.
+
+---
+
 ## ✅ P0-VENTA — El CRM no podía registrar NI UNA venta. Cerrado el 2026-08-09 (`037` + `038`)
 
 Apareció al comprobar que `036` no hubiera roto el camino de venta. No lo había
@@ -661,6 +695,8 @@ dejaron como estaban — ya caían dentro de la franja y su horario es indiferen
 | A17 | **62 funciones con `search_path` mutable**                          | `get_advisors` security, nivel WARN. En funciones `SECURITY DEFINER` es un vector de escalada: quien controle el `search_path` puede colar objetos propios. Se cierra con `ALTER FUNCTION … SET search_path = public, pg_temp` en una migración por lotes. Medido 2026-08-07                                                                                                                                                                                                                                                  |
 | A18 | Protección de contraseñas filtradas desactivada                     | `auth_leaked_password_protection` — Supabase puede contrastar contra HaveIBeenPwned. Es un interruptor del dashboard, no código                                                                                                                                                                                                                                                                                                                                                                                               |
 | A19 | **Funciones en la base que nadie invoca** (`036` retiró 7 de ellas) | Medido comparando `pg_proc` con las 38 `.rpc()` del código. Seis son triggers (legítimas). Las demás son features **a medias o abandonadas**: `edit_sale`/`can_edit_sale` (CLAUDE.md las documenta como críticas y ningún componente las llama), `confirm_customer_order`, `cancel_customer_order`, `get_pending_customer_orders`, `apply_referral_code`, `complete_referral_on_purchase`, `get_subscriptions_due_today`. Decidir una por una: cablear o borrar. Es el equivalente aquí del «método que existe y nadie llama» |
+| A24 | **El ensayo local prueba el backup del espejo, no el último real**  | `restore-drill.sh` elige con `ls -t` sobre `~/Backups/cafe-mirador/`, que solo se refresca con el timer diario. El 2026-08-09 validó el ZIP de las 03:45 mientras el de las 16:57 llevaba media hora en el bucket. Puede dar por bueno un backup viejo mientras el reciente está roto. En CI no ocurre (sin espejo, baja el último). Arreglo: comparar la fecha del espejo con la del bucket y avisar si va por detrás                                                                                                        |
+| A25 | **`price_lists` tiene dos columnas para la misma idea**             | `discount_percent` y `default_discount`. `get_product_price_for_customer` consulta **`default_discount`**; `discount_percent` la versionó `039` porque existía en producción, pero nadie la lee. Decidir cuál sobrevive antes de que alguien rellene la que no se usa y no entienda por qué el descuento no se aplica                                                                                                                                                                                                         |
 | A22 | **La suite unitaria no es hermética: lee el entorno**               | Con `SUPABASE_SERVICE_ROLE_KEY` y `NEXT_PUBLIC_SUPABASE_URL` exportadas, **30 tests de 6 archivos fallan**; en una terminal limpia pasan los 866. Medido el 2026-08-09 corriendo `npm test` dos veces seguidas, lo único distinto el entorno. Un test que cambia de veredicto según quién lo lance mide la máquina, no el código — y el día que falle de verdad, nadie lo creerá. Fixture `autouse` que fije los valores DECLARADOS en vez de heredarlos, y un test que compruebe el aislamiento en sí                        |
 | A20 | **Tres `.html` derivados versionados en el repo público**           | `README.html`, `SUPABASE_SETUP.html`, `DEPLOY_NETLIFY.html`, ~626 KB cada uno. Un derivado no se actualiza solo: publica lo que el `.md` ya borró, y este repositorio es público. O se regeneran en el mismo commit que su fuente, o salen del índice y van al `.gitignore`                                                                                                                                                                                                                                                   |
 
