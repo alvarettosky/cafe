@@ -4,7 +4,7 @@ Ruta de lectura para entender el sistema. Ordenada por dependencia: cada módulo
 supone el anterior. Pensado tanto para una persona que entra al proyecto como
 para un agente que lo retoma sin contexto.
 
-- **Última verificación contra el código:** 2026-07-27
+- **Última verificación contra el código:** 2026-08-09
 - **Documentos hermanos:** [BLUEPRINT](BLUEPRINT.md) · [ROADMAP](ROADMAP.md) · [BACKLOG](BACKLOG.md) · [README](../README.md) · [CLAUDE.md](../CLAUDE.md)
 
 ---
@@ -42,9 +42,14 @@ El sistema es una base de datos con una interfaz encima. Empezar por aquí y no
 por los componentes.
 
 1. [`../CLAUDE.md`](../CLAUDE.md) §Base de Datos — tablas y RPC.
-2. `supabase/migrations/001_process_coffee_sale.sql` — la RPC central.
+2. `supabase/migrations/038_la_rpc_de_ventas_que_usa_la_app_estaba_rota.sql` — la
+   RPC central, y por qué **hay cuatro** `process_coffee_sale` de las que la app
+   llamaba a la única rota. Si solo lees un `.sql`, que sea este.
 3. `supabase/migrations/010_security_rls.sql` — dónde vive de verdad la
-   autorización.
+   autorización, y `035` — por qué una política de `UPDATE` sin `WITH CHECK`
+   dejaba que cualquiera se hiciera administrador.
+4. `036` — por qué hay **un solo** catálogo y vive en `inventory`, no en
+   `products`. [BLUEPRINT D7](BLUEPRINT.md#2-decisiones-de-arquitectura).
 
 **Comprobación:** ¿qué cuatro escrituras hace `process_coffee_sale` y por qué
 tienen que ser atómicas? → [BLUEPRINT D1](BLUEPRINT.md#d1--la-lógica-de-negocio-vive-en-la-base-de-datos-no-en-el-cliente)
@@ -115,8 +120,16 @@ cuatro patrones que se repiten:
    cuando le faltaban los secretos. Ver
    [`.claude/commands/validate.md`](../.claude/commands/validate.md) §«El hueco que
    queda» y [`scripts/restore-drill.sh`](../scripts/restore-drill.sh).
-6. **Cosas que solo viven en producción** — seis funciones y una vista que ninguna
-   migración creaba. Las encontró el paso de paridad del ensayo de restauración.
+6. **Cosas que solo viven en producción** — seis funciones, una vista y dos
+   columnas que ninguna migración creaba. Las encontró el paso de paridad del
+   ensayo de restauración, que **bajó un escalón cada vez**: primero objetos,
+   luego funciones, ahora columnas.
+7. **La documentación afirmando lo contrario del código** — el ROADMAP pedía
+   «migrar el portal al modelo que ya usa el POS» cuando el POS usaba el otro.
+   Nadie lo había contrastado contra `pg_proc`.
+8. **Comprobaciones en dos capas** — retirar la validación de una función no
+   permitió el stock negativo: había además un `CHECK` en la tabla. Solo se vio
+   ejecutando la operación.
 
 Antes de tocar la base, lee también
 [`docs/BACKLOG.md` §P0-BACKUP](BACKLOG.md) y §P0-SEC-4: son los dos incidentes que

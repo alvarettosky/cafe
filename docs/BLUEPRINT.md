@@ -4,7 +4,7 @@ Arquitectura y decisiones de diseño. Responde **por qué** el sistema es como e
 el **qué** está en [`../CLAUDE.md`](../CLAUDE.md) y el **cuándo** en
 [`ROADMAP.md`](ROADMAP.md).
 
-- **Última verificación contra el código:** 2026-07-27
+- **Última verificación contra el código:** 2026-08-09
 - **Documentos hermanos:** [ROADMAP](ROADMAP.md) · [BACKLOG](BACKLOG.md) · [SYLLABUS](SYLLABUS.md) · [README](../README.md) · [CLAUDE.md](../CLAUDE.md)
 
 ---
@@ -88,6 +88,72 @@ deja de confiar en la señal.
 `<html className="dark">` por defecto, primario café (`#8B4513` claro /
 `#A0522D` oscuro) sobre neutros casi negros. Ver
 [design system](../../project/README.md).
+
+### D7 — Un solo catálogo, y es `inventory`
+
+Hubo dos modelos de producto conviviendo: `inventory` (product_id, gramos,
+costo) y el par `products`/`product_variants` de la Fase 4 (SKU, presentación,
+tipo de molido). Este documento y el ROADMAP daban por hecho que el segundo era
+el vivo y que faltaba migrar el portal a él.
+
+**Al preguntárselo a la base, era al revés:** 28 funciones trabajaban sobre
+`inventory` —`process_coffee_sale`, `get_dashboard_stats`, `get_advanced_metrics`,
+`edit_sale` y todo el portal— y solo 5 sobre las variantes, de las que **una
+sola** se invocaba desde el código, y desde un componente que ninguna página
+renderizaba. El modelo «nuevo» no llegó nunca a usarse; su único efecto visible
+eran cinco nombres de producto rotos («Café», «Café en»), residuo de la regex de
+`025` al quitarles el tipo de molido.
+
+[`036`](../supabase/migrations/036_catalogo_unico_sobre_inventory.sql) retira
+`products`, `product_variants` y sus siete funciones, fusiona las filas
+duplicadas de `inventory` y añade un índice único sobre el nombre para que no
+vuelvan. El precio de venta pasa a vivir en `inventory` (`price_per_lb`,
+`price_per_half_lb`), que es donde `get_product_price_for_customer` llevaba
+buscándolo desde siempre — y por eso fallaba en cada venta.
+
+**La lección no es cuál de los dos modelos era mejor**, sino que la documentación
+afirmaba lo contrario de lo que hacía el código y nadie lo había contrastado.
+
+### D8 — El stock puede ser negativo, y eso es información
+
+Aquí **primero se vende y después se registra**: el café se entrega en mano y la
+venta entra al CRM horas o días más tarde. Con un inventario que va por detrás de
+la realidad, rechazar la venta con «Stock insuficiente» no protege nada — impide
+registrar algo que **ya ocurrió**, y esa venta perdida no descuenta inventario,
+no cuenta en las métricas, no actualiza `last_purchase_date` ni entra en la
+cartera. El sistema no evitaba el descuadre: lo escondía.
+
+Desde [`041`](../supabase/migrations/041_permitir_stock_negativo.sql) y
+[`042`](../supabase/migrations/042_el_stock_negativo_tambien_estaba_prohibido_en_la_tabla.sql),
+un stock negativo es un estado **válido y con significado**: «se vendió café que
+el sistema no sabía que existía; falta registrar la entrada».
+
+Lo que **sigue** rechazándose: vender un producto que no existe en `inventory`,
+porque no hay a qué imputar la venta ni de dónde sacar el costo.
+
+⚠️ **`create_customer_order` conserva la validación**, y es la única. Ahí quien
+pide no es el dueño sino un cliente desde el portal: el aviso no bloquea un
+registro, evita prometer un café que no se podrá entregar. Convertirlo en pedido
+por encargo es una decisión de producto — [BACKLOG C8](BACKLOG.md#c--requiere-juicio-humano).
+
+### D9 — El precio de la media libra no es la mitad
+
+La libra vale **$45.000** y la media **$25.000**, no $22.500. Es un precio
+comercial propio, no una división.
+
+Eso choca con el modelo: `inventory.cost_per_gram` es **un solo número por
+producto** y el costo de una venta se calcula multiplicándolo por los gramos. Con
+los márgenes reales del negocio —libra $19.000, media libra $11.500— salen **dos
+costos por gramo distintos**: $52 y $54. No cuadran, y es correcto que no
+cuadren: la media libra lleva el mismo empaque y el mismo trabajo para la mitad
+de café.
+
+Se eligió **$52**, el que cuadra la libra, porque es lo que se vende (las 133
+ventas del histórico fueron por libras). La media libra muestra $12.000 en vez de
+$11.500, y esa desviación está **medida y aceptada**, no ignorada. Separar el
+costo del empaque del costo del café es [BACKLOG A26](BACKLOG.md#a--automatizable-ahora);
+recalibrar el $52 hasta que salga bonito **no** es la salida, porque entonces
+dejaría de cuadrar la libra.
 
 ## 3. Contratos que TypeScript no protege
 

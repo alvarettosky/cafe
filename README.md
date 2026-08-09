@@ -27,10 +27,14 @@ con lo que el código realmente hace — sin romper la app en producción.
 | OE2 | Restyle con el design system                        | ✅                |
 | OE3 | Versionar el design system                          | ✅ (repo privado) |
 | OE4 | Escribir los 4 documentos de gestión                | ✅                |
-| OE5 | Llevar la documentación al estado real              | 🚧                |
-| OE6 | Cablear los orquestadores (`CLAUDE.md`, `.claude/`) | 🚧                |
-| OE7 | Comando `/validate` funcionando                     | ✅                |
-| OE8 | Documentación oficial de librerías vía context7     | 🚧 (1 de 4)       |
+| OE5 | Llevar la documentación al estado real              | ✅                |
+| OE6 | Cablear los orquestadores (`CLAUDE.md`, `.claude/`) | ✅                |
+| OE7 | Comando `/validate` funcionando                     | ✅ (8 fases)      |
+| OE8 | Documentación oficial de librerías vía context7     | ✅                |
+
+Los objetivos de los ciclos posteriores —endurecimiento (OE9–OE18) y el del
+2026-08-09 (OE19–OE26)— viven en
+[`docs/ROADMAP.md`](docs/ROADMAP.md), cada uno con el comando que lo demuestra.
 
 ## Aviso de seguridad
 
@@ -44,6 +48,19 @@ cliente, `sb_secret_…` en servidor/CI). Las claves legacy tipo JWT (`anon` /
 `service_role`) están **desactivadas** desde el 2026-07-27, tras una fuga
 corregida — ver [`docs/BACKLOG.md`](docs/BACKLOG.md) §«P0-SEC».
 
+## Estado del sistema (2026-08-09)
+
+La base de producción **ya no tiene datos de demostración**: contiene el negocio
+real — 52 clientes, 143 ventas y $6.440.000 facturados desde septiembre de 2024.
+El procedimiento de carga está en
+[`scripts/importar-historico.py`](scripts/importar-historico.py); **los datos no
+se versionan aquí**, por lo que dice el aviso de arriba.
+
+Ese ciclo destapó defectos que ninguna suite veía, empezando por el más grave:
+**el CRM no podía registrar ni una venta**. El detalle, con la evidencia de cada
+uno, está en [`docs/BACKLOG.md`](docs/BACKLOG.md) §P0-VENTA, §P0-SEC-5 y
+§P0-RESTAURACION-2.
+
 ## Documentación
 
 | Documento                                                            | Qué responde                                                                                       |
@@ -56,7 +73,7 @@ corregida — ver [`docs/BACKLOG.md`](docs/BACKLOG.md) §«P0-SEC».
 | [`FICHA_TECNICA.md`](FICHA_TECNICA.md)                               | Cuentas, stack y métricas del proyecto                                                             |
 | [`INSTRUCCIONES.md`](INSTRUCCIONES.md)                               | Guía de inicio rápido                                                                              |
 | [`manual-de-usuario-no-tecnico.md`](manual-de-usuario-no-tecnico.md) | Cómo **usar** el sistema día a día — para quien vende, no para quien programa                      |
-| [`.claude/commands/validate.md`](.claude/commands/validate.md)       | Comando `/validate`: las 5 fases de verificación, en orden                                         |
+| [`.claude/commands/validate.md`](.claude/commands/validate.md)       | Comando `/validate`: las **8 fases** de verificación, en orden, y §«El hueco que queda»            |
 | [`docs/testing/`](docs/testing/)                                     | Guías de testing y CI/CD                                                                           |
 
 ## Funcionalidades
@@ -116,7 +133,7 @@ npm run dev                 # Servidor de desarrollo → http://localhost:3000
 
 ## Testing
 
-**Estado medido el 2026-07-27** (fuente: [`docs/ROADMAP.md`](docs/ROADMAP.md)):
+**Estado medido el 2026-08-09** (fuente: [`docs/ROADMAP.md`](docs/ROADMAP.md)):
 
 | Indicador       | Valor                                                                           |
 | --------------- | ------------------------------------------------------------------------------- |

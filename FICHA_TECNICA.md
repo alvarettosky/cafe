@@ -100,17 +100,19 @@ el histórico de ventas con nombres vive en el repositorio privado
 
 ## Métricas del Proyecto
 
-Medido el 2026-07-27 con `npm test`, `npm run test:coverage` y el run de CI del
+Medido el 2026-08-09 con `npm test` y el run de CI del
 merge (ver [`docs/ROADMAP.md`](docs/ROADMAP.md) para el detalle completo).
 
-| Métrica               | Valor                                                                                                        |
-| --------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Tests unitarios**   | 866 en 40 archivos, todos en verde (~10 s)                                                                   |
-| **Cobertura**         | Líneas 93,15 % · Sentencias 91,31 % · Ramas 87,81 % · Funciones 88,38 % (umbral exigido: 80 % en las cuatro) |
-| **Tests E2E**         | 23 × 3 navegadores (chromium, firefox, webkit), verdes en CI                                                 |
-| **Build**             | 21 rutas: 18 estáticas + 3 dinámicas (`app/api/`)                                                            |
-| **Tablas en BD**      | 21                                                                                                           |
-| **RPCs documentadas** | 43 (listado completo en [`CLAUDE.md`](CLAUDE.md))                                                            |
+| Métrica             | Valor                                                                                                        |
+| ------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Tests unitarios** | 866 en 40 archivos, todos en verde (~10 s)                                                                   |
+| **Cobertura**       | Líneas 93,15 % · Sentencias 91,31 % · Ramas 87,81 % · Funciones 88,38 % (umbral exigido: 80 % en las cuatro) |
+| **Tests E2E**       | 23 × 3 navegadores (chromium, firefox, webkit), verdes en CI                                                 |
+| **Build**           | 21 rutas: 18 estáticas + 3 dinámicas (`app/api/`)                                                            |
+| **Tablas en BD**    | **19** (eran 21; `036` retiró `products` y `product_variants`)                                               |
+| **RPCs en la base** | **48** expuestas · 37 invocadas por el código (`npm run check:rpc`)                                          |
+| **Datos reales**    | **52 clientes · 143 ventas · $6.440.000** desde 2024-09-26                                                   |
+| **Restauración**    | 42 migraciones · 19 tablas · paridad de **21 objetos, 48 RPC y 193 columnas** (`./scripts/restore-drill.sh`) |
 
 ## Fases de Desarrollo
 
@@ -193,21 +195,21 @@ en la máquina del desarrollador, externo a GitHub — ver
 
 ## Documentación Relacionada
 
-| Archivo                                                              | Descripción                                                            |
-| -------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| [`README.md`](README.md)                                             | Presentación del proyecto                                              |
-| [`CLAUDE.md`](CLAUDE.md)                                             | Guía técnica para Claude Code (arquitectura, comandos, convenciones)   |
-| [`INSTRUCCIONES.md`](INSTRUCCIONES.md)                               | Guía de inicio rápido y flujo de trabajo del día a día                 |
-| [`docs/BLUEPRINT.md`](docs/BLUEPRINT.md)                             | Por qué el sistema es así (decisiones D1–D6, contratos sin protección) |
-| [`docs/ROADMAP.md`](docs/ROADMAP.md)                                 | Qué se entregó, estado medido y el siguiente paso vigente              |
-| [`docs/BACKLOG.md`](docs/BACKLOG.md)                                 | Pendientes clasificados [A]/[B]/[C]/[D]                                |
-| [`docs/SYLLABUS.md`](docs/SYLLABUS.md)                               | Ruta de lectura para entrar al proyecto sin contexto                   |
-| [`manual-de-usuario-no-tecnico.md`](manual-de-usuario-no-tecnico.md) | Cómo usar el sistema — para quien vende, no para quien programa        |
-| [`.claude/commands/validate.md`](.claude/commands/validate.md)       | Comando `/validate`: las 5 fases de verificación del codebase          |
-| [`SUPABASE_SETUP.md`](SUPABASE_SETUP.md)                             | Configuración y migraciones de base de datos                           |
-| [`VERCEL_DEPLOYMENT.md`](VERCEL_DEPLOYMENT.md)                       | Configuración de deploy en Vercel                                      |
-| [`docs/testing/`](docs/testing/)                                     | Guías de testing (estrategia, CI/CD, cómo escribir tests)              |
+| Archivo                                                              | Descripción                                                                |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| [`README.md`](README.md)                                             | Presentación del proyecto                                                  |
+| [`CLAUDE.md`](CLAUDE.md)                                             | Guía técnica para Claude Code (arquitectura, comandos, convenciones)       |
+| [`INSTRUCCIONES.md`](INSTRUCCIONES.md)                               | Guía de inicio rápido y flujo de trabajo del día a día                     |
+| [`docs/BLUEPRINT.md`](docs/BLUEPRINT.md)                             | Por qué el sistema es así (decisiones **D1–D9**, contratos sin protección) |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md)                                 | Qué se entregó, estado medido y el siguiente paso vigente                  |
+| [`docs/BACKLOG.md`](docs/BACKLOG.md)                                 | Pendientes clasificados [A]/[B]/[C]/[D]                                    |
+| [`docs/SYLLABUS.md`](docs/SYLLABUS.md)                               | Ruta de lectura para entrar al proyecto sin contexto                       |
+| [`manual-de-usuario-no-tecnico.md`](manual-de-usuario-no-tecnico.md) | Cómo usar el sistema — para quien vende, no para quien programa            |
+| [`.claude/commands/validate.md`](.claude/commands/validate.md)       | Comando `/validate`: las **8 fases** de verificación del codebase          |
+| [`SUPABASE_SETUP.md`](SUPABASE_SETUP.md)                             | Configuración y migraciones de base de datos                               |
+| [`VERCEL_DEPLOYMENT.md`](VERCEL_DEPLOYMENT.md)                       | Configuración de deploy en Vercel                                          |
+| [`docs/testing/`](docs/testing/)                                     | Guías de testing (estrategia, CI/CD, cómo escribir tests)                  |
 
 ---
 
-_Última actualización: 27 de julio de 2026_
+_Última actualización: 9 de agosto de 2026_

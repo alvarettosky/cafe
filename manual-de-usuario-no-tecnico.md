@@ -124,6 +124,21 @@ ajuste.
 Modificar el inventario es cosa de **administradores**. Un vendedor lo ve pero no lo toca;
 las ventas sí descuentan solas.
 
+### El stock puede aparecer en negativo, y no es un error
+
+Desde el 9 de agosto de 2026, el sistema **nunca te impide registrar una venta**
+por falta de existencias. Antes te bloqueaba, y eso era peor de lo que parece:
+aquí primero se vende y después se registra, así que te impedía anotar algo que
+**ya había pasado** — y esa venta no descontaba café, no contaba en las cuentas,
+no actualizaba a quién hay que llamar ni entraba en lo que te deben.
+
+Si ves **−500 g** en un producto, el sistema te está diciendo:
+
+> «Vendiste media libra más de la que yo sabía que tenías. Anota la entrada que falta.»
+
+Se arregla solo en cuanto registres el café que entró. Un número negativo es un
+recordatorio, no un fallo.
+
 ---
 
 ## 6. Precios (solo administradores)
@@ -131,6 +146,17 @@ las ventas sí descuentan solas.
 En **Precios** se arman listas de precios distintas según el tipo de cliente. Se define una
 vez y a partir de ahí cada venta toma el precio que corresponde, sin que nadie tenga que
 acordarse.
+
+**El precio base de cada café se pone en Inventario**, al editar el producto: precio de la
+libra y precio de la media libra. Hoy son **$45.000 y $25.000**. Fíjate en que la media
+libra **no es la mitad**: es su propio precio, y el sistema lo respeta.
+
+> **Sobre la ganancia que verás.** El sistema calcula cuánto ganas restando lo que te cuesta
+> el café. Ese costo está en **$52 por gramo**, que es el que hace que una libra deje los
+> **$19.000** que dejas de verdad. La media libra te aparecerá con $12.000 de ganancia
+> cuando en realidad deja $11.500: la diferencia son $500 y viene de que el empaque de media
+> libra cuesta casi lo mismo que el de una libra. Está medido y es conocido; si algún día
+> vendes muchas medias libras, avisa y se afina.
 
 ---
 
@@ -222,6 +248,11 @@ Conviene tenerlo claro para no esperar algo que no va a pasar:
 - **No factura electrónicamente.** No emite documentos ante la DIAN.
 - **No controla varias sedes.** Está pensado para una sola operación.
 - **No funciona sin internet.** Todo vive en línea; no hay modo desconectado.
+- **No lleva abonos parciales.** Una venta está pagada o pendiente, sin puntos medios. Si un
+  cliente te abona una parte, el sistema seguirá mostrando la venta entera como pendiente:
+  por eso **lo que ves en «pendiente de cobro» es un techo, no la cifra exacta**.
+- **No sabe qué pago corresponde a qué venta.** Sabe cuánto te compró y cuánto te pagó cada
+  cliente; el emparejamiento lo hace de la compra más vieja a la más nueva.
 
 ---
 
@@ -243,11 +274,38 @@ En la práctica, tres cosas:
 
 ---
 
+## 14. Qué hay dentro hoy (9 de agosto de 2026)
+
+El sistema ya no tiene datos de prueba: tiene tu negocio.
+
+|                    |                                            |
+| ------------------ | ------------------------------------------ |
+| Clientes           | **52**                                     |
+| Ventas registradas | **143**, desde el 26 de septiembre de 2024 |
+| Facturado          | **$6.440.000**                             |
+| Pendiente de cobro | **$1.506.500** repartido en 27 clientes    |
+| Café en existencia | **sin registrar todavía**                  |
+
+De esas 143 ventas, **9 no estaban documentadas**: se reconstruyeron a partir de
+pagos tuyos que no correspondían a ninguna venta anotada. Cada una coincide
+exactamente con el precio que tenía la libra ese día, y llevan una nota que lo
+dice.
+
+> **Lo que falta:** registrar cuánto café tienes. Al 9 de agosto hay café
+> **esperando tueste y sin pesar**, así que la cifra todavía no existe. En cuanto
+> lo peses, se anota en **Inventario** y el sistema queda al día — incluido el
+> −500 g que hoy marca el Café Molido Medio por la venta del jueves 6.
+
+---
+
 ## Documentos relacionados
 
-| Documento                              | Para qué                             |
-| -------------------------------------- | ------------------------------------ |
-| [`INSTRUCCIONES.md`](INSTRUCCIONES.md) | Guía técnica del proyecto            |
-| [`docs/SYLLABUS.md`](docs/SYLLABUS.md) | Por dónde empezar a leer el código   |
-| [`docs/BACKLOG.md`](docs/BACKLOG.md)   | Lo que falta y lo que ya se descartó |
-| [`CLAUDE.md`](CLAUDE.md)               | Referencia técnica completa          |
+| Documento                                | Para qué                                            |
+| ---------------------------------------- | --------------------------------------------------- |
+| [`INSTRUCCIONES.md`](INSTRUCCIONES.md)   | Guía técnica del proyecto                           |
+| [`README.md`](README.md)                 | Qué es el proyecto y cómo levantarlo                |
+| [`docs/SYLLABUS.md`](docs/SYLLABUS.md)   | Por dónde empezar a leer el código                  |
+| [`docs/BACKLOG.md`](docs/BACKLOG.md)     | Lo que falta y lo que ya se descartó, con su motivo |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md)     | Qué se entregó y cuál es el siguiente paso          |
+| [`docs/BLUEPRINT.md`](docs/BLUEPRINT.md) | Por qué el sistema es así (decisiones D1–D9)        |
+| [`CLAUDE.md`](CLAUDE.md)                 | Referencia técnica completa                         |

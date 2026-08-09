@@ -82,11 +82,26 @@ npm run build            # Build de producción (21 rutas)
 npm start                # Servidor producción local
 ```
 
+### Datos
+
+```bash
+# Cargar el histórico de ventas desde el CSV del repo PRIVADO.
+# Sin --ejecutar hace un ensayo en seco. Es idempotente: no duplica lo ya cargado.
+NEXT_PUBLIC_SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… \
+  python3 scripts/importar-historico.py <ruta-al-csv> [--ejecutar]
+```
+
+⚠️ El CSV **no vive en este repositorio y no puede vivir aquí**: identifica a 52
+personas reales, algunas menores por su curso, y este repo es público. Ver
+[`docs/BACKLOG.md`](docs/BACKLOG.md) §C6.
+
 ### Testing
 
 ```bash
 # Unitarios e integración (Vitest)
 npm test                    # Todos los tests (866 en 40 archivos)
+                            # ⚠️ en una terminal SIN variables SUPABASE_* exportadas:
+                            # con ellas fallan 30 tests sin tocar el código (BACKLOG A22)
 npm run test:coverage       # Con reporte de cobertura (umbral 80% en líneas/sentencias/ramas/funciones)
 npm run test:watch          # Modo watch (desarrollo)
 npm run test:ui             # Interfaz UI interactiva
@@ -257,20 +272,22 @@ y describir pasos para reproducir.
 
 ## 📚 Documentación Relacionada
 
-| Archivo                                        | Descripción                                                          |
-| ---------------------------------------------- | -------------------------------------------------------------------- |
-| [`FICHA_TECNICA.md`](FICHA_TECNICA.md)         | Qué es, stack con versiones, cuentas y servicios, métricas medidas   |
-| [`CLAUDE.md`](CLAUDE.md)                       | Guía técnica para Claude Code (arquitectura, comandos, convenciones) |
-| [`docs/BLUEPRINT.md`](docs/BLUEPRINT.md)       | Por qué el sistema es así — decisiones de arquitectura               |
-| [`docs/ROADMAP.md`](docs/ROADMAP.md)           | Qué se entregó y el siguiente paso vigente                           |
-| [`docs/BACKLOG.md`](docs/BACKLOG.md)           | Pendientes clasificados y lo ya cerrado (§D)                         |
-| [`docs/SYLLABUS.md`](docs/SYLLABUS.md)         | Ruta de lectura para entrar al proyecto sin contexto                 |
-| [`SUPABASE_SETUP.md`](SUPABASE_SETUP.md)       | Configuración y migraciones de base de datos                         |
-| [`VERCEL_DEPLOYMENT.md`](VERCEL_DEPLOYMENT.md) | Configuración de deploy en Vercel                                    |
-| [`docs/testing/`](docs/testing/)               | Guías de testing detalladas                                          |
+| Archivo                                                              | Descripción                                                          |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| [`FICHA_TECNICA.md`](FICHA_TECNICA.md)                               | Qué es, stack con versiones, cuentas y servicios, métricas medidas   |
+| [`CLAUDE.md`](CLAUDE.md)                                             | Guía técnica para Claude Code (arquitectura, comandos, convenciones) |
+| [`docs/BLUEPRINT.md`](docs/BLUEPRINT.md)                             | Por qué el sistema es así — decisiones **D1–D9**                     |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md)                                 | Qué se entregó y el siguiente paso vigente                           |
+| [`docs/BACKLOG.md`](docs/BACKLOG.md)                                 | Pendientes clasificados y lo ya cerrado (§D)                         |
+| [`docs/SYLLABUS.md`](docs/SYLLABUS.md)                               | Ruta de lectura para entrar al proyecto sin contexto                 |
+| [`SUPABASE_SETUP.md`](SUPABASE_SETUP.md)                             | Configuración y migraciones de base de datos                         |
+| [`VERCEL_DEPLOYMENT.md`](VERCEL_DEPLOYMENT.md)                       | Configuración de deploy en Vercel                                    |
+| [`docs/testing/`](docs/testing/)                                     | Guías de testing detalladas                                          |
+| [`manual-de-usuario-no-tecnico.md`](manual-de-usuario-no-tecnico.md) | Cómo **usar** el sistema, para quien vende                           |
+| [`.claude/commands/validate.md`](.claude/commands/validate.md)       | El comando `/validate`: 8 fases y lo que NO cubren                   |
 
 ---
 
-**Última actualización**: 2026-07-27
+**Última actualización**: 2026-08-09
 
 **Desarrollado para Mirador Montañero Café Selecto**
