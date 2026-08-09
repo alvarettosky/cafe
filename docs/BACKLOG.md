@@ -17,6 +17,41 @@ Sustituye a `.claude/TODO.md`, que queda como puntero.
 
 ---
 
+## ✅ C6 — Histórico real cargado en el CRM. Hecho el 2026-08-09
+
+53 clientes · 133 ventas · **$6.087.500** facturados, del 2024-09-26 al
+2026-06-03. Los 2 clientes de prueba retirados. El procedimiento vive en
+[`scripts/importar-historico.py`](../scripts/importar-historico.py); **los datos
+no**, porque este repositorio es público y el CSV identifica a 53 personas,
+algunas menores por curso.
+
+Comprobado: total facturado idéntico al CSV · `last_purchase_date` coincide con
+la última venta de cada cliente · recurrencia calculada con
+`calculate_customer_recurrence`, la función que usa la app, no una fórmula
+paralela · **el inventario no se tocó** (sigue en 0, y el Kardex no tiene ni un
+movimiento de tipo `sale`): ese café se vendió hace meses y no puede descontarse
+del stock de hoy.
+
+### 🔴 La cartera tiene TRES cifras, y la del CSV no es la buena
+
+| Cifra                        | Cuánto         | Qué es                                                                                                                                                              |
+| ---------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Resta total (ventas − pagos) | **$1.192.000** | Lo que sugiere el CSV. **Compensa entre clientes distintos**: que Ana María pagara $75.000 de más no cancela lo que debe otro. No es cartera                        |
+| Suma de saldos deudores      | **$1.506.500** | **La cartera real**: lo que de verdad le deben, cliente por cliente                                                                                                 |
+| Lo que muestra el CRM        | **$1.800.500** | Suma de las 38 ventas marcadas «Pago a crédito o pendiente». Sobreestima en **$294.000** porque 11 ventas tienen un abono parcial que el modelo no sabe representar |
+
+La diferencia cuadra al peso: $314.500 (pagos que exceden las compras) +
+$294.000 (abonos parciales) = $608.500.
+
+**Y algo que conviene mirar:** **11 clientes pagaron más de lo que compraron**, y
+dos de ellos —**John Carlo (Casa Roca), $42.000** y **Diana Marcela, $35.000**—
+**pagaron sin ninguna venta registrada**. O falta registrar esas ventas, o son
+anticipos. El CRM los muestra como «prospect» con $0 de compras.
+
+Pendientes que deja: **A27** (modelo de abonos parciales y saldos a favor).
+
+---
+
 ## ✅ Costo del café. Cerrado el 2026-08-09 (`040`)
 
 `cost_per_gram` valía **0,02** — relleno de la demo. Con él, una libra costaba
@@ -727,6 +762,7 @@ dejaron como estaban — ya caían dentro de la franja y su horario es indiferen
 | A18 | Protección de contraseñas filtradas desactivada                     | `auth_leaked_password_protection` — Supabase puede contrastar contra HaveIBeenPwned. Es un interruptor del dashboard, no código                                                                                                                                                                                                                                                                                                                                                                                               |
 | A19 | **Funciones en la base que nadie invoca** (`036` retiró 7 de ellas) | Medido comparando `pg_proc` con las 38 `.rpc()` del código. Seis son triggers (legítimas). Las demás son features **a medias o abandonadas**: `edit_sale`/`can_edit_sale` (CLAUDE.md las documenta como críticas y ningún componente las llama), `confirm_customer_order`, `cancel_customer_order`, `get_pending_customer_orders`, `apply_referral_code`, `complete_referral_on_purchase`, `get_subscriptions_due_today`. Decidir una por una: cablear o borrar. Es el equivalente aquí del «método que existe y nadie llama» |
 | A26 | **El costo del empaque no se distingue del costo del café**         | `inventory.cost_per_gram` es uno solo por producto, así que la media libra —mismo empaque y mismo trabajo para la mitad de café— no puede tener su costo real: con los $52 elegidos en `040` muestra $12.000 de ganancia en vez de $11.500. Hoy da igual (las 133 ventas del histórico son por libras). El día que importe, separar coste fijo por unidad vendida del coste por gramo, y NO recalibrar `cost_per_gram` hasta que salga bonito                                                                                 |
+| A27 | **El modelo no sabe de abonos parciales ni de saldos a favor**      | Una venta está pagada o no lo está: `payment_method` es lo único que lo dice. Con el histórico cargado eso sobreestima la cartera en **$294.000** (11 ventas con abono parcial, anotado en `notes` pero no consultable) y no representa los **$314.500** que 11 clientes pagaron de más. Hace falta una tabla de pagos —fecha, monto, método, venta— en vez de un campo de texto en la venta. Mientras tanto, la cartera del CRM es un techo, no la cifra                                                                     |
 | A24 | **El ensayo local prueba el backup del espejo, no el último real**  | `restore-drill.sh` elige con `ls -t` sobre `~/Backups/cafe-mirador/`, que solo se refresca con el timer diario. El 2026-08-09 validó el ZIP de las 03:45 mientras el de las 16:57 llevaba media hora en el bucket. Puede dar por bueno un backup viejo mientras el reciente está roto. En CI no ocurre (sin espejo, baja el último). Arreglo: comparar la fecha del espejo con la del bucket y avisar si va por detrás                                                                                                        |
 | A25 | **`price_lists` tiene dos columnas para la misma idea**             | `discount_percent` y `default_discount`. `get_product_price_for_customer` consulta **`default_discount`**; `discount_percent` la versionó `039` porque existía en producción, pero nadie la lee. Decidir cuál sobrevive antes de que alguien rellene la que no se usa y no entienda por qué el descuento no se aplica                                                                                                                                                                                                         |
 | A22 | **La suite unitaria no es hermética: lee el entorno**               | Con `SUPABASE_SERVICE_ROLE_KEY` y `NEXT_PUBLIC_SUPABASE_URL` exportadas, **30 tests de 6 archivos fallan**; en una terminal limpia pasan los 866. Medido el 2026-08-09 corriendo `npm test` dos veces seguidas, lo único distinto el entorno. Un test que cambia de veredicto según quién lo lance mide la máquina, no el código — y el día que falle de verdad, nadie lo creerá. Fixture `autouse` que fije los valores DECLARADOS en vez de heredarlos, y un test que compruebe el aislamiento en sí                        |
