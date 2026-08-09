@@ -17,6 +17,54 @@ Sustituye a `.claude/TODO.md`, que queda como puntero.
 
 ---
 
+## ✅ Stock negativo permitido. Hecho el 2026-08-09 (`041` + `042`)
+
+**Decisión del dueño, y no es una concesión: es como funciona el negocio.** Aquí
+primero se vende y después se registra —la venta de Ruth del jueves 6 entró el
+domingo 9—, así que el inventario del sistema va por detrás de la realidad y
+bloquear con «Stock insuficiente» no protege nada: impide registrar algo que
+**ya ocurrió**. Y lo que se pierde no es poco: una venta que no entra no
+descuenta inventario, no cuenta en las métricas, no actualiza
+`last_purchase_date` y no aparece en la cartera. El sistema no evitaba el
+descuadre, lo escondía.
+
+Un stock negativo pasa a ser una **señal**: «vendiste café que el sistema no
+sabía que tenías». Se corrige registrando la entrada que falta.
+
+### La prohibición estaba en DOS sitios, y el segundo casi se escapa
+
+`041` retiró la validación de las funciones. **No bastó.** Al probarlo —vender
+con el inventario en cero— la venta siguió fallando:
+
+    ERROR 23514: violates check constraint "positive_stock"
+
+Había además un `CHECK (total_grams_available >= 0)` en la propia tabla. Sin la
+prueba, el dueño habría seguido bloqueado con un mensaje más oscuro y ninguna
+pista de dónde tocar. Lo cerró `042`.
+
+Es el mismo patrón que este repositorio lleva escrito cuatro veces —vistas
+(`030`), funciones (`033`/`034`), columnas (`039`) y ahora una **restricción de
+tabla**—: _revisar el mecanismo que conoces no dice nada del que no estás
+mirando_. Y apareció solo porque `041` se probó **ejecutándola**, no leyendo el
+diff.
+
+### Alcance: cinco de las seis funciones
+
+Se retiró de `process_coffee_sale` (las dos vivas) y de
+`register_inventory_movement` (mermas, devoluciones, traslados).
+
+⚠️ **`create_customer_order` conserva la validación, a propósito.** Es la única
+donde quien pide **no es el dueño sino un cliente**, desde el portal público:
+ahí el aviso no bloquea un registro, evita prometerle a alguien un café que no
+se le podrá entregar. Aceptar pedidos por encargo es una decisión de producto
+distinta — **pendiente de que el dueño decida** (anotado en §C).
+
+Verificado: la venta entra y deja el stock en −500 g, el Kardex lo registra como
+`0 → -500`, y el control sigue en pie — vender un producto que **no existe** en
+`inventory` se rechaza igual, porque ahí no hay a qué imputar la venta.
+
+---
+
 ## ✅ C6 — Histórico real cargado en el CRM. Hecho el 2026-08-09
 
 **52 clientes · 140 ventas · $6.320.000** facturados, del 2024-09-26 al
@@ -781,6 +829,7 @@ dejaron como estaban — ya caían dentro de la franja y su horario es indiferen
 | A18 | Protección de contraseñas filtradas desactivada                     | `auth_leaked_password_protection` — Supabase puede contrastar contra HaveIBeenPwned. Es un interruptor del dashboard, no código                                                                                                                                                                                                                                                                                                                                                                                               |
 | A19 | **Funciones en la base que nadie invoca** (`036` retiró 7 de ellas) | Medido comparando `pg_proc` con las 38 `.rpc()` del código. Seis son triggers (legítimas). Las demás son features **a medias o abandonadas**: `edit_sale`/`can_edit_sale` (CLAUDE.md las documenta como críticas y ningún componente las llama), `confirm_customer_order`, `cancel_customer_order`, `get_pending_customer_orders`, `apply_referral_code`, `complete_referral_on_purchase`, `get_subscriptions_due_today`. Decidir una por una: cablear o borrar. Es el equivalente aquí del «método que existe y nadie llama» |
 | A26 | **El costo del empaque no se distingue del costo del café**         | `inventory.cost_per_gram` es uno solo por producto, así que la media libra —mismo empaque y mismo trabajo para la mitad de café— no puede tener su costo real: con los $52 elegidos en `040` muestra $12.000 de ganancia en vez de $11.500. Hoy da igual (las 133 ventas del histórico son por libras). El día que importe, separar coste fijo por unidad vendida del coste por gramo, y NO recalibrar `cost_per_gram` hasta que salga bonito                                                                                 |
+| A28 | **La pantalla no distingue «stock 0» de «stock negativo»**          | Desde `042` el stock puede ser negativo y significa «falta registrar una entrada», que es muy distinto de «se agotó». El dashboard de stock bajo y `/inventario` los pintan igual. Un negativo debería saltar a la vista y decir qué hacer                                                                                                                                                                                                                                                                                    |
 | A27 | **El modelo no sabe de abonos parciales ni de saldos a favor**      | Una venta está pagada o no lo está: `payment_method` es lo único que lo dice. Con el histórico cargado eso sobreestima la cartera en **$294.000** (11 ventas con abono parcial, anotado en `notes` pero no consultable) y no representa los **$314.500** que 11 clientes pagaron de más. Hace falta una tabla de pagos —fecha, monto, método, venta— en vez de un campo de texto en la venta. Mientras tanto, la cartera del CRM es un techo, no la cifra                                                                     |
 | A24 | **El ensayo local prueba el backup del espejo, no el último real**  | `restore-drill.sh` elige con `ls -t` sobre `~/Backups/cafe-mirador/`, que solo se refresca con el timer diario. El 2026-08-09 validó el ZIP de las 03:45 mientras el de las 16:57 llevaba media hora en el bucket. Puede dar por bueno un backup viejo mientras el reciente está roto. En CI no ocurre (sin espejo, baja el último). Arreglo: comparar la fecha del espejo con la del bucket y avisar si va por detrás                                                                                                        |
 | A25 | **`price_lists` tiene dos columnas para la misma idea**             | `discount_percent` y `default_discount`. `get_product_price_for_customer` consulta **`default_discount`**; `discount_percent` la versionó `039` porque existía en producción, pero nadie la lee. Decidir cuál sobrevive antes de que alguien rellene la que no se usa y no entienda por qué el descuento no se aplica                                                                                                                                                                                                         |
@@ -805,6 +854,7 @@ dejaron como estaban — ya caían dentro de la franja y su horario es indiferen
 | C3  | `/login` no usa la paleta del design system                      | Usa `zinc-950`/`emerald-500` de Tailwind, no el café `#A0522D`. ¿Deuda o decisión?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | C4  | Alias «cafe-maghela»                                             | No existe en disco. ¿Es un renombre del proyecto o solo un alias conversacional?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | C5  | Dónde vive el design system a largo plazo                        | Hoy en el repo privado `proyectos-varios`. Traerlo a `cafe-repo` lo haría público (no tiene datos sensibles) y lo pondría junto a la app que lo consume                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| C8  | **¿El portal debe aceptar pedidos sin stock?**                   | `create_customer_order` es la única función que conserva la validación tras `041`: ahí quien pide es un cliente, no el dueño. Permitirlo sería aceptar encargos; mantenerlo evita prometer café que no se puede entregar. Hoy da igual (con stock 0 el portal no lista productos), pero en cuanto haya existencias la decisión aplica                                                                                                                                                                                                                                                                                                                                                                                                      |
 | C7  | **La recurrencia ajustada al vender no se guarda en el cliente** | `process_coffee_sale` la escribe en `sales.customer_recurrence_days`, y eso es lo que `038` replicó. Pero el modal deja **ajustar** la recurrencia de un cliente existente y ese ajuste se pierde: solo se guarda al **crear** uno nuevo (`new-sale-modal.tsx:286`). Como `customers.typical_recurrence_days` es lo que alimenta `/contactos`, propagarlo es decisión de producto: ¿el valor de una venta debe pisar el del cliente, o solo rellenarlo cuando está vacío?                                                                                                                                                                                                                                                                  |
 | C6  | **Cargar el histórico real al CRM**                              | La base de producción tiene **datos de prueba**, no el negocio: 2 clientes («Profe Vanesa» **no existe** en el CSV real; «El mono» no casa con «Mono (FruVer de la 50)»), 1 venta, precios en dólares de demo. El histórico verdadero —**53 clientes · 133 ventas · 159 libras · $6.087.500 vendidos frente a $4.895.500 cobrados**, del 2024-09-26 al 2026-06-03— vive en `ventas-y-pagos-cafe-*.csv`, en el repo **privado**. Mientras no se cargue, la segmentación RFM, la recurrencia y la cartera no tienen con qué trabajar. **A23 quedó cerrado el 2026-08-09**, así que el catálogo ya no bloquea: quedan por decidir los 2 clientes de prueba y si las ventas históricas se atan a «Café Tostado (Grano)» o se reparten por tipo |
 
