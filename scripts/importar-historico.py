@@ -77,6 +77,14 @@ PRODUCTO_DESTINO = "Café Molido Medio"
 CLIENTES_DE_PRUEBA = ["El mono", "Profe Vanesa"]
 PENDIENTE = "Pago a crédito o pendiente"
 
+# Valores de `cliente_pagador` que NO son personas. El CSV trae una fila de pago
+# por $0 con el nombre «Pendiente» y el texto «Pendiente pago»: es una anotacion
+# del registro original, no un cliente. La primera corrida la dio de alta como
+# persona, y aparecio en el CRM como un cliente sin ninguna compra — 53 clientes
+# donde hay 52. Un nombre que sale de una columna de texto libre hay que filtrarlo
+# antes de convertirlo en una fila de `customers`.
+NO_SON_CLIENTES = {"pendiente", "desconocido", "n/a", "-", "sin nombre", "?"}
+
 # Del vocabulario del CSV al del modal de venta. Los que no tienen equivalente
 # claro se dejan como estan en vez de atribuirlos a una cuenta concreta:
 # «NEQUI» no dice si fue la de Alvaretto o la de La Negra, y elegir una seria
@@ -122,6 +130,11 @@ def leer_csv(ruta):
             "mensaje_id": f["mensaje_id"].strip(),
             "notas": (f["notas"] or f["texto_original"] or "").strip(),
         }
+        # Se descartan las anotaciones que no son transacciones de una persona:
+        # nombre no valido, o un movimiento de $0 (el CSV usa el importe cero
+        # para marcar «queda pendiente», no para registrar dinero).
+        if registro["cliente"].lower() in NO_SON_CLIENTES or registro["monto"] <= 0:
+            continue
         if f["tipo_registro"] == "VENTA":
             registro["libras"] = float(f["cantidad_libras"] or 0)
             registro["precio_unitario"] = float(f["precio_unitario_cop"] or 0)

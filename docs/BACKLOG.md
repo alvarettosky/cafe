@@ -19,8 +19,21 @@ Sustituye a `.claude/TODO.md`, que queda como puntero.
 
 ## ✅ C6 — Histórico real cargado en el CRM. Hecho el 2026-08-09
 
-53 clientes · 133 ventas · **$6.087.500** facturados, del 2024-09-26 al
-2026-06-03. Los 2 clientes de prueba retirados. El procedimiento vive en
+**52 clientes · 140 ventas · $6.320.000** facturados, del 2024-09-26 al
+2026-06-03. Los 2 clientes de prueba retirados.
+
+De esas 140, **7 no estaban documentadas**: se reconstruyeron a partir de pagos
+que no correspondían a ninguna venta ($232.500). El dueño confirmó que no eran
+anticipos sino ventas sin registrar, y el contraste con los precios históricos
+lo respalda: cada una corresponde exactamente a **una libra o media libra a un
+precio que el café tuvo de verdad**. Llevan la marca `[reconstruida-del-pago]`.
+
+⚠️ **Y una lección de la propia carga: se dieron de alta 53 clientes donde hay 52.** El CSV trae una fila de pago por **$0** cuyo `cliente_pagador` es
+literalmente «Pendiente», con el texto «Pendiente pago» — una anotación del
+registro, no una persona. La importación la convirtió en cliente, y apareció en
+el CRM como alguien sin ninguna compra. **Un nombre que sale de una columna de
+texto libre hay que filtrarlo antes de volverlo una fila de `customers`.** El
+script ya descarta nombres no válidos e importes de $0. El procedimiento vive en
 [`scripts/importar-historico.py`](../scripts/importar-historico.py); **los datos
 no**, porque este repositorio es público y el CSV identifica a 53 personas,
 algunas menores por curso.
@@ -43,10 +56,16 @@ del stock de hoy.
 La diferencia cuadra al peso: $314.500 (pagos que exceden las compras) +
 $294.000 (abonos parciales) = $608.500.
 
-**Y algo que conviene mirar:** **11 clientes pagaron más de lo que compraron**, y
-dos de ellos —**John Carlo (Casa Roca), $42.000** y **Diana Marcela, $35.000**—
-**pagaron sin ninguna venta registrada**. O falta registrar esas ventas, o son
-anticipos. El CRM los muestra como «prospect» con $0 de compras.
+**Los 11 clientes que pagaron de más eran ventas sin documentar** (confirmado
+por el dueño). Contrastando cada sobrante con todos los precios que ha tenido la
+libra, se separan solos:
+
+- **8 corresponden a ventas reales** ($307.500). Siete se registraron; la octava
+  —Ana María Hurtado, $75.000— **no**, porque son dos ventas y admite más de una
+  descomposición ($30.000 + $45.000 o $35.000 + $40.000): elegir una sería
+  inventar. Queda pendiente de que el dueño diga cuál.
+- **3 no son ventas** ($7.000: Mercedes $3.000, Gemay $2.000, Juan Pablo $2.000).
+  Ninguno cuadra con ningún precio ni con media libra. Parecen redondeos al pagar.
 
 Pendientes que deja: **A27** (modelo de abonos parciales y saldos a favor).
 
