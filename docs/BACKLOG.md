@@ -67,11 +67,11 @@ Verificado: la venta entra y deja el stock en −500 g, el Kardex lo registra co
 
 ## ✅ C6 — Histórico real cargado en el CRM. Hecho el 2026-08-09
 
-**52 clientes · 140 ventas · $6.320.000** facturados, del 2024-09-26 al
+**52 clientes · 143 ventas · $6.440.000** facturados, del 2024-09-26 al
 2026-06-03. Los 2 clientes de prueba retirados.
 
-De esas 140, **7 no estaban documentadas**: se reconstruyeron a partir de pagos
-que no correspondían a ninguna venta ($232.500). El dueño confirmó que no eran
+De esas 143, **9 no estaban documentadas**: se reconstruyeron a partir de pagos
+que no correspondían a ninguna venta ($307.500). El dueño confirmó que no eran
 anticipos sino ventas sin registrar, y el contraste con los precios históricos
 lo respalda: cada una corresponde exactamente a **una libra o media libra a un
 precio que el café tuvo de verdad**. Llevan la marca `[reconstruida-del-pago]`.
@@ -108,12 +108,24 @@ $294.000 (abonos parciales) = $608.500.
 por el dueño). Contrastando cada sobrante con todos los precios que ha tenido la
 libra, se separan solos:
 
-- **8 corresponden a ventas reales** ($307.500). Siete se registraron; la octava
-  —Ana María Hurtado, $75.000— **no**, porque son dos ventas y admite más de una
-  descomposición ($30.000 + $45.000 o $35.000 + $40.000): elegir una sería
-  inventar. Queda pendiente de que el dueño diga cuál.
+- **8 corresponden a ventas reales** ($307.500), y **las 8 se registraron**.
+  Las de Ana María Hurtado ($75.000) esperaron a que el dueño eligiera la
+  descomposición —$35.000 + $40.000— porque había más de una posible y elegirla
+  yo habría sido inventar un dato contable. Su elección resultó **confirmada por
+  evidencia independiente**: al reconstruir su cuenta corriente movimiento a
+  movimiento, hay exactamente dos pagos que crean saldo a favor sin deuda
+  previa, y el monto de cada uno coincide con el precio de la libra vigente
+  **ese mismo día** — $35.000 el 2024-11-07 y $40.000 el 2025-06-03. El segundo
+  es concluyente: ninguna compra suya costó $40.000, y ese precio solo existió
+  entre el 20-may-25 y el 28-ago-25, justo cuando pagó. Esas dos fechas son las
+  que llevan las ventas.
+
+  Tras registrarlas, **las ventas de Ana María suman $485.000, idéntico a lo que
+  ha pagado**: su cuenta queda en cero.
+
 - **3 no son ventas** ($7.000: Mercedes $3.000, Gemay $2.000, Juan Pablo $2.000).
-  Ninguno cuadra con ningún precio ni con media libra. Parecen redondeos al pagar.
+  Ninguno cuadra con ningún precio ni con media libra. Parecen redondeos al
+  pagar, y son lo único que queda sin explicar de los $314.500 iniciales.
 
 Pendientes que deja: **A27** (modelo de abonos parciales y saldos a favor).
 
