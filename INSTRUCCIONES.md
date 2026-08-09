@@ -86,7 +86,7 @@ npm start                # Servidor producción local
 
 ```bash
 # Unitarios e integración (Vitest)
-npm test                    # Todos los tests (893 en 41 archivos)
+npm test                    # Todos los tests (889 en 41 archivos)
 npm run test:coverage       # Con reporte de cobertura (umbral 80% en líneas/sentencias/ramas/funciones)
 npm run test:watch          # Modo watch (desarrollo)
 npm run test:ui             # Interfaz UI interactiva

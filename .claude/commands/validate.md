@@ -68,7 +68,7 @@ su propio estilo.
 npm test
 ```
 
-**Pasa si:** **893/893 en 41 archivos** (línea base 2026-08-07).
+**Pasa si:** **889/889 en 41 archivos** (línea base 2026-08-09).
 
 - Si el número **baja**, hay una regresión.
 - Si el número **sube**, se agregaron tests: actualiza la línea base aquí y en
@@ -137,7 +137,7 @@ a la cuenta entera. Los encontró este verificador, no una persona.
 El mismo script corre en pre-commit sobre lo que vas a subir; esta fase lo pasa
 sobre **todo lo versionado**, que es lo que ya está publicado.
 
-## Fase 8 — Ninguna tabla ni vista expone datos a un anónimo
+## Fase 8 — Ninguna tabla ni vista expone datos a un anónimo, ni acepta su escritura
 
 ```bash
 npm run check:anon:autotest   # primero el verificador se prueba a sí mismo
@@ -157,6 +157,25 @@ filas», sino que el conjunto de objetos **alcanzables** coincida con la línea
 base. Un objeto alcanzable nuevo, aunque esté vacío, hace fallar la fase y exige
 una decisión consciente: `npm run check:anon -- --actualizar-linea-base` la
 reescribe, y ese diff se revisa como cualquier otro.
+
+**Y desde el 2026-08-09 también:** que ningún objeto acepte una **escritura**
+anónima. La sonda es un `PATCH` con un filtro contradictorio, que no puede tocar
+ninguna fila; lo que se lee no es el efecto sino **quién frena la petición**:
+`42501` es Postgres negando el privilegio, y un `2xx` significa que el
+privilegio estaba ahí y solo lo salvó el `WHERE`.
+
+⚠️ **El cuerpo del `PATCH` tiene que nombrar una columna.** La primera versión
+mandaba `{}` y reportó 21 tablas escribibles, todas falsas: sin columnas que
+actualizar, Postgres ni evalúa el privilegio. Se detectó porque contradecía un
+401 medido a mano minutos antes. La detección está probada con una **trampa
+real** (`GRANT UPDATE … TO anon` sobre `whatsapp_templates`, comprobando que la
+trampa entró antes de creerse el veredicto, y revocándola después).
+
+Esa mitad de la fase existe por `customer_contacts`, cuyas cuatro políticas eran
+`USING true` para `public`: cualquiera podía escribirla y **borrarla**. No se
+había visto porque la tabla está vacía, y porque el propio verificador
+**declaraba** ese hueco en su lista `NO_MIRA`. Declarar un hueco no lo tapa. Lo
+cerró [`035`](../../supabase/migrations/035_cerrar_escalada_de_privilegios_y_escritura_anonima.sql).
 
 Esta fase existe por una fuga **real, medida el 2026-08-07 contra producción**:
 cuatro vistas (`customer_segments`, `inventory_movement_summary`,
@@ -197,16 +216,16 @@ la base.
 
 Ni siquiera con ocho fases se cubre todo. Consciente y explícito:
 
-| Qué no se verifica                        | Por qué                                                                                                                                                                                                                                                                                                                           |
-| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Que el RLS separe roles AUTENTICADOS**  | La fase 8 sondea **solo como anónimo**. El agujero que cerró la migración `029` estaba en el otro lado: una política sobre `sales` que ignoraba `profiles.approved` dejaba que cualquier cuenta recién registrada leyera el historial entero. Si se reintroduce, anon sigue denegado, las 8 fases salen en verde y nada lo señala |
-| **Escritura anónima**                     | La fase 8 solo comprueba `SELECT`. Que nadie pueda **leer** no prueba que nadie pueda **insertar** o **borrar**                                                                                                                                                                                                                   |
-| **Buckets de Storage**                    | Ninguna fase mira Storage. Los backups viven ahí                                                                                                                                                                                                                                                                                  |
-| **Objetos recién creados**                | La fase 8 descubre por el esquema de PostgREST, que se cachea: justo tras aplicar una migración puede ir un paso por detrás (medido el 2026-08-07 al probar el gate con una vista trampa)                                                                                                                                         |
-| **Que el login funcione**                 | Ninguna fase se autentica. `/login` es prerenderizada: devuelve 200 aunque el backend esté caído — así pasaron 85 días sin que nadie lo notara. Comprobación manual en [`docs/REFERENCIAS-OFICIALES.md`](../../docs/REFERENCIAS-OFICIALES.md) §supabase-js                                                                        |
-| **Los _parámetros_ de las RPC**           | La fase 6 comprueba que la función exista, no su firma. Cerrarlo es [BACKLOG](../../docs/BACKLOG.md) B4                                                                                                                                                                                                                           |
-| **Lo que se ve en pantalla**              | Una regresión de contraste pasó las 5 fases: ninguna mira píxeles                                                                                                                                                                                                                                                                 |
-| **Llamadas `.rpc()` con nombre variable** | El extractor solo resuelve literales, y lo dice al correr                                                                                                                                                                                                                                                                         |
+| Qué no se verifica                        | Por qué                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Que el RLS separe roles AUTENTICADOS**  | La fase 8 sondea **solo como anónimo**, y este hueco ya se cobró dos piezas. `029`: una política sobre `sales` que ignoraba `profiles.approved`. `035`: la política de `profiles` dejaba que **cualquier usuario se pusiera `role='admin'` a sí mismo** — un `UPDATE` sin `WITH CHECK` limita qué fila se toca, no qué columnas, y la fila propia contiene el rol propio. Con anon denegado, las 8 fases salían en verde. Sondearlo exige un JWT de usuario, que ninguna fase tiene |
+| **Que el registro siga cerrado**          | `disable_signup: true` y `site_url` son configuración de Supabase, no del repo: un clic en el dashboard las revierte y ninguna fase lo vería. Mientras el registro estuvo abierto, ese interruptor era el primer eslabón de la escalada de `035`                                                                                                                                                                                                                                    |
+| **Buckets de Storage**                    | Ninguna fase mira Storage. Los backups viven ahí                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| **Objetos recién creados**                | La fase 8 descubre por el esquema de PostgREST, que se cachea: justo tras aplicar una migración puede ir un paso por detrás (medido el 2026-08-07 al probar el gate con una vista trampa)                                                                                                                                                                                                                                                                                           |
+| **Que el login funcione**                 | Ninguna fase se autentica. `/login` es prerenderizada: devuelve 200 aunque el backend esté caído — así pasaron 85 días sin que nadie lo notara. Comprobación manual en [`docs/REFERENCIAS-OFICIALES.md`](../../docs/REFERENCIAS-OFICIALES.md) §supabase-js                                                                                                                                                                                                                          |
+| **Los _parámetros_ de las RPC**           | La fase 6 comprueba que la función exista, no su firma. Cerrarlo es [BACKLOG](../../docs/BACKLOG.md) B4                                                                                                                                                                                                                                                                                                                                                                             |
+| **Lo que se ve en pantalla**              | Una regresión de contraste pasó las 5 fases: ninguna mira píxeles                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| **Llamadas `.rpc()` con nombre variable** | El extractor solo resuelve literales, y lo dice al correr                                                                                                                                                                                                                                                                                                                                                                                                                           |
 
 ## Fuera de estas ocho fases
 

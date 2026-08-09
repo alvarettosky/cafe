@@ -74,10 +74,10 @@ describe('LoginPage', () => {
       expect(screen.getByRole('button', { name: 'Entrar' })).toBeInTheDocument();
     });
 
-    it('should render toggle to signup link', () => {
+    it('should tell the user to ask an admin for an account', () => {
       render(<LoginPage />);
 
-      expect(screen.getByText(/no tienes cuenta\? regístrate/i)).toBeInTheDocument();
+      expect(screen.getByText(/pídesela a un administrador/i)).toBeInTheDocument();
     });
 
     it('should render lock icon', () => {
@@ -138,29 +138,40 @@ describe('LoginPage', () => {
     });
   });
 
-  describe('Toggle Between Login and Signup', () => {
-    it('should switch to signup mode when toggle clicked', async () => {
-      const user = userEvent.setup();
+  // REGRESION de 035. Estos tests fallan contra el codigo anterior, que es lo
+  // unico que prueba que sirven para algo: hasta el 2026-08-09 este formulario
+  // ofrecia «Crear cuenta de vendedor», y una politica de RLS dejaba que quien
+  // se registrara se pusiera a si mismo `role='admin'`. La base ya lo impide;
+  // esto impide que el boton vuelva sin que nadie se entere.
+  describe('Sin registro publico (regresion de 035)', () => {
+    it('should not offer any way to sign up', () => {
       render(<LoginPage />);
 
-      const toggleButton = screen.getByText(/no tienes cuenta\? regístrate/i);
-      await user.click(toggleButton);
-
-      expect(screen.getByText('Crear cuenta de vendedor')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Registrarse' })).toBeInTheDocument();
+      expect(screen.queryByText(/regístrate/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/crear cuenta/i)).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Registrarse' })).not.toBeInTheDocument();
     });
 
-    it('should switch back to login mode when toggle clicked again', async () => {
+    it('should never call supabase signUp, whatever the user does with the form', async () => {
       const user = userEvent.setup();
       render(<LoginPage />);
 
-      // First switch to signup
-      await user.click(screen.getByText(/no tienes cuenta\? regístrate/i));
-      expect(screen.getByText('Crear cuenta de vendedor')).toBeInTheDocument();
+      await user.type(screen.getByPlaceholderText('Correo electrónico'), 'nuevo@example.com');
+      await user.type(screen.getByPlaceholderText('Contraseña'), 'unaClave123');
+      await user.click(screen.getByRole('button', { name: 'Entrar' }));
 
-      // Then switch back to login
-      await user.click(screen.getByText(/ya tienes cuenta\? inicia sesión/i));
-      expect(screen.getByText('Iniciar sesión en el CRM')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(mockSignInWithPassword).toHaveBeenCalled();
+      });
+      expect(mockSignUp).not.toHaveBeenCalled();
+    });
+
+    it('should only render one submit button', () => {
+      render(<LoginPage />);
+
+      // El toggle era un <button type="button"> dentro del form: si vuelve,
+      // este conteo lo delata aunque le cambien el texto.
+      expect(screen.getAllByRole('button')).toHaveLength(1);
     });
   });
 
@@ -246,111 +257,6 @@ describe('LoginPage', () => {
       });
 
       expect(mockPush).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Signup Flow', () => {
-    it('should call signUp when signup form submitted', async () => {
-      const user = userEvent.setup();
-      render(<LoginPage />);
-
-      // Switch to signup mode
-      await user.click(screen.getByText(/no tienes cuenta\? regístrate/i));
-
-      const emailInput = screen.getByPlaceholderText('Correo electrónico');
-      const passwordInput = screen.getByPlaceholderText('Contraseña');
-      const submitButton = screen.getByRole('button', { name: 'Registrarse' });
-
-      await user.type(emailInput, 'newuser@example.com');
-      await user.type(passwordInput, 'newpassword');
-      await user.click(submitButton);
-
-      await waitFor(() => {
-        expect(mockSignUp).toHaveBeenCalledWith({
-          email: 'newuser@example.com',
-          password: 'newpassword',
-          options: {
-            data: {
-              full_name: 'newuser',
-            },
-          },
-        });
-      });
-    });
-
-    it('should show success alert on successful signup', async () => {
-      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-
-      const user = userEvent.setup();
-      render(<LoginPage />);
-
-      // Switch to signup mode
-      await user.click(screen.getByText(/no tienes cuenta\? regístrate/i));
-
-      const emailInput = screen.getByPlaceholderText('Correo electrónico');
-      const passwordInput = screen.getByPlaceholderText('Contraseña');
-      const submitButton = screen.getByRole('button', { name: 'Registrarse' });
-
-      await user.type(emailInput, 'newuser@example.com');
-      await user.type(passwordInput, 'newpassword');
-      await user.click(submitButton);
-
-      await waitFor(() => {
-        expect(alertSpy).toHaveBeenCalledWith(
-          'Registro exitoso! Revisa tu email (o inicia sesión si el auto-confirm está activado)'
-        );
-      });
-
-      alertSpy.mockRestore();
-    });
-
-    it('should not redirect on signup (user needs to verify email or auto-confirm)', async () => {
-      vi.spyOn(window, 'alert').mockImplementation(() => {});
-
-      const user = userEvent.setup();
-      render(<LoginPage />);
-
-      // Switch to signup mode
-      await user.click(screen.getByText(/no tienes cuenta\? regístrate/i));
-
-      const emailInput = screen.getByPlaceholderText('Correo electrónico');
-      const passwordInput = screen.getByPlaceholderText('Contraseña');
-      const submitButton = screen.getByRole('button', { name: 'Registrarse' });
-
-      await user.type(emailInput, 'newuser@example.com');
-      await user.type(passwordInput, 'newpassword');
-      await user.click(submitButton);
-
-      await waitFor(() => {
-        expect(mockSignUp).toHaveBeenCalled();
-      });
-
-      expect(mockPush).not.toHaveBeenCalled();
-    });
-
-    it('should show error message on signup failure', async () => {
-      const signupError = new Error('Email already registered');
-      mockSignUp.mockResolvedValue({
-        error: signupError,
-      });
-
-      const user = userEvent.setup();
-      render(<LoginPage />);
-
-      // Switch to signup mode
-      await user.click(screen.getByText(/no tienes cuenta\? regístrate/i));
-
-      const emailInput = screen.getByPlaceholderText('Correo electrónico');
-      const passwordInput = screen.getByPlaceholderText('Contraseña');
-      const submitButton = screen.getByRole('button', { name: 'Registrarse' });
-
-      await user.type(emailInput, 'existing@example.com');
-      await user.type(passwordInput, 'password123');
-      await user.click(submitButton);
-
-      await waitFor(() => {
-        expect(screen.getByText('Email already registered')).toBeInTheDocument();
-      });
     });
   });
 
@@ -560,35 +466,8 @@ describe('LoginPage', () => {
     });
   });
 
-  describe('Email Parsing for Signup', () => {
-    it('should extract username from email for full_name', async () => {
-      vi.spyOn(window, 'alert').mockImplementation(() => {});
-
-      const user = userEvent.setup();
-      render(<LoginPage />);
-
-      // Switch to signup mode
-      await user.click(screen.getByText(/no tienes cuenta\? regístrate/i));
-
-      const emailInput = screen.getByPlaceholderText('Correo electrónico');
-      const passwordInput = screen.getByPlaceholderText('Contraseña');
-      const submitButton = screen.getByRole('button', { name: 'Registrarse' });
-
-      await user.type(emailInput, 'john.doe@company.com');
-      await user.type(passwordInput, 'password123');
-      await user.click(submitButton);
-
-      await waitFor(() => {
-        expect(mockSignUp).toHaveBeenCalledWith(
-          expect.objectContaining({
-            options: {
-              data: {
-                full_name: 'john.doe',
-              },
-            },
-          })
-        );
-      });
-    });
-  });
+  // El `full_name` ya no lo compone este formulario a partir del correo: el
+  // alta la hace un administrador, y `handle_new_user` sigue poniendo
+  // `split_part(email,'@',1)` como nombre por defecto en la base. Aquí solo
+  // queda fijado que la pantalla de login no participa en ese camino.
 });

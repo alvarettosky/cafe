@@ -87,9 +87,30 @@ const RUTA_LINEA_BASE = join(AQUI, 'anon-baseline.json');
 const NO_MIRA = [
   'funciones RPC ejecutables por anon (ver 029 y get_advisors)',
   'buckets de Storage',
-  'escritura anonima: solo se comprueba SELECT',
   'RLS entre roles AUTENTICADOS (aprobado vs no aprobado): aqui solo se sondea como anon',
 ];
+
+// ---------------------------------------------------------------------------
+// La escritura anonima SI se mira, desde el 2026-08-09
+// ---------------------------------------------------------------------------
+//
+// Estaba en la lista de arriba —«escritura anonima: solo se comprueba SELECT»—
+// y ese hueco declarado se cobro una tabla: `customer_contacts` tenia sus
+// cuatro politicas en `USING true` para `public`, asi que cualquiera con la
+// clave del bundle podia leerla, escribirla y BORRARLA. El SELECT no lo
+// delataba porque la tabla esta vacia, y vacio se clasifica OK_VACIO.
+//
+// La sonda es un PATCH con un filtro CONTRADICTORIO (`col=is.null` Y
+// `col=not.is.null`), que no puede tocar ninguna fila jamas. Lo que se lee no
+// es el efecto, es QUIEN LO FRENA:
+//
+//   401/403 + 42501  -> Postgres nego el privilegio ANTES de mirar el filtro.
+//   204 / 200        -> hubo privilegio; solo el WHERE evito el estropicio.
+//
+// Es la misma distincion que destapo el agujero: con `{}` sobre
+// `customer_contacts` la base contestaba 23502 (falta `customer_id`), o sea
+// habia llegado hasta la restriccion de columna. Un 23502 es permiso.
+const ESCRITURA_PERMITIDA_DECLARADA = [];
 
 /**
  * Clasifica UNA respuesta. Aislada a proposito: es lo que el autotest ejerce.
@@ -134,6 +155,65 @@ export function clasificar(status, body) {
 /** Un objeto es ALCANZABLE por anon si la peticion llega a la base y responde. */
 export function esAlcanzable(veredicto) {
   return veredicto === 'FUGA' || veredicto === 'OK_VACIO';
+}
+
+/**
+ * Clasifica la respuesta a la sonda de ESCRITURA (un PATCH que no puede tocar
+ * ninguna fila). Aqui un 2xx es lo MALO: significa que el privilegio existia.
+ *
+ * @returns {'PUEDE_ESCRIBIR'|'OK_SIN_PRIVILEGIO'|'NO_ACTUALIZABLE'|'SONDA_MUERTA'|'INDETERMINADO'}
+ */
+export function clasificarEscritura(status, body) {
+  const texto = typeof body === 'string' ? body : JSON.stringify(body ?? '');
+
+  // Igual que en `clasificar`: una credencial muerta no puede aprobar nada.
+  if (/legacy api keys are disabled/i.test(texto)) return 'SONDA_MUERTA';
+  if (/invalid api key|no api key found/i.test(texto)) return 'SONDA_MUERTA';
+
+  // 42501 llega como 401/403 y tambien dentro de un 400 segun la ruta.
+  if (/42501|permission denied/i.test(texto)) return 'OK_SIN_PRIVILEGIO';
+
+  // Una VISTA no actualizable frena por su naturaleza, no por permisos. No es
+  // un aprobado de seguridad, pero tampoco un agujero de escritura.
+  if (/0A000|cannot update|not updatable/i.test(texto)) return 'NO_ACTUALIZABLE';
+
+  // La peticion se ejecuto: el privilegio estaba ahi y solo el WHERE la freno.
+  if (status >= 200 && status < 300) return 'PUEDE_ESCRIBIR';
+
+  // Cualquier otro error de la BASE (not-null, FK, tipo...) tambien prueba que
+  // se paso el control de permisos: 23502 fue exactamente el caso real.
+  if (status === 400 || status === 409 || status === 422) return 'PUEDE_ESCRIBIR';
+
+  return 'INDETERMINADO';
+}
+
+/**
+ * Construye la sonda de escritura: un filtro que NUNCA casa con una fila (la
+ * misma columna nula y no nula a la vez; PostgREST los une con AND) y un
+ * cuerpo que SI nombra una columna.
+ *
+ * ⚠️ Lo segundo no es un detalle. La primera version mandaba `{}` como cuerpo
+ * y daba **21 falsos positivos**: un PATCH que no toca ninguna columna no hace
+ * que Postgres evalue el privilegio de UPDATE, asi que devolvia 204 incluso
+ * con el permiso ya revocado. La sonda no medía la escritura: no medía nada.
+ * Se vio porque contradecía un 401 medido a mano diez minutos antes.
+ *
+ * Con la columna en el cuerpo, la misma peticion devuelve 42501 como anon y
+ * 204 con la clave secreta — o sea, la sonda distingue, que es lo unico que
+ * la hace valer para algo.
+ *
+ * Se usa la primera columna que declare el esquema, asi vale para tablas sin
+ * `id` (p. ej. `inventory`, cuya clave es `product_id`). El valor `null` es
+ * inofensivo: con ese WHERE no hay fila que pueda violar un NOT NULL.
+ */
+export function sondaEscritura(definicion) {
+  const col = Object.keys(definicion?.properties ?? {})[0];
+  if (!col) return null;
+  const c = encodeURIComponent(col);
+  return {
+    filtro: `${c}=is.null&${c}=not.is.null`,
+    cuerpo: JSON.stringify({ [col]: null }),
+  };
 }
 
 function autotest() {
@@ -197,6 +277,69 @@ function autotest() {
     fallos++;
   } else {
     console.log('  ✓ esAlcanzable cuenta 200 (con y sin filas) y descarta las claves muertas');
+  }
+
+  // --- Sonda de ESCRITURA -------------------------------------------------
+  console.log('\n  Escritura anonima:');
+  const casosEscritura = [
+    [
+      400,
+      { code: '23502', message: 'null value in column "customer_id" violates not-null constraint' },
+      'PUEDE_ESCRIBIR',
+      'EL CASO REAL del 2026-08-09: llego hasta la restriccion, o sea tenia permiso',
+    ],
+    [
+      204,
+      '',
+      'PUEDE_ESCRIBIR',
+      'un 204 con filtro imposible es privilegio concedido, no "no habia filas"',
+    ],
+    [
+      401,
+      { code: '42501', message: 'permission denied for table customer_contacts' },
+      'OK_SIN_PRIVILEGIO',
+      'lo que devuelve la base despues de 035',
+    ],
+    [
+      400,
+      { code: '0A000', message: 'cannot update view' },
+      'NO_ACTUALIZABLE',
+      'una vista no actualizable no es un agujero de escritura',
+    ],
+    [401, { message: 'Invalid API key' }, 'SONDA_MUERTA', 'clave rota: tampoco aprueba nada'],
+    [500, 'Internal Server Error', 'INDETERMINADO', 'no pude verlo != no se puede escribir'],
+  ];
+  for (const [status, body, esperado, motivo] of casosEscritura) {
+    const real = clasificarEscritura(status, body);
+    const ok = real === esperado;
+    if (!ok) fallos++;
+    console.log(
+      `  ${ok ? '✓' : '✗'} ${status} -> ${real}${ok ? '' : ` (esperado ${esperado})`}  · ${motivo}`
+    );
+  }
+
+  // El filtro tiene que ser imposible DE VERDAD, y salir de la primera columna
+  // que declare el esquema — `inventory` no tiene `id`, su clave es product_id.
+  const s = sondaEscritura({ properties: { product_id: {}, product_name: {} } });
+  if (s?.filtro === 'product_id=is.null&product_id=not.is.null') {
+    console.log('  ✓ el filtro imposible usa la primera columna declarada, no un "id" supuesto');
+  } else {
+    console.log(`  ✗ sondaEscritura devolvio el filtro ${s?.filtro}`);
+    fallos++;
+  }
+  // El cuerpo VACIO fue el falso verde de la primera version: sin columna,
+  // Postgres ni mira el privilegio y todo devuelve 204.
+  if (s?.cuerpo === '{"product_id":null}') {
+    console.log('  ✓ el cuerpo nombra una columna (con `{}` la sonda es ciega: 21 falsos verdes)');
+  } else {
+    console.log(`  ✗ el cuerpo de la sonda es ${s?.cuerpo}, deberia nombrar una columna`);
+    fallos++;
+  }
+  if (sondaEscritura({ properties: {} }) === null) {
+    console.log('  ✓ sin columnas devuelve null (no se sondea a ciegas)');
+  } else {
+    console.log('  ✗ sondaEscritura deberia devolver null si no hay columnas');
+    fallos++;
   }
 
   console.log(
@@ -272,6 +415,30 @@ async function main() {
     veredictos.set(obj, clasificar(r.status, await r.text()));
   }
 
+  // 2b. Probar la ESCRITURA con la misma clave publica. Un PATCH con filtro
+  //     contradictorio no puede tocar ni una fila, asi que es seguro correrlo
+  //     contra produccion: lo que se mide es quien frena la peticion.
+  const escritura = new Map();
+  const sinSondear = [];
+  for (const obj of objetos) {
+    const sonda = sondaEscritura(esquema.definitions[obj]);
+    if (!sonda) {
+      sinSondear.push(obj);
+      continue;
+    }
+    const r = await fetch(`${url}/rest/v1/${obj}?${sonda.filtro}`, {
+      method: 'PATCH',
+      headers: { ...cab(anon), 'Content-Type': 'application/json' },
+      body: sonda.cuerpo,
+    });
+    escritura.set(obj, clasificarEscritura(r.status, await r.text()));
+  }
+
+  const escribibles = objetos.filter(
+    o => escritura.get(o) === 'PUEDE_ESCRIBIR' && !ESCRITURA_PERMITIDA_DECLARADA.includes(o)
+  );
+  const escrituraDudosa = objetos.filter(o => escritura.get(o) === 'INDETERMINADO');
+
   const fugas = objetos.filter(o => veredictos.get(o) === 'FUGA');
   const dudosos = objetos.filter(o => veredictos.get(o) === 'INDETERMINADO');
   const muertas = objetos.filter(o => veredictos.get(o) === 'SONDA_MUERTA');
@@ -287,6 +454,13 @@ async function main() {
     console.error(
       '\n   Revisa si es una vista sin `security_invoker` (ver 030) o un GRANT a anon.'
     );
+  }
+
+  if (escribibles.length) {
+    console.error(`\n❌ ESCRITURA ANONIMA: ${escribibles.length} objetos aceptan un PATCH:`);
+    for (const o of escribibles) console.error(`   - ${o}`);
+    console.error('\n   Que hoy esten vacios no es una defensa: `customer_contacts` lo estaba.');
+    console.error('   Se cierra con REVOKE al rol anon y politicas de staff (ver 035).');
   }
 
   // 4. Control positivo: hay que haber ALCANZADO la base. Un 401 de permiso
@@ -349,13 +523,38 @@ async function main() {
     for (const o of dudosos) console.error(`   - ${o}`);
   }
 
+  if (escrituraDudosa.length) {
+    console.error(
+      `\n❌ ${escrituraDudosa.length} objetos con escritura INDETERMINADA (no pude verlos):`
+    );
+    for (const o of escrituraDudosa) console.error(`   - ${o}`);
+  }
+  if (sinSondear.length) {
+    console.error(`\n❌ ${sinSondear.length} objetos sin columnas en el esquema: no se sondearon.`);
+    for (const o of sinSondear) console.error(`   - ${o}`);
+  }
+
   console.log(
     `\nAlcanzados por anon: ${alcanzables.length} · sin privilegio: ${objetos.length - alcanzables.length - dudosos.length}`
   );
+  console.log(
+    `Escritura anonima: ${escribibles.length} escribibles · ` +
+      `${objetos.filter(o => escritura.get(o) === 'OK_SIN_PRIVILEGIO').length} sin privilegio · ` +
+      `${objetos.filter(o => escritura.get(o) === 'NO_ACTUALIZABLE').length} no actualizables`
+  );
   console.log(`Este verificador NO mira: ${NO_MIRA.join(' · ')}`);
 
-  if (fugas.length || dudosos.length || derivaBase) process.exit(1);
-  console.log('\n✅ Ningun objeto de public devuelve datos a un anonimo.\n');
+  if (
+    fugas.length ||
+    dudosos.length ||
+    derivaBase ||
+    escribibles.length ||
+    escrituraDudosa.length ||
+    sinSondear.length
+  ) {
+    process.exit(1);
+  }
+  console.log('\n✅ Ningun objeto de public devuelve datos NI acepta escritura de un anonimo.\n');
 }
 
 // Solo se ejecuta cuando se invoca como script. Sin este guard, importar

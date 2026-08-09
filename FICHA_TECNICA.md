@@ -105,7 +105,7 @@ merge (ver [`docs/ROADMAP.md`](docs/ROADMAP.md) para el detalle completo).
 
 | Métrica               | Valor                                                                                                        |
 | --------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Tests unitarios**   | 893 en 41 archivos, todos en verde (~9,5 s)                                                                  |
+| **Tests unitarios**   | 889 en 41 archivos, todos en verde (~9,5 s)                                                                  |
 | **Cobertura**         | Líneas 93,15 % · Sentencias 91,31 % · Ramas 87,81 % · Funciones 88,38 % (umbral exigido: 80 % en las cuatro) |
 | **Tests E2E**         | 23 × 3 navegadores (chromium, firefox, webkit), verdes en CI                                                 |
 | **Build**             | 21 rutas: 18 estáticas + 3 dinámicas (`app/api/`)                                                            |

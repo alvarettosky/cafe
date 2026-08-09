@@ -10,37 +10,27 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isSignUp, setIsSignUp] = useState(false);
   const router = useRouter();
 
-  const handleAuth = async (e: React.FormEvent) => {
+  // Aquí NO hay registro, y es a propósito. El alta la hace un administrador:
+  // ver `035_cerrar_escalada_de_privilegios_y_escritura_anonima.sql`. Mientras
+  // este formulario ofreció «Crear cuenta de vendedor», cualquiera podía
+  // registrarse y —por una política de RLS que dejaba editar el propio
+  // `profiles.role`— promoverse a admin. El agujero se cerró en la base; el
+  // botón se retira porque el registro también está deshabilitado en Supabase
+  // (`disable_signup: true`) y ya solo servía para ofrecer un error.
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: email.split('@')[0], // Default name
-            },
-          },
-        });
-        if (error) throw error;
-        alert(
-          'Registro exitoso! Revisa tu email (o inicia sesión si el auto-confirm está activado)'
-        );
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-        router.push('/');
-      }
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+      router.push('/');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
@@ -59,12 +49,10 @@ export default function LoginPage() {
             Mirador Montañero
             <span className="block text-xl text-emerald-400 font-normal mt-1">Café Selecto</span>
           </h2>
-          <p className="mt-2 text-sm text-zinc-400">
-            {isSignUp ? 'Crear cuenta de vendedor' : 'Iniciar sesión en el CRM'}
-          </p>
+          <p className="mt-2 text-sm text-zinc-400">Iniciar sesión en el CRM</p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleAuth}>
+        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="sr-only">
@@ -109,24 +97,12 @@ export default function LoginPage() {
             disabled={loading}
             className="group relative flex w-full justify-center rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-zinc-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
-            {loading ? (
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            ) : isSignUp ? (
-              'Registrarse'
-            ) : (
-              'Entrar'
-            )}
+            {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : 'Entrar'}
           </button>
 
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-sm text-zinc-500 hover:text-emerald-400 transition-colors"
-            >
-              {isSignUp ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
-            </button>
-          </div>
+          <p className="text-center text-sm text-zinc-500">
+            ¿Necesitas una cuenta? Pídesela a un administrador.
+          </p>
         </form>
       </div>
     </div>

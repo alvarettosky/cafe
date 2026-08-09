@@ -15,10 +15,16 @@ Sistema de gestión para venta de café por libras y medias libras, con tienda o
 | 3    | Crecimiento y Escalabilidad    | ✅ Completado |
 | 4    | Arquitectura POS Profesional   | ✅ Completado |
 
-**Testing** (medido 2026-08-07 con `npm test` y `npm run test:coverage`):
-893 tests unitarios en 41 archivos, todos en verde. Cobertura: líneas 93,15 % ·
+**Testing** (medido 2026-08-09 con `npm test`): 889 tests unitarios en 41
+archivos, todos en verde. Cobertura medida el 2026-08-07: líneas 93,15 % ·
 sentencias 91,31 % · ramas 87,81 % · funciones 88,38 % (umbral exigido: 80 % en
 las cuatro).
+
+> ⚠️ **`npm test` mide la máquina, no solo el código.** Con
+> `SUPABASE_SERVICE_ROLE_KEY` y `NEXT_PUBLIC_SUPABASE_URL` exportadas en la
+> terminal, **30 tests de 6 archivos fallan**; en una terminal limpia pasan los 889. Si una suite «empieza a fallar sin motivo», comprobar primero el entorno
+> con `env | grep SUPABASE`. Pendiente [A] en `docs/BACKLOG.md`: fixture que
+> fije los valores declarados en vez de heredarlos.
 
 **E2E** (medido el 2026-07-27 en el CI de GitHub, al mergear): **23 tests de
 Playwright en verde en los tres navegadores** — chromium 54,7 s · firefox 1,1 min
@@ -77,7 +83,7 @@ sabía cuántos más había.
 | -------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`scripts/check-rpc-contract.mjs`](scripts/check-rpc-contract.mjs)   | `npm run check:rpc`          | Que el código llame a una RPC que no existe en la base. Cazó `get_dashboard_stats` (404 en producción)                                                                                                                              |
 | [`scripts/check-secrets.mjs`](scripts/check-secrets.mjs)             | `npm run check:secrets`      | Credenciales commiteadas. Cazó una `service_role` de 189 días y un PAT de 188, ambos en un repo **público**                                                                                                                         |
-| [`scripts/check-anon-exposure.mjs`](scripts/check-anon-exposure.mjs) | `npm run check:anon`         | Que una tabla o **vista** devuelva datos a un anónimo. Cazó 4 vistas sin `security_invoker` que filtraban clientes, costos y proveedores                                                                                            |
+| [`scripts/check-anon-exposure.mjs`](scripts/check-anon-exposure.mjs) | `npm run check:anon`         | Que una tabla o **vista** devuelva datos a un anónimo, **y desde el 2026-08-09 que acepte escritura**. Cazó 4 vistas sin `security_invoker` que filtraban clientes, y `customer_contacts`, escribible y borrable por cualquiera     |
 | [`scripts/restore-drill.sh`](scripts/restore-drill.sh)               | `./scripts/restore-drill.sh` | Que el backup **no se pueda restaurar**. Reconstruye la base en un Postgres efímero desde `supabase/migrations/` y le carga el último ZIP real. Cazó que el backup respaldaba 20 de 21 tablas y que el esquema no era reconstruible |
 
 **Dónde corre cada uno, y por qué no en el mismo sitio:**
@@ -105,7 +111,7 @@ npm start                # Servidor producción local
 
 > **Sobre `setup_env.sh`.** Este archivo creaba un entorno Node aislado en
 > `.node_env/` y durante un tiempo fue obligatorio activarlo en cada terminal.
-> Ya no lo es: el directorio `.node_env/` no existe, y lint, `tsc`, los 893
+> Ya no lo es: el directorio `.node_env/` no existe, y lint, `tsc`, los 889
 > tests y el build pasan con el Node del sistema (verificado con v26.4.0 el
 > 2026-07-27). El script se conserva por si hace falta fijar la versión en una
 > máquina con un Node antiguo.
@@ -277,6 +283,15 @@ Pre-commit automático (Husky + lint-staged):
 - Todos los aprobados pueden crear ventas y clientes
 - El rol se define en `profiles.role` ('admin' o 'seller')
 - La aprobación se define en `profiles.approved` (boolean)
+- **`profiles` no se actualiza desde el cliente.** `authenticated` y `anon` no
+  tienen `UPDATE` sobre esa tabla (035): el rol y la aprobación se cambian por
+  `approve_user()` / `reject_user()`, que son `SECURITY DEFINER` y comprueban
+  **quién llama**. Una política que solo comprueba **qué fila** se toca no
+  sirve aquí, porque la fila propia contiene el rol propio
+- **`anon` no escribe en ninguna tabla de `public`** (035). El portal no lo
+  necesita: sus 13 llamadas van por RPC `SECURITY DEFINER`. Si alguna vez se
+  añade una escritura directa desde el portal, hará falta un `GRANT` explícito
+  y declararlo en `ESCRITURA_PERMITIDA_DECLARADA` de `check-anon-exposure.mjs`
 
 ### Flujo de Ventas
 
@@ -458,9 +473,18 @@ Sistema self-service para clientes. Autenticación sin contraseña mediante magi
 
 ### Sistema de Aprobación de Usuarios
 
+> ⚠️ **Desde el 2026-08-09 no hay registro público.** `/login` ya no ofrece
+> «Crear cuenta» y Supabase tiene `disable_signup: true`. El alta la hace un
+> administrador desde el dashboard de Supabase (Authentication → Users → Add
+> user), y a partir de ahí sigue el flujo de aprobación de abajo. El motivo
+> está en `supabase/migrations/035_*.sql`: mientras hubo registro abierto,
+> cualquiera podía crear cuenta y **promoverse a `admin` él mismo**, porque la
+> política de RLS de `profiles` dejaba editar el propio `role`.
+
 **Flujo:**
 
-1. Usuario se registra → `profiles.approved = false` automáticamente
+1. Un admin da de alta al usuario → `profiles.approved = false` automáticamente
+   (trigger `handle_new_user`)
 2. Usuario ve pantalla de espera (`/pendiente`)
 3. Admin ve badge "Pendientes" en dashboard con cantidad
 4. Admin abre modal y aprueba/rechaza usuarios
