@@ -199,3 +199,72 @@ if (faltantes.length > 0) {
 }
 
 console.log('✓ Todas las RPC invocadas existen en la base.');
+
+// ---------------------------------------------------------------------------
+// Segundo contrato: las COLUMNAS que la exportacion promete
+// ---------------------------------------------------------------------------
+//
+// `lib/export.ts` declara, por tabla, las columnas que van al CSV/XLSX, y
+// `app/api/export/route.ts` pide `.select('*')` y luego se queda solo con esas
+// (`if (col in row)`). Una columna mal escrita **no da error**: desaparece del
+// archivo sin decir nada.
+//
+// El 2026-08-09 esa lista nombraba `customers.name` (la real es `full_name`),
+// `sales.total`/`profit` (son `total_amount`/`total_profit`) y cuatro columnas
+// de `inventory` que no existen. O sea: **la exportacion de clientes salia sin
+// el nombre del cliente**, y la de ventas sin los importes, desde siempre. El
+// mismo patron que las RPC inexistentes, una capa mas abajo: lo que falta no
+// avisa, solo falta.
+{
+  const fuente = readFileSync('lib/export.ts', 'utf8');
+  const bloque = fuente.slice(
+    fuente.indexOf('const columnMap'),
+    fuente.indexOf('return columnMap')
+  );
+
+  // { tabla: [columnas] } tal como lo declara el mapa.
+  const declaradas = new Map();
+  for (const m of bloque.matchAll(/(\w+):\s*\[([^\]]*)\]/g)) {
+    declaradas.set(
+      m[1],
+      [...m[2].matchAll(/'([^']+)'/g)].map(c => c[1])
+    );
+  }
+
+  if (declaradas.size === 0) {
+    console.error('\n✖ No se pudo leer el mapa de columnas de lib/export.ts. Sin corpus no hay');
+    console.error('   veredicto: revisa el verificador antes que el codigo.');
+    process.exit(1);
+  }
+
+  const inexistentes = [];
+  for (const [tabla, columnas] of declaradas) {
+    const propiedades = spec.definitions?.[tabla]?.properties;
+    if (!propiedades) {
+      inexistentes.push(`${tabla} — la TABLA no existe en la base`);
+      continue;
+    }
+    for (const col of columnas) {
+      if (!(col in propiedades)) inexistentes.push(`${tabla}.${col}`);
+    }
+  }
+
+  const total = [...declaradas.values()].reduce((n, c) => n + c.length, 0);
+  console.log(
+    `Contrato de columnas — ${total} declaradas en lib/export.ts para ${declaradas.size} tablas`
+  );
+
+  if (inexistentes.length > 0) {
+    console.error(
+      `\n✖ ${inexistentes.length} COLUMNA(S) QUE LA EXPORTACION PROMETE Y NO EXISTEN:\n`
+    );
+    for (const c of inexistentes) console.error(`  ${c}`);
+    console.error(`
+  No rompen la exportacion: se caen del archivo en silencio. Un CSV de clientes
+  sin la columna del nombre parece un CSV valido.
+`);
+    process.exit(1);
+  }
+
+  console.log('✓ Todas las columnas de la exportacion existen en la base.');
+}

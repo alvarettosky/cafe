@@ -11,7 +11,7 @@ Qué se construyó, en qué orden y qué sigue.
 
 | Indicador          | Valor                                                                   | Cómo se comprobó             |
 | ------------------ | ----------------------------------------------------------------------- | ---------------------------- |
-| Tests unitarios    | **889 en 41 archivos, todos en verde**                                  | `npm test`                   |
+| Tests unitarios    | **866 en 40 archivos, todos en verde**                                  | `npm test`                   |
 | Cobertura          | Líneas 93,15 % · Sentencias 91,31 % · Ramas 87,81 % · Funciones 88,38 % | `npm run test:coverage`      |
 | Umbral exigido     | 80 % en las cuatro métricas                                             | `vitest.config.mts`          |
 | Tipos              | Sin errores                                                             | `npx tsc --noEmit`           |
@@ -21,7 +21,7 @@ Qué se construyó, en qué orden y qué sigue.
 | Tests E2E          | **23 en verde × 3 navegadores** (chromium, firefox, webkit)             | CI de GitHub, run del merge  |
 | Contrato de RPC    | **38 invocadas, 38 existen** en la base                                 | `npm run check:rpc` / MCP    |
 | Exposición anónima | **0 objetos de `public` devuelven datos** a la clave pública            | `npm run check:anon`         |
-| RLS                | 21 tablas, **todas** con RLS activo                                     | `pg_class.relrowsecurity`    |
+| RLS                | 19 tablas, **todas** con RLS activo                                     | `pg_class.relrowsecurity`    |
 | Funciones `anon`   | **13** (la lista blanca del portal, `029`)                              | `has_function_privilege`     |
 | Restauración       | **37 migraciones, 21 tablas, 53 filas** desde el esquema del propio ZIP | `./scripts/restore-drill.sh` |
 | Paridad de esquema | **24 objetos y 54 RPC** de producción salen de las migraciones          | paso 6 del ensayo            |
@@ -125,6 +125,6 @@ A8/A9 (métricas de recurrencia, cuyos datos ya existen en `customer_segments`).
 ## Al retomar
 
 1. Leer [BACKLOG §D](BACKLOG.md#d--cerrado-y-por-qué) antes de proponer nada.
-2. Correr `npm test` y confirmar **889/889** antes de tocar código.
+2. Correr `npm test` y confirmar **866/866** antes de tocar código, **en una terminal sin variables `SUPABASE_*` exportadas** (ver BACKLOG A22).
 3. Nada de `git add -A`: [BLUEPRINT §5](BLUEPRINT.md#5-estado-de-despliegue)
    explica por qué el repo público no puede recibir datos de clientes.

@@ -68,7 +68,7 @@ su propio estilo.
 npm test
 ```
 
-**Pasa si:** **889/889 en 41 archivos** (línea base 2026-08-09).
+**Pasa si:** **866/866 en 40 archivos** (línea base 2026-08-09), **en una terminal sin variables `SUPABASE_*` exportadas**: con ellas fallan 30 tests de 6 archivos sin que nada del código haya cambiado (BACKLOG A22).
 
 - Si el número **baja**, hay una regresión.
 - Si el número **sube**, se agregaron tests: actualiza la línea base aquí y en
@@ -106,7 +106,15 @@ Cuenta el bloque `Route (app)` del build, no de memoria.
 npm run check:rpc
 ```
 
-**Pasa si:** todas las RPC que el código invoca existen en la base.
+**Pasa si:** todas las RPC que el código invoca existen en la base **y** todas
+las columnas que `lib/export.ts` promete existen también.
+
+La segunda mitad se añadió el 2026-08-09 y encontró **12 columnas fantasma**:
+`customers.name` (la real es `full_name`), `sales.total`/`profit`, cuatro de
+`inventory`… La exportación no fallaba con ellas: `route.ts` filtra con
+`if (col in row)`, así que **una columna mal escrita se cae del archivo en
+silencio**. El CSV de clientes llevaba desde siempre sin la columna del nombre,
+y parecía un CSV correcto.
 
 Esta fase existe por un bug real. `app/page.tsx` llamaba a `get_dashboard_stats`,
 que **no estaba desplegada**: devolvía HTTP 404 (`PGRST202`) y los cuatro KPIs del

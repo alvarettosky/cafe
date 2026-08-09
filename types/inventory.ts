@@ -162,17 +162,35 @@ export function formatGrams(grams: number): string {
 }
 
 /**
+ * Gramos que pesa UNA libra en este negocio.
+ *
+ * ⚠️ 500, no 453,592. Café Mirador vende la **libra comercial de 500 g**, que
+ * es lo que descuenta `process_coffee_sale` del inventario en cada venta
+ * (`v_grams_per_unit := 500`, y 250 la media libra). Las dos funciones de abajo
+ * usaban la libra **avoirdupois** de 453,592 g: nadie las llamaba todavía, así
+ * que no habían hecho daño, pero la primera pantalla que las usara habría
+ * mostrado 11,02 libras donde el inventario cuenta 10 — un 10 % de diferencia
+ * sobre la unidad central del negocio, y sin forma de saber cuál de los dos
+ * números creerse.
+ *
+ * Es el mismo error que `CLAUDE.md`, `BLUEPRINT §1` y el manual afirmaron
+ * durante meses. Se corrigió en los tres documentos el 2026-07-27; aquí, en el
+ * código, seguía vivo hasta el 2026-08-09.
+ */
+export const GRAMOS_POR_LIBRA = 500;
+
+/**
  * Convierte gramos a libras (para display)
  */
 export function gramsToLbs(grams: number): number {
-  return grams / 453.592;
+  return grams / GRAMOS_POR_LIBRA;
 }
 
 /**
  * Convierte libras a gramos
  */
 export function lbsToGrams(lbs: number): number {
-  return lbs * 453.592;
+  return lbs * GRAMOS_POR_LIBRA;
 }
 
 /**
@@ -180,13 +198,18 @@ export function lbsToGrams(lbs: number): number {
  * los selectores de stock. Es el subconjunto de InventoryItemWithMovements
  * que consumen inventory-list y product-modal.
  *
- * NO confundir con `Product` de types/products.ts, que es el producto padre
- * del catalogo (Fase 4, tabla `products`) y tiene otra forma.
+ * Ya no hay con qué confundirlo: `types/products.ts` y las tablas
+ * `products`/`product_variants` se retiraron en la migracion 036. `inventory`
+ * es el unico catalogo.
  */
 export interface InventoryProductSummary {
   product_id: string;
   product_name: string;
   total_grams_available: number;
+  /** Precio de venta de la libra (500 g) en COP. `null` = sin precio declarado. */
+  price_per_lb?: number | null;
+  /** Precio de media libra (250 g). NO es la mitad del anterior: es propio. */
+  price_per_half_lb?: number | null;
 }
 
 /**

@@ -1,7 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import type { AdvancedMetrics, TimeSeriesDataPoint, ProductMetric } from '../types';
 import type { InventoryMovement } from '../types/inventory';
-import type { VariantForSale } from '../types/products';
 import type { BackupFile } from '../types/backups';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://test.supabase.co';
@@ -205,75 +204,6 @@ const mockInventoryMovements: InventoryMovement[] = [
     reason: 'Café vencido',
     created_at: '2024-01-13T09:00:00Z',
     performer_email: 'admin@test.com',
-  },
-];
-
-// Mock variants for sale
-const mockVariantsForSale: VariantForSale[] = [
-  {
-    variant_id: 'var-1',
-    product_id: 'prod-1',
-    product_name: 'Café Especial',
-    variant_display_name: 'Café Especial - Libra (Grano)',
-    sku: 'CAF-500G-GR',
-    presentation: 'libra',
-    grind_type: 'grano',
-    weight_grams: 500,
-    base_price: 10.0,
-    stock_grams: 5000,
-    has_stock: true,
-  },
-  {
-    variant_id: 'var-2',
-    product_id: 'prod-1',
-    product_name: 'Café Especial',
-    variant_display_name: 'Café Especial - Media Libra (Grano)',
-    sku: 'CAF-250G-GR',
-    presentation: 'media_libra',
-    grind_type: 'grano',
-    weight_grams: 250,
-    base_price: 5.5,
-    stock_grams: 5000,
-    has_stock: true,
-  },
-  {
-    variant_id: 'var-3',
-    product_id: 'prod-1',
-    product_name: 'Café Especial',
-    variant_display_name: 'Café Especial - Libra (Molido Medio)',
-    sku: 'CAF-500G-MM',
-    presentation: 'libra',
-    grind_type: 'molido_medio',
-    weight_grams: 500,
-    base_price: 10.0,
-    stock_grams: 3000,
-    has_stock: true,
-  },
-  {
-    variant_id: 'var-4',
-    product_id: 'prod-2',
-    product_name: 'Café Premium',
-    variant_display_name: 'Café Premium - Libra (Grano)',
-    sku: 'PRE-500G-GR',
-    presentation: 'libra',
-    grind_type: 'grano',
-    weight_grams: 500,
-    base_price: 15.0,
-    stock_grams: 2000,
-    has_stock: true,
-  },
-  {
-    variant_id: 'var-5',
-    product_id: 'prod-2',
-    product_name: 'Café Premium',
-    variant_display_name: 'Café Premium - Libra (Grano)',
-    sku: 'PRE-500G-GR-2',
-    presentation: 'libra',
-    grind_type: 'grano',
-    weight_grams: 500,
-    base_price: 15.0,
-    stock_grams: 0,
-    has_stock: false,
   },
 ];
 
@@ -485,11 +415,6 @@ export const handlers = [
   // Mock register_inventory_movement RPC
   http.post(`${SUPABASE_URL}/rest/v1/rpc/register_inventory_movement`, () => {
     return HttpResponse.json({ success: true });
-  }),
-
-  // Mock get_variants_for_sale RPC (Product Variants)
-  http.post(`${SUPABASE_URL}/rest/v1/rpc/get_variants_for_sale`, () => {
-    return HttpResponse.json(mockVariantsForSale);
   }),
 
   // Mock get_product_price_for_customer RPC (Dynamic Pricing)

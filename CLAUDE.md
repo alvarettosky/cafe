@@ -15,14 +15,14 @@ Sistema de gestión para venta de café por libras y medias libras, con tienda o
 | 3    | Crecimiento y Escalabilidad    | ✅ Completado |
 | 4    | Arquitectura POS Profesional   | ✅ Completado |
 
-**Testing** (medido 2026-08-09 con `npm test`): 889 tests unitarios en 41
+**Testing** (medido 2026-08-09 con `npm test`): 866 tests unitarios en 40
 archivos, todos en verde. Cobertura medida el 2026-08-07: líneas 93,15 % ·
 sentencias 91,31 % · ramas 87,81 % · funciones 88,38 % (umbral exigido: 80 % en
 las cuatro).
 
 > ⚠️ **`npm test` mide la máquina, no solo el código.** Con
 > `SUPABASE_SERVICE_ROLE_KEY` y `NEXT_PUBLIC_SUPABASE_URL` exportadas en la
-> terminal, **30 tests de 6 archivos fallan**; en una terminal limpia pasan los 889. Si una suite «empieza a fallar sin motivo», comprobar primero el entorno
+> terminal, **30 tests de 6 archivos fallan**; en una terminal limpia pasan los 866. Si una suite «empieza a fallar sin motivo», comprobar primero el entorno
 > con `env | grep SUPABASE`. Pendiente [A] en `docs/BACKLOG.md`: fixture que
 > fije los valores declarados en vez de heredarlos.
 
@@ -79,12 +79,12 @@ sabía cuántos más había.
 
 ### Verificadores propios del repositorio
 
-| Script                                                               | Comando                      | Contra qué protege                                                                                                                                                                                                                  |
-| -------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`scripts/check-rpc-contract.mjs`](scripts/check-rpc-contract.mjs)   | `npm run check:rpc`          | Que el código llame a una RPC que no existe en la base. Cazó `get_dashboard_stats` (404 en producción)                                                                                                                              |
-| [`scripts/check-secrets.mjs`](scripts/check-secrets.mjs)             | `npm run check:secrets`      | Credenciales commiteadas. Cazó una `service_role` de 189 días y un PAT de 188, ambos en un repo **público**                                                                                                                         |
-| [`scripts/check-anon-exposure.mjs`](scripts/check-anon-exposure.mjs) | `npm run check:anon`         | Que una tabla o **vista** devuelva datos a un anónimo, **y desde el 2026-08-09 que acepte escritura**. Cazó 4 vistas sin `security_invoker` que filtraban clientes, y `customer_contacts`, escribible y borrable por cualquiera     |
-| [`scripts/restore-drill.sh`](scripts/restore-drill.sh)               | `./scripts/restore-drill.sh` | Que el backup **no se pueda restaurar**. Reconstruye la base en un Postgres efímero desde `supabase/migrations/` y le carga el último ZIP real. Cazó que el backup respaldaba 20 de 21 tablas y que el esquema no era reconstruible |
+| Script                                                               | Comando                      | Contra qué protege                                                                                                                                                                                                                                                                              |
+| -------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`scripts/check-rpc-contract.mjs`](scripts/check-rpc-contract.mjs)   | `npm run check:rpc`          | Que el código llame a una RPC que no existe en la base, **y desde el 2026-08-09 que la exportación prometa columnas inexistentes**. Cazó `get_dashboard_stats` (404 en producción) y 12 columnas fantasma — entre ellas `customers.name`, por la que **el CSV de clientes salía sin el nombre** |
+| [`scripts/check-secrets.mjs`](scripts/check-secrets.mjs)             | `npm run check:secrets`      | Credenciales commiteadas. Cazó una `service_role` de 189 días y un PAT de 188, ambos en un repo **público**                                                                                                                                                                                     |
+| [`scripts/check-anon-exposure.mjs`](scripts/check-anon-exposure.mjs) | `npm run check:anon`         | Que una tabla o **vista** devuelva datos a un anónimo, **y desde el 2026-08-09 que acepte escritura**. Cazó 4 vistas sin `security_invoker` que filtraban clientes, y `customer_contacts`, escribible y borrable por cualquiera                                                                 |
+| [`scripts/restore-drill.sh`](scripts/restore-drill.sh)               | `./scripts/restore-drill.sh` | Que el backup **no se pueda restaurar**. Reconstruye la base en un Postgres efímero desde `supabase/migrations/` y le carga el último ZIP real. Cazó que el backup respaldaba 20 de 21 tablas y que el esquema no era reconstruible                                                             |
 
 **Dónde corre cada uno, y por qué no en el mismo sitio:**
 
@@ -111,7 +111,7 @@ npm start                # Servidor producción local
 
 > **Sobre `setup_env.sh`.** Este archivo creaba un entorno Node aislado en
 > `.node_env/` y durante un tiempo fue obligatorio activarlo en cada terminal.
-> Ya no lo es: el directorio `.node_env/` no existe, y lint, `tsc`, los 889
+> Ya no lo es: el directorio `.node_env/` no existe, y lint, `tsc`, los 866
 > tests y el build pasan con el Node del sistema (verificado con v26.4.0 el
 > 2026-07-27). El script se conserva por si hace falta fijar la versión en una
 > máquina con un Node antiguo.
@@ -212,8 +212,13 @@ Pre-commit automático (Husky + lint-staged):
 - `deliveries` - Entregas programadas con estado
 - `delivery_items` - Items de cada entrega
 - `inventory_movements` - Kardex de movimientos de inventario (Fase 4)
-- `products` - Catálogo de productos padre (Fase 4)
-- `product_variants` - Variantes vendibles con SKU, presentación, tipo de molido (Fase 4)
+
+> ⚠️ **`products` y `product_variants` ya no existen** (migración `036`, 2026-08-09).
+> Eran la Fase 4 a medias: 28 funciones de la base trabajan sobre `inventory` y
+> solo 5 sobre las variantes, ninguna invocada por una página. Su único efecto
+> visible eran cinco nombres de producto rotos («Café», «Café en»). **`inventory`
+> es el único catálogo**, y desde `036` lleva también `price_per_lb` y
+> `price_per_half_lb`.
 
 **Vistas:**
 
@@ -272,9 +277,8 @@ Pre-commit automático (Husky + lint-staged):
 - `get_inventory_movements(p_product_id, p_limit, p_offset, p_movement_type, p_date_from, p_date_to)` - Historial de movimientos de inventario (Kardex)
 - `register_inventory_movement(p_product_id, p_movement_type, p_quantity_grams, p_reference_id, p_reason, ...)` - Registra movimiento manual de inventario.
   Este documento la llamaba `add_inventory_movement`, que **no existe en la base**
-- `get_product_with_variants(p_product_id)` - Producto con sus variantes (**singular**).
-  Este documento la llamaba `get_products_with_variants()`, que **no existe en la base**
-- `get_variants_for_sale()` - Variantes disponibles para venta con stock
+- ~~`get_product_with_variants`~~ y ~~`get_variants_for_sale`~~ — **retiradas en `036`**
+  junto con las tablas de variantes
 
 **Row Level Security (RLS):**
 
@@ -597,7 +601,7 @@ Deploy:
 **Exportación Manual (CSV/XLSX):**
 
 - Página `/backups` permite exportar datos en CSV o Excel
-- Tablas disponibles: inventory, sales, sale_items, customers, customer_contacts, products, product_variants
+- Tablas disponibles: inventory, sales, sale_items, customers, customer_contacts
 - Filtro por rango de fechas para tablas con timestamps
 - Límite de 10,000 registros por tabla
 
@@ -606,7 +610,7 @@ Deploy:
 El sistema ejecuta backups diarios a las 2:00 AM UTC con las siguientes características:
 
 - **Almacenamiento**: Supabase Storage (bucket `backups`)
-- **Formato**: ZIP con JSON por cada tabla (**21 tablas**)
+- **Formato**: ZIP con JSON por cada tabla (**19 tablas** desde `036`; eran 21)
 - **Notificaciones**: Email via Resend (opcional)
 - **Retención automática**:
   - Diarios: últimos 7 días
@@ -618,7 +622,7 @@ El sistema ejecuta backups diarios a las 2:00 AM UTC con las siguientes caracter
 
 ```
 scripts/backup/
-├── export-tables.ts      # Exporta 21 tablas a JSON
+├── export-tables.ts      # Exporta 19 tablas a JSON
 ├── upload-supabase.ts    # Sube backup ZIP a Supabase Storage
 ├── cleanup-retention.ts  # Limpia backups según política de retención
 ├── send-notification.ts  # Envía notificación por email (opcional)
@@ -628,7 +632,7 @@ scripts/backup/
 **Tablas Respaldadas (21):**
 
 ```
-profiles, products, product_variants, inventory, customers,
+profiles, inventory, customers,
 customer_contacts, customer_auth, price_lists, price_list_items,
 delivery_zones, sales, sale_items, deliveries, delivery_items,
 customer_subscriptions, subscription_items, referral_program_config,
@@ -705,7 +709,12 @@ const { data, error } = await supabase.rpc('process_coffee_sale', {
 
 1. **React Hooks Order**: Nunca poner `useEffect`/`useState` después de returns condicionales
 2. **Supabase Client**: Importar de `@/lib/supabase`, no de `@/lib/supabase/client`
-3. **Columnas inexistentes**: Verificar schema antes de hacer UPDATE (ej: `updated_at` no existe en `customers`)
+3. **Columnas inexistentes**: verificar el esquema antes de hacer UPDATE. El
+   ejemplo que este documento daba —«`updated_at` no existe en `customers`»— era
+   real y **estaba pasando en producción**: un trigger de `sales` la actualizaba
+   en cada venta, así que **ninguna venta podía registrarse** (`037`). La columna
+   ya existe. La lección no es el ejemplo, es que un aviso escrito en un `.md` no
+   es una prueba: nadie había comprobado si algo en la base lo incumplía
 4. **UUIDs**: Customer "Venta Rápida" usa UUID especial: `00000000-0000-0000-0000-000000000000`
 5. **Dates**: Usar `.toISOString()` para fechas antes de enviar a Supabase
 6. **RLS**: Recordar que solo admins pueden editar inventario (verificar rol en client si necesario)

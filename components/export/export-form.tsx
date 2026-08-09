@@ -46,18 +46,6 @@ const TABLE_OPTIONS: TableOption[] = [
     description: 'Historial de contactos',
     supportsDateFilter: true,
   },
-  {
-    id: 'products',
-    label: 'Productos (Catálogo)',
-    description: 'Catálogo de productos',
-    supportsDateFilter: false,
-  },
-  {
-    id: 'product_variants',
-    label: 'Variantes',
-    description: 'Variantes de productos',
-    supportsDateFilter: false,
-  },
 ];
 
 export function ExportForm() {

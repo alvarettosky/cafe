@@ -21,8 +21,6 @@ const VALID_TABLES: ExportableTable[] = [
   'sale_items',
   'customers',
   'customer_contacts',
-  'products',
-  'product_variants',
 ];
 
 export async function POST(request: NextRequest) {

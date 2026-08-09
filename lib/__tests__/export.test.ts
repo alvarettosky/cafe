@@ -149,13 +149,22 @@ describe('Export Utilities', () => {
   });
 
   describe('getTableColumns', () => {
+    // Estos tres tests fijaban los nombres EQUIVOCADOS —`unit_price`, `total`,
+    // `name`—, o sea codificaban el defecto en vez de protegerse de él: pasaban
+    // en verde mientras la exportación de clientes salía sin el nombre del
+    // cliente. Los nombres de abajo salen de `information_schema.columns`, y
+    // `npm run check:rpc` los contrasta contra la base en cada corrida: un test
+    // unitario solo puede comprobar que la lista no cambia sin querer, no que
+    // sea la correcta.
     it('should return correct columns for inventory', () => {
       const columns = getTableColumns('inventory');
 
       expect(columns).toContain('product_id');
       expect(columns).toContain('product_name');
       expect(columns).toContain('total_grams_available');
-      expect(columns).toContain('unit_price');
+      expect(columns).toContain('price_per_lb');
+      expect(columns).toContain('cost_per_gram');
+      expect(columns).not.toContain('unit_price');
     });
 
     it('should return correct columns for sales', () => {
@@ -163,29 +172,35 @@ describe('Export Utilities', () => {
 
       expect(columns).toContain('id');
       expect(columns).toContain('customer_id');
-      expect(columns).toContain('total');
+      expect(columns).toContain('total_amount');
+      expect(columns).toContain('total_profit');
       expect(columns).toContain('payment_method');
       expect(columns).toContain('created_at');
+      expect(columns).not.toContain('total');
     });
 
     it('should return correct columns for customers', () => {
       const columns = getTableColumns('customers');
 
       expect(columns).toContain('id');
-      expect(columns).toContain('name');
+      // El nombre del cliente. Se llama `full_name`, y por llamarlo `name` aquí
+      // el CSV de clientes salió sin él durante meses.
+      expect(columns).toContain('full_name');
       expect(columns).toContain('phone');
       expect(columns).toContain('typical_recurrence_days');
+      expect(columns).not.toContain('name');
     });
 
     it('should return correct columns for all exportable tables', () => {
+      // `products` y `product_variants` salieron con la migración 036: las
+      // tablas ya no existen en la base, así que exportarlas devolvía un error
+      // de PostgREST, no un archivo.
       const tables: ExportableTable[] = [
         'inventory',
         'sales',
         'sale_items',
         'customers',
         'customer_contacts',
-        'products',
-        'product_variants',
       ];
 
       tables.forEach(table => {
@@ -215,7 +230,6 @@ describe('Export Utilities', () => {
     it('should return null for non-date-filterable tables', () => {
       expect(getDateColumn('inventory')).toBeNull();
       expect(getDateColumn('customers')).toBeNull();
-      expect(getDateColumn('products')).toBeNull();
     });
   });
 

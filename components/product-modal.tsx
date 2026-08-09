@@ -18,15 +18,21 @@ interface ProductModalProps {
 export function ProductModal({ isOpen, onClose, onSuccess, productToEdit }: ProductModalProps) {
   const [name, setName] = useState('');
   const [grams, setGrams] = useState('');
+  const [pricePerLb, setPricePerLb] = useState('');
+  const [pricePerHalfLb, setPricePerHalfLb] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (productToEdit) {
       setName(productToEdit.product_name);
       setGrams(productToEdit.total_grams_available.toString());
+      setPricePerLb(productToEdit.price_per_lb?.toString() ?? '');
+      setPricePerHalfLb(productToEdit.price_per_half_lb?.toString() ?? '');
     } else {
       setName('');
       setGrams('');
+      setPricePerLb('');
+      setPricePerHalfLb('');
     }
   }, [productToEdit, isOpen]);
 
@@ -35,9 +41,14 @@ export function ProductModal({ isOpen, onClose, onSuccess, productToEdit }: Prod
     setLoading(true);
 
     try {
+      // Los precios van vacíos como null, no como 0: un producto sin precio
+      // declarado no es un producto que valga cero. `get_product_price_for_customer`
+      // distingue los dos casos.
       const payload = {
         product_name: name,
         total_grams_available: parseInt(grams) || 0,
+        price_per_lb: pricePerLb === '' ? null : Number(pricePerLb),
+        price_per_half_lb: pricePerHalfLb === '' ? null : Number(pricePerHalfLb),
       };
 
       let error;
@@ -91,6 +102,34 @@ export function ProductModal({ isOpen, onClose, onSuccess, productToEdit }: Prod
               placeholder="0"
             />
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Precio libra (500 g)</Label>
+              <Input
+                type="number"
+                min="0"
+                step="500"
+                value={pricePerLb}
+                onChange={e => setPricePerLb(e.target.value)}
+                placeholder="45000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Precio media libra (250 g)</Label>
+              <Input
+                type="number"
+                min="0"
+                step="500"
+                value={pricePerHalfLb}
+                onChange={e => setPricePerHalfLb(e.target.value)}
+                placeholder="25000"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            La media libra no tiene por qué ser la mitad: es un precio propio. Estos precios son los
+            que el sistema sugiere al vender.
+          </p>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Guardando...' : 'Guardar'}
           </Button>

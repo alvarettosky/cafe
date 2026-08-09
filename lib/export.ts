@@ -8,9 +8,7 @@ export type ExportableTable =
   | 'sales'
   | 'sale_items'
   | 'customers'
-  | 'customer_contacts'
-  | 'products'
-  | 'product_variants';
+  | 'customer_contacts';
 
 export interface ExportOptions {
   tables: ExportableTable[];
@@ -127,8 +125,6 @@ function formatTableName(name: string): string {
     sale_items: 'Items de Venta',
     customers: 'Clientes',
     customer_contacts: 'Contactos',
-    products: 'Productos',
-    product_variants: 'Variantes',
   };
   return names[name] || name;
 }
@@ -153,54 +149,75 @@ function formatCellValue(value: unknown): string | number | boolean | Date | nul
 /**
  * Get columns for a table with nice ordering
  */
+/**
+ * ⚠️ Estos nombres deben ser los del esquema REAL, no los que parezcan lógicos.
+ *
+ * `app/api/export/route.ts` pide `.select('*')` y luego se queda solo con las
+ * columnas de esta lista (`if (col in row)`). Una columna mal escrita no da
+ * error: **se cae del archivo en silencio**. Hasta el 2026-08-09 esta tabla
+ * nombraba `customers.name` (la real es `full_name`), `sales.total`/`profit`
+ * (son `total_amount`/`total_profit`), `sale_items.unit_type`/`unit_price`
+ * (son `unit`/`price_per_unit`) e `inventory.stock_kg`/`stock_units`/
+ * `unit_price`/`min_stock_threshold`, que no existen en ninguna forma.
+ *
+ * O sea: **la exportación de clientes salía sin el nombre del cliente**, y la
+ * de ventas sin los importes. Verificado contra `information_schema.columns`.
+ */
 export function getTableColumns(tableName: ExportableTable): string[] {
   const columnMap: Record<ExportableTable, string[]> = {
     inventory: [
       'product_id',
       'product_name',
       'total_grams_available',
-      'stock_kg',
-      'stock_units',
-      'unit_price',
-      'cost_per_unit',
-      'min_stock_threshold',
+      'price_per_lb',
+      'price_per_half_lb',
+      'cost_per_gram',
+      'supplier',
+      'reorder_point',
+      'last_restock_date',
+      'notes',
+      'last_updated',
     ],
     sales: [
       'id',
       'customer_id',
-      'total',
-      'profit',
+      'total_amount',
+      'total_cost',
+      'total_profit',
+      'profit_margin',
       'payment_method',
+      'customer_recurrence_days',
       'status',
       'notes',
       'created_at',
     ],
-    sale_items: ['id', 'sale_id', 'product_id', 'quantity', 'unit_type', 'unit_price', 'profit'],
+    sale_items: [
+      'id',
+      'sale_id',
+      'product_id',
+      'unit',
+      'quantity',
+      'price_per_unit',
+      'total_price',
+      'cost_per_unit',
+      'profit',
+    ],
     customers: [
       'id',
-      'name',
+      'full_name',
       'phone',
       'email',
       'address',
       'customer_type',
       'typical_recurrence_days',
       'last_purchase_date',
+      'delivery_zone_id',
+      'delivery_address',
+      'delivery_notes',
       'created_at',
+      'updated_at',
     ],
-    customer_contacts: ['id', 'customer_id', 'contact_date', 'notes', 'contact_type'],
-    products: ['id', 'name', 'description', 'category', 'is_active', 'created_at'],
-    product_variants: [
-      'id',
-      'product_id',
-      'sku',
-      'presentation',
-      'grind_type',
-      'weight_grams',
-      'price',
-      'cost',
-      'stock_quantity',
-      'is_active',
-    ],
+    customer_contacts: ['id', 'customer_id', 'contact_date', 'contact_type', 'notes', 'created_at'],
   };
   return columnMap[tableName] || [];
 }

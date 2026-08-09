@@ -10,8 +10,11 @@ import * as path from 'path';
 // Tables to export (in order of dependencies)
 const TABLES_TO_EXPORT = [
   'profiles',
-  'products',
-  'product_variants',
+  // `products` y `product_variants` salieron de aquí con la migración 036: las
+  // tablas ya no existen. Eran la Fase 4 a medias — 28 funciones de la base
+  // trabajan sobre `inventory` y solo 5 sobre las variantes, ninguna de ellas
+  // invocada por una página. Si esta lista las conservara, el backup fallaría
+  // cada noche pidiendo tablas inexistentes.
   'inventory',
   'customers',
   'customer_contacts',
@@ -29,10 +32,11 @@ const TABLES_TO_EXPORT = [
   'referrals',
   'inventory_movements',
   'whatsapp_templates',
-  // Faltaba. La base tiene 21 tablas y esta lista respaldaba 20: un restore
+  // Faltaba. La base tenía 21 tablas y esta lista respaldaba 20: un restore
   // dejaba sin recuperar la configuración de precios por tipo de cliente
   // (5 filas en producción el 2026-08-07). Lo destapó comparar el conteo
   // declarado en FICHA_TECNICA («20») con el medido contra `pg_class` («21»).
+  // Desde 036 la base tiene 19 tablas y esta lista respalda las 19.
   'customer_type_price_lists',
 ];
 
