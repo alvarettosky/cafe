@@ -283,8 +283,53 @@ if [ -n "${NEXT_PUBLIC_SUPABASE_URL:-}" ] && [ -n "${SUPABASE_SERVICE_ROLE_KEY:-
       rojo "  ✗ funciones que existen en PRODUCCION y no en la base reconstruida:$FALTAN_RPC"
       FALLOS=$((FALLOS+1))
     fi
-    [ -z "$FALTAN_OBJ$FALTAN_RPC" ] && \
-      echo "  todo lo que produccion expone ($(echo "$PROD_OBJETOS" | wc -w) objetos, $(echo "$PROD_RPC" | wc -w) RPC) sale de las migraciones"
+
+    # --- Y las COLUMNAS, que es el escalon que faltaba --------------------
+    #
+    # Comparar objetos y funciones no dice nada de lo que hay DENTRO de cada
+    # tabla. Lo demostro `price_list_items.custom_price`: existia en produccion
+    # y en ninguna migracion, asi que la 036 —que la nombra— reventaba con
+    # `42703` contra una base reconstruida. Los pasos 1-5 no podian verlo, y el
+    # paso 6 daba «paridad completa» con la columna ausente.
+    #
+    # Es el mismo modo de fallo que ya se cerro dos veces en este repo, un
+    # escalon mas abajo cada vez: primero funciones (033), luego vistas (030),
+    # ahora columnas. **Revisar el mecanismo que conoces no dice nada del que no
+    # estas mirando.**
+    PROD_COLS="$(printf '%s' "$PROD_JSON" | python3 -c "
+import sys, json
+d = json.load(sys.stdin).get('definitions', {})
+for tabla in sorted(d):
+    for col in sorted(d[tabla].get('properties', {})):
+        print(f'{tabla}.{col}')
+" 2>/dev/null)"
+    LOCAL_COLS="$(psql_drill -tAc "
+      SELECT c.relname || '.' || a.attname
+        FROM pg_attribute a
+        JOIN pg_class c ON c.oid = a.attrelid
+       WHERE c.relnamespace = 'public'::regnamespace
+         AND c.relkind IN ('r','v')
+         AND a.attnum > 0 AND NOT a.attisdropped
+       ORDER BY 1" | tr -d '\r')"
+
+    FALTAN_COL=""
+    for c in $PROD_COLS; do
+      # Solo se reclaman columnas de tablas que SI existen localmente: si falta
+      # la tabla entera, ya lo dijo FALTAN_OBJ y repetirlo por cada columna
+      # convierte un fallo en veinte.
+      tabla="${c%%.*}"
+      echo "$LOCAL_OBJETOS" | grep -qx "$tabla" || continue
+      echo "$LOCAL_COLS" | grep -qx "$c" || FALTAN_COL="$FALTAN_COL $c"
+    done
+    if [ -n "$FALTAN_COL" ]; then
+      rojo "  ✗ columnas que existen en PRODUCCION y no en la base reconstruida:$FALTAN_COL"
+      rojo "    Alguien las creo a mano. Versionalas en una migracion o la restauracion"
+      rojo "    devolvera unas tablas con menos campos de los que el codigo espera."
+      FALLOS=$((FALLOS+1))
+    fi
+
+    [ -z "$FALTAN_OBJ$FALTAN_RPC$FALTAN_COL" ] && \
+      echo "  todo lo que produccion expone ($(echo "$PROD_OBJETOS" | wc -w) objetos, $(echo "$PROD_RPC" | wc -w) RPC, $(echo "$PROD_COLS" | wc -w) columnas) sale de las migraciones"
   fi
 else
   echo "  sin credenciales: paridad con produccion NO comprobada (no es un aprobado)"

@@ -175,8 +175,28 @@ UPDATE public.inventory
 -- 7.00). Se retiran: una lista sin items significa «sin descuento», que es la
 -- verdad hoy. La lista se conserva para cuando haya precios de mayorista de
 -- verdad.
-DELETE FROM public.price_list_items
- WHERE custom_price < 1000 AND price_per_lb IS NULL AND discount_percent IS NULL;
+--
+-- ⚠️ El filtro se construye a mano porque `price_list_items.custom_price`
+-- **existe en producción y en ninguna migración**: al probar el ensayo de
+-- restauración, esta línea reventó con `42703 column "custom_price" does not
+-- exist` contra una base reconstruida desde el repo. Es el mismo tipo de deriva
+-- que `033`/`034` cerraron para funciones, ahora con una columna. `039` la
+-- versiona; esta comprobación queda igualmente, para que la migración pueda
+-- aplicarse en cualquier orden y sobre cualquiera de las dos formas.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+     WHERE table_schema = 'public' AND table_name = 'price_list_items'
+       AND column_name = 'custom_price'
+  ) THEN
+    DELETE FROM public.price_list_items
+     WHERE custom_price < 1000 AND price_per_lb IS NULL AND discount_percent IS NULL;
+  ELSE
+    DELETE FROM public.price_list_items
+     WHERE price_per_lb IS NULL AND discount_percent IS NULL;
+  END IF;
+END $$;
 
 -- ---------------------------------------------------------------------------
 -- 4. Retirar el modelo de la Fase 4
