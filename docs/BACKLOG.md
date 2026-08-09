@@ -17,6 +17,37 @@ Sustituye a `.claude/TODO.md`, que queda como puntero.
 
 ---
 
+## ✅ Costo del café. Cerrado el 2026-08-09 (`040`)
+
+`cost_per_gram` valía **0,02** — relleno de la demo. Con él, una libra costaba
+$10 y el dashboard habría dicho que cada venta de $45.000 dejaba **$44.990**. No
+es un número decorativo: alimenta `sale_items.profit`, `sales.total_profit` y
+`profit_margin`, o sea las gráficas de rentabilidad de `/analytics`.
+
+El dueño dio los márgenes: libra $19.000, media libra $11.500. Despejando:
+
+| Presentación        | Venta   | Ganancia | Costo   | Costo/gramo |
+| ------------------- | ------- | -------- | ------- | ----------- |
+| Libra (500 g)       | $45.000 | $19.000  | $26.000 | **$52,00**  |
+| Media libra (250 g) | $25.000 | $11.500  | $13.500 | **$54,00**  |
+
+**Los dos no cuadran, y es correcto**: la media libra lleva el mismo empaque y
+el mismo trabajo para la mitad de café. Pero el modelo guarda **un solo**
+`cost_per_gram` por producto. Se eligió **52** —la que cuadra la libra— porque
+es lo que se vende: en el histórico real, las 133 ventas fueron por libras.
+Efecto aceptado: la media libra mostrará $12.000 en vez de $11.500.
+
+Verificado ejecutando dos ventas con `ROLLBACK`: libra $19.000 (42,22 %) y media
+libra $12.000 (48 %). **Que la desviación medida sea la predicha** es lo que
+dice que el modelo se entendió bien, y no que el número se ajustó hasta que
+saliera bonito.
+
+Si algún día las medias libras pesan en el negocio, la salida no es recalibrar
+este número sino separar el costo del empaque del costo del café — anotado como
+**A26**.
+
+---
+
 ## ✅ P0-RESTAURACION-2 — El ensayo no miraba las columnas. Cerrado el 2026-08-09 (`039`)
 
 `036` funcionaba en producción y **reventaba al reconstruir la base solo desde
@@ -695,6 +726,7 @@ dejaron como estaban — ya caían dentro de la franja y su horario es indiferen
 | A17 | **62 funciones con `search_path` mutable**                          | `get_advisors` security, nivel WARN. En funciones `SECURITY DEFINER` es un vector de escalada: quien controle el `search_path` puede colar objetos propios. Se cierra con `ALTER FUNCTION … SET search_path = public, pg_temp` en una migración por lotes. Medido 2026-08-07                                                                                                                                                                                                                                                  |
 | A18 | Protección de contraseñas filtradas desactivada                     | `auth_leaked_password_protection` — Supabase puede contrastar contra HaveIBeenPwned. Es un interruptor del dashboard, no código                                                                                                                                                                                                                                                                                                                                                                                               |
 | A19 | **Funciones en la base que nadie invoca** (`036` retiró 7 de ellas) | Medido comparando `pg_proc` con las 38 `.rpc()` del código. Seis son triggers (legítimas). Las demás son features **a medias o abandonadas**: `edit_sale`/`can_edit_sale` (CLAUDE.md las documenta como críticas y ningún componente las llama), `confirm_customer_order`, `cancel_customer_order`, `get_pending_customer_orders`, `apply_referral_code`, `complete_referral_on_purchase`, `get_subscriptions_due_today`. Decidir una por una: cablear o borrar. Es el equivalente aquí del «método que existe y nadie llama» |
+| A26 | **El costo del empaque no se distingue del costo del café**         | `inventory.cost_per_gram` es uno solo por producto, así que la media libra —mismo empaque y mismo trabajo para la mitad de café— no puede tener su costo real: con los $52 elegidos en `040` muestra $12.000 de ganancia en vez de $11.500. Hoy da igual (las 133 ventas del histórico son por libras). El día que importe, separar coste fijo por unidad vendida del coste por gramo, y NO recalibrar `cost_per_gram` hasta que salga bonito                                                                                 |
 | A24 | **El ensayo local prueba el backup del espejo, no el último real**  | `restore-drill.sh` elige con `ls -t` sobre `~/Backups/cafe-mirador/`, que solo se refresca con el timer diario. El 2026-08-09 validó el ZIP de las 03:45 mientras el de las 16:57 llevaba media hora en el bucket. Puede dar por bueno un backup viejo mientras el reciente está roto. En CI no ocurre (sin espejo, baja el último). Arreglo: comparar la fecha del espejo con la del bucket y avisar si va por detrás                                                                                                        |
 | A25 | **`price_lists` tiene dos columnas para la misma idea**             | `discount_percent` y `default_discount`. `get_product_price_for_customer` consulta **`default_discount`**; `discount_percent` la versionó `039` porque existía en producción, pero nadie la lee. Decidir cuál sobrevive antes de que alguien rellene la que no se usa y no entienda por qué el descuento no se aplica                                                                                                                                                                                                         |
 | A22 | **La suite unitaria no es hermética: lee el entorno**               | Con `SUPABASE_SERVICE_ROLE_KEY` y `NEXT_PUBLIC_SUPABASE_URL` exportadas, **30 tests de 6 archivos fallan**; en una terminal limpia pasan los 866. Medido el 2026-08-09 corriendo `npm test` dos veces seguidas, lo único distinto el entorno. Un test que cambia de veredicto según quién lo lance mide la máquina, no el código — y el día que falle de verdad, nadie lo creerá. Fixture `autouse` que fije los valores DECLARADOS en vez de heredarlos, y un test que compruebe el aislamiento en sí                        |
