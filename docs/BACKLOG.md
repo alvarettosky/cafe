@@ -17,6 +17,40 @@ Sustituye a `.claude/TODO.md`, que queda como puntero.
 
 ---
 
+## ✅ El Kardex registraba dos veces cada entrada. Cerrado el 2026-08-09 (`043`)
+
+Apareció al registrar **la primera entrada real de inventario del negocio** —30
+libras y 10 medias, 17.500 g— y mirar el resultado:
+
+| tipo         | gramos  | antes → después | motivo                          |
+| ------------ | ------- | --------------- | ------------------------------- |
+| `restock`    | +17.500 | −500 → 17.000   | «Entrada de tueste: 30 libras…» |
+| `adjustment` | +17.500 | −500 → 17.000   | «Ajuste directo desde gestión…» |
+
+Dos filas para una sola entrada de café. `register_inventory_movement` **inserta**
+el movimiento y luego **actualiza** `inventory`; sobre `inventory` hay un trigger
+que registra un ajuste cada vez que cambia el stock, para que un `UPDATE` a mano
+deje rastro. Nadie le dijo que ese `UPDATE` ya venía con su movimiento escrito.
+
+El stock quedaba bien —el trigger solo registra, no suma—, pero **el historial
+mentía**, y el Kardex existe justamente para cuadrar movimientos.
+
+**La defensa ya existía… para un solo caso.** El trigger se saltaba si
+`app.is_sale_operation = 'true'`, la bandera que pone `process_coffee_sale`: por
+eso las ventas nunca se duplicaron. Reposición, merma, devolución y traslado no
+tenían forma de decir «este ya lo registré yo».
+
+**Es el mismo patrón que `042`, dos horas antes:** una protección escrita para el
+camino que alguien tuvo delante el día que la escribió, en vez de para la clase
+entera. `043` generaliza la bandera (`app.movimiento_ya_registrado`) y retira el
+único duplicado que el defecto alcanzó a producir.
+
+Verificado en los dos sentidos: por la RPC del Kardex sale **1** movimiento y
+**0** duplicados; por `UPDATE` directo el trigger **sigue** registrando su ajuste
+— que es para lo que se creó.
+
+---
+
 ## ✅ Stock negativo permitido. Hecho el 2026-08-09 (`041` + `042`)
 
 **Decisión del dueño, y no es una concesión: es como funciona el negocio.** Aquí
