@@ -1,0 +1,311 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-19T01:20:57Z",
+  "title": "Design System: Café Mirador",
+  "extensions": {
+    "colorMeta": {
+      "tierra-tostada": {
+        "role": "primary",
+        "displayName": "Tierra Tostada",
+        "canonical": "#8b4513",
+        "darkVariant": "#a0522d",
+        "tonalRamp": [
+          "#432109",
+          "#773b10",
+          "#aa5417",
+          "#dd6e1e",
+          "#e78e4f",
+          "#eeaf82",
+          "#f5d0b5",
+          "#fcf1e9"
+        ]
+      },
+      "tierra-media": {
+        "role": "primary",
+        "displayName": "Tierra Media",
+        "canonical": "#c07b55",
+        "tonalRamp": [
+          "#382115",
+          "#623a24",
+          "#8d5434",
+          "#b76d44",
+          "#c98d6d",
+          "#d9af97",
+          "#e8d0c2",
+          "#f8f1ec"
+        ]
+      },
+      "crema": {
+        "role": "secondary",
+        "displayName": "Crema",
+        "canonical": "#f5e9d7",
+        "tonalRamp": [
+          "#3d2b0f",
+          "#6c4b1b",
+          "#9a6c27",
+          "#c98d32",
+          "#d7a75f",
+          "#e3c08d",
+          "#eedabc",
+          "#faf4eb"
+        ]
+      },
+      "superficie": {
+        "role": "neutral",
+        "displayName": "Superficie",
+        "canonical": "#ffffff",
+        "darkVariant": "#0a0a0a",
+        "tonalRamp": [
+          "#262626",
+          "#434343",
+          "#616161",
+          "#7e7e7e",
+          "#9b9b9b",
+          "#b8b8b8",
+          "#d5d5d5",
+          "#f2f2f2"
+        ]
+      },
+      "tinta-apagada": {
+        "role": "neutral",
+        "displayName": "Tinta Apagada",
+        "canonical": "#737373",
+        "darkVariant": "#a3a3a3",
+        "tonalRamp": [
+          "#262626",
+          "#434343",
+          "#616161",
+          "#7e7e7e",
+          "#9b9b9b",
+          "#b8b8b8",
+          "#d5d5d5",
+          "#f2f2f2"
+        ]
+      },
+      "alerta": {
+        "role": "status",
+        "displayName": "Alerta",
+        "canonical": "#dc2626",
+        "tonalRamp": [
+          "#420b0b",
+          "#741313",
+          "#a61b1b",
+          "#d82323",
+          "#e35252",
+          "#eb8585",
+          "#f3b7b7",
+          "#fbe9e9"
+        ]
+      },
+      "logro": {
+        "role": "status",
+        "displayName": "Logro",
+        "canonical": "#22c55e",
+        "tonalRamp": [
+          "#0b411f",
+          "#147337",
+          "#1ca54f",
+          "#25d666",
+          "#54e288",
+          "#86eaab",
+          "#b8f3cd",
+          "#e9fbf0"
+        ]
+      },
+      "aviso": {
+        "role": "status",
+        "displayName": "Aviso",
+        "canonical": "#f59e0b",
+        "tonalRamp": [
+          "#492f03",
+          "#815305",
+          "#b97708",
+          "#f19b0a",
+          "#f7b23f",
+          "#f9c977",
+          "#fcdfaf",
+          "#fef5e7"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display (Fraunces)",
+        "purpose": "Solo titulos de marca y portadas, via .display-serif. Nunca en el CRM."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Titulo de pagina: 'Panel de Control', 'Nueva Venta'."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Texto corriente. 16px es el piso absoluto: hay personas mayores entre los clientes."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Etiquetas de campo, badges de segmento y metadatos."
+      }
+    },
+    "shadows": [
+      {
+        "name": "contacto",
+        "value": "0 1px 2px rgba(0,0,0,0.16)",
+        "purpose": "Elementos que apenas se despegan del fondo."
+      },
+      {
+        "name": "reposo-elevado",
+        "value": "0 1px 3px rgba(0,0,0,0.24), 0 1px 2px rgba(0,0,0,0.16)",
+        "purpose": "Hover de tarjeta interactiva. Nunca en reposo."
+      },
+      {
+        "name": "flotante",
+        "value": "0 4px 12px rgba(0,0,0,0.32)",
+        "purpose": "Menus y popovers."
+      },
+      {
+        "name": "dialogo",
+        "value": "0 10px 24px rgba(0,0,0,0.4)",
+        "purpose": "Modales, y solo modales."
+      },
+      {
+        "name": "resplandor-marca",
+        "value": "0 10px 24px rgba(160,82,45,0.2)",
+        "purpose": "CTA principal. Uno por pantalla o ninguno."
+      }
+    ],
+    "motion": [
+      {
+        "name": "tap-feedback",
+        "value": "scale(0.98)",
+        "purpose": "Confirmacion de pulsacion en botones (framer-motion whileTap)."
+      },
+      {
+        "name": "transicion-color",
+        "value": "150ms ease",
+        "purpose": "Cambios de fondo y color en hover y foco."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "tactil-a-denso",
+        "value": "768px"
+      }
+    ],
+    "themeMechanism": {
+      "governedBy": "prefers-color-scheme",
+      "note": "La clase .dark de app/layout.tsx NO gobierna el tema: Tailwind v4 resuelve dark: por media query y el proyecto no declara @custom-variant dark. Ninguna pantalla puede asumir fondo oscuro."
+    }
+  },
+  "components": [
+    {
+      "name": "Boton primario",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Accion principal de la pantalla. Bajo 768px debe alcanzar 44px de alto.",
+      "html": "<button class=\"ds-btn-primary\">Nueva Venta</button>",
+      "css": ".ds-btn-primary { display:inline-flex; align-items:center; justify-content:center; background:var(--primary,#8b4513); color:#fff; height:36px; padding:8px 16px; border:none; border-radius:7px; font:500 14px/1.3 Inter,system-ui,sans-serif; transition:background 150ms ease,transform 150ms ease; cursor:pointer; } .ds-btn-primary:hover { background:#a0522d; } .ds-btn-primary:focus-visible { outline:none; box-shadow:0 0 0 1px var(--ring,#8b4513); } .ds-btn-primary:active { transform:scale(0.98); } @media (max-width:767px) { .ds-btn-primary { height:44px; padding:12px 20px; font-size:16px; } }"
+    },
+    {
+      "name": "Boton contorno",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Accion secundaria dentro de una fila densa.",
+      "html": "<button class=\"ds-btn-outline\">Cancelar</button>",
+      "css": ".ds-btn-outline { display:inline-flex; align-items:center; justify-content:center; background:var(--background,#fff); color:var(--foreground,#171717); height:36px; padding:8px 16px; border:1px solid var(--input,#e5e5e5); border-radius:7px; font:500 14px/1.3 Inter,system-ui,sans-serif; transition:background 150ms ease; cursor:pointer; } .ds-btn-outline:hover { background:var(--accent,#f5f5f5); } .ds-btn-outline:focus-visible { outline:none; box-shadow:0 0 0 1px var(--ring,#8b4513); }"
+    },
+    {
+      "name": "Boton fantasma",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Accion terciaria; sin peso hasta el hover.",
+      "html": "<button class=\"ds-btn-ghost\">Ver detalle</button>",
+      "css": ".ds-btn-ghost { display:inline-flex; align-items:center; justify-content:center; background:transparent; color:var(--foreground,#171717); height:36px; padding:8px 16px; border:none; border-radius:7px; font:500 14px/1.3 Inter,system-ui,sans-serif; transition:background 150ms ease; cursor:pointer; } .ds-btn-ghost:hover { background:var(--accent,#f5f5f5); } .ds-btn-ghost:focus-visible { outline:none; box-shadow:0 0 0 1px var(--ring,#8b4513); }"
+    },
+    {
+      "name": "Campo de texto",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Campo estandar. El foco es el unico elemento que puede gritar.",
+      "html": "<input class=\"ds-input\" placeholder=\"Buscar cliente\" />",
+      "css": ".ds-input { display:flex; width:100%; height:40px; padding:8px 12px; background:var(--background,#fff); color:var(--input-foreground,#171717); border:1px solid var(--input,#e5e5e5); border-radius:7px; font:400 14px/1.5 Inter,system-ui,sans-serif; } .ds-input::placeholder { color:var(--muted-foreground,#737373); } .ds-input:focus-visible { outline:none; box-shadow:0 0 0 2px var(--background,#fff),0 0 0 4px var(--ring,#8b4513); } .ds-input:disabled { opacity:.5; cursor:not-allowed; }"
+    },
+    {
+      "name": "Tarjeta",
+      "kind": "card",
+      "refersTo": "card-surface",
+      "description": "Contenedor de bloque. Plana en reposo: la sombra solo llega con el hover interactivo.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">Ventas Hoy</h3><p class=\"ds-card-value\">$ 135.000</p></div>",
+      "css": ".ds-card { background:var(--card,#fff); color:var(--card-foreground,#171717); border:1px solid var(--border,#e5e5e5); border-radius:12px; padding:24px; } .ds-card-title { margin:0 0 8px; font:600 18px/1.3 Inter,system-ui,sans-serif; letter-spacing:-0.01em; } .ds-card-value { margin:0; font:700 30px/1.1 Inter,system-ui,sans-serif; color:var(--primary,#8b4513); }"
+    },
+    {
+      "name": "Badge de segmento",
+      "kind": "chip",
+      "refersTo": "segment-badge",
+      "description": "Componente distintivo: etiqueta humana del segmento del cliente, con icono Lucide y terna de color propia.",
+      "html": "<span class=\"ds-segment-badge\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z\"/><path d=\"M5 20h14\"/></svg>Champion</span>",
+      "css": ".ds-segment-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:9999px; color:var(--seg-champion-fg,#a16207); background:var(--seg-champion-bg,#fefce8); border:1px solid var(--seg-champion-bd,#fde68a); font:500 14px/1.3 Inter,system-ui,sans-serif; white-space:nowrap; } .ds-segment-badge svg { width:14px; height:14px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "El mirador al amanecer",
+    "overview": "Es la vista desde la montana de Salento a primera hora: aire, horizonte amplio y una sola linea de tierra tostada cruzando la luz. La interfaz respira antes de hablar. La personalidad es de negocio pequeno que se toma en serio su oficio: calido pero exacto. La densidad se adapta al momento de uso: tactil en el movil de quien registra una venta de pie, densa en el escritorio de quien revisa inventario sentado. Ninguna pantalla puede asumir fondo oscuro: el tema sigue al sistema operativo.",
+    "keyCharacteristics": [
+      "Horizonte calido: crema y blanco como respiracion, tierra tostada como acento raro.",
+      "Doble tema real, gobernado por prefers-color-scheme, nunca por una clase.",
+      "Plano en reposo; la sombra es una respuesta, no un estado.",
+      "Tactil bajo 768px, denso por encima.",
+      "Espanol de Colombia, trato de tu, iconos Lucide y cero emoji en la interfaz."
+    ],
+    "rules": [
+      {
+        "name": "La Regla del Acento Escaso",
+        "body": "La tierra tostada ocupa como mucho el 10% de una pantalla. Si aparece en el boton, el titulo, el borde y el icono a la vez, ha dejado de ser senal.",
+        "section": "colors"
+      },
+      {
+        "name": "La Regla del Morado Prohibido",
+        "body": "Ningun gradiente morado, violeta o cian sobre oscuro. La paleta es de tierra.",
+        "section": "colors"
+      },
+      {
+        "name": "La Regla de los Dos Temas",
+        "body": "Todo color se escribe con la variable semantica, nunca con la utilidad clara fija. Una etiqueta text-gray-700 sobre bg-background da ~2:1 de contraste en oscuro.",
+        "section": "colors"
+      },
+      {
+        "name": "La Regla de los 16 px",
+        "body": "Ningun texto que el cliente deba leer baja de 16px, y ninguna etiqueta funcional baja de 14px.",
+        "section": "typography"
+      },
+      {
+        "name": "La Regla del Reposo Plano",
+        "body": "Una tarjeta en reposo no lleva sombra ni cristal.",
+        "section": "elevation"
+      },
+      {
+        "name": "La Regla del Borde Unico",
+        "body": "Nada de bordes de acento gruesos sobre esquinas redondeadas.",
+        "section": "shapes"
+      },
+      {
+        "name": "La Regla de la Terna Unica",
+        "body": "El badge de segmento lee los tokens --seg-*, no utilidades Tailwind sueltas.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do escribir todo color mediante la variable semantica o su utilidad de tema.",
+      "Do dar 44px de altura tactil a los controles primarios por debajo de 768px.",
+      "Do mantener 16px como piso del texto que lee un cliente.",
+      "Do reservar Fraunces (.display-serif) a titulos de marca.",
+      "Do decir los estados en lenguaje de persona."
+    ],
+    "donts": [
+      "Don't usar gradientes morados o violetas.",
+      "Don't poner sombra o cristal a una tarjeta en reposo.",
+      "Don't usar bordes de acento gruesos sobre esquinas redondeadas.",
+      "Don't meter emoji en la interfaz.",
+      "Don't mostrar identidad de clientes en pantallas proyectables, exportables o capturables."
+    ]
+  }
+}

@@ -50,3 +50,31 @@ scripts/backups/
 
 # Cache incremental de tsc (npx tsc --noEmit)
 tsconfig.tsbuildinfo
+
+# impeccable-ignore-start
+# Salida efimera, estado de runtime y overrides por desarrollador.
+# Sin anclar: .impeccable puede quedar en la raiz o bajo un workspace anidado.
+.impeccable/config.local.json
+.impeccable/hook.cache.json
+.impeccable/hook.pending.json
+.impeccable/*.png
+.impeccable/live/server.json
+.impeccable/live/sessions/
+.impeccable/live/previews/
+.impeccable/live/annotations/
+.impeccable/live/cache/
+.impeccable/live/manual-edit-apply-transaction.json
+.impeccable/live/manual-edit-events.jsonl
+.impeccable/live/manual-edit-evidence/
+.impeccable/live/pending-manual-edits.json
+.impeccable/live/deferred-svelte-component-accepts.json
+.impeccable/live/*.png
+# DESVIACION DELIBERADA del README de Impeccable: el upstream deja
+# .impeccable/critique/*.md trackeado como artefacto compartido. ESTE REPO ES
+# PUBLICO y la app muestra 52 clientes reales (algunos menores identificados
+# por curso); un critique puede citar texto de pantalla. Se ignora.
+.impeccable/critique/
+# El skill son 3,5 MB reinstalables con `npx impeccable install`. No viaja al
+# repo publico ni al bundle de despliegue.
+.claude/skills/impeccable/
+# impeccable-ignore-end

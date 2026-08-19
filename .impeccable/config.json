@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-08-19T01:14:47.355Z",
+        "reason": "Fuente de marca declarada en project/README.md (Inter = brand face, Fraunces = display). Decision del sistema de diseno, no descuido. Se carga via next/font/google en app/layout.tsx."
+      }
+    ]
+  }
+}

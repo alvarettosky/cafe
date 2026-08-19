@@ -748,6 +748,56 @@ const { data, error } = await supabase.rpc('process_coffee_sale', {
 4. Actualizar tipos TypeScript correspondientes
 5. Si es RPC nueva: documentar parámetros y return type
 
+## Diseño: Impeccable
+
+Guía de diseño para agentes, instalada el 2026-08-18. Todo pasa por un solo skill:
+`/impeccable <comando>` (23 comandos: `critique`, `audit`, `polish`, `layout`,
+`typeset`, `harden`, `adapt`, `clarify`…).
+
+**Fuentes de verdad, en orden:**
+
+1. `PRODUCT.md` — verdad de producto (usuarios, reglas de negocio, restricciones).
+   Incluye hechos que el código no dice: el stock puede ser negativo a propósito, el
+   portal aún no se ha abierto a clientes, hay personas mayores entre los clientes.
+2. `DESIGN.md` — sistema visual extraído de `app/globals.css` y de las primitivas de
+   `components/ui/`. Frontmatter con tokens (normativo) + 8 secciones.
+3. `.impeccable/design.json` — sidecar: rampas tonales, sombras, motion, y 6
+   componentes como HTML/CSS autocontenido.
+4. `../project/` — el bundle original de Claude Design. Es la referencia histórica de
+   marca; cuando contradiga a `app/globals.css`, **manda el código**.
+
+**Detector.** 59 reglas deterministas, sin LLM ni API key:
+
+```bash
+npx impeccable detect app components        # legible
+npx impeccable detect --json app components # para CI
+```
+
+Corre además automáticamente tras cada Edit/Write sobre archivos de UI, vía el hook de
+`.claude/settings.local.json` (machine-local, no versionado).
+
+**Lo que NO se toca:**
+
+- No cambiar Inter: es fuente de marca declarada, y ya está registrada como excepción
+  del detector en `.impeccable/config.json`.
+- No versionar `.claude/skills/impeccable/` (3,5 MB, reinstalable) ni
+  `.impeccable/critique/`: **este repositorio es público** y un critique puede citar
+  texto de pantalla con datos de clientes reales.
+- No asumir fondo oscuro en ninguna pantalla: el tema lo gobierna
+  `prefers-color-scheme`, no la clase `.dark` de `app/layout.tsx`.
+
+**Deuda de diseño conocida** (línea base del detector, 2026-08-18: 5 hallazgos):
+
+| Dónde                                                   | Qué                                                                       |
+| ------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `app/contactos/page.tsx:173`, `app/portal/page.tsx:376` | Gradientes morados (`from-purple-50`, `from-purple-900`): fuera de paleta |
+| `app/backups/page.tsx:167`, `app/precios/page.tsx:25`   | `border-b-2` sobre esquina redondeada                                     |
+| `components/ui/button.tsx`                              | Altura `h-9` (36 px) < 44 px táctiles en móvil                            |
+| `components/ui/card.tsx`                                | `shadow-sm glass` por defecto, contra la doctrina de reposo plano         |
+| `components/customer-segment-badge.tsx`                 | Usa utilidades Tailwind en vez de los tokens `--seg-*`                    |
+
+Reinstalar o actualizar: `npx impeccable update`.
+
 ## Recursos Adicionales
 
 - **Ficha Técnica**: `FICHA_TECNICA.md` - Información del proyecto, cuentas, stack y métricas
