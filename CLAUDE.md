@@ -786,15 +786,20 @@ Corre además automáticamente tras cada Edit/Write sobre archivos de UI, vía e
 - No asumir fondo oscuro en ninguna pantalla: el tema lo gobierna
   `prefers-color-scheme`, no la clase `.dark` de `app/layout.tsx`.
 
-**Deuda de diseño conocida** (línea base del detector, 2026-08-18: 5 hallazgos):
+**Deuda de diseño conocida** (detector, 2026-08-18). La cifra depende del modo:
+**5 hallazgos** con `--no-config` (scan crudo) y **10 con el contexto del proyecto
+cargado**, porque la regla `design-system-color` solo existe desde que hay un `DESIGN.md`
+contra el que comparar. Un número sin su modo de medición no dice nada:
 
-| Dónde                                                   | Qué                                                                       |
-| ------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `app/contactos/page.tsx:173`, `app/portal/page.tsx:376` | Gradientes morados (`from-purple-50`, `from-purple-900`): fuera de paleta |
-| `app/backups/page.tsx:167`, `app/precios/page.tsx:25`   | `border-b-2` sobre esquina redondeada                                     |
-| `components/ui/button.tsx`                              | Altura `h-9` (36 px) < 44 px táctiles en móvil                            |
-| `components/ui/card.tsx`                                | `shadow-sm glass` por defecto, contra la doctrina de reposo plano         |
-| `components/customer-segment-badge.tsx`                 | Usa utilidades Tailwind en vez de los tokens `--seg-*`                    |
+| Dónde                                                       | Qué                                                                       |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `app/contactos/page.tsx:173`, `app/portal/page.tsx:376`     | Gradientes morados (`from-purple-50`, `from-purple-900`): fuera de paleta |
+| `app/backups/page.tsx:167`, `app/precios/page.tsx:25`       | `border-b-2` sobre esquina redondeada                                     |
+| `components/ui/button.tsx`                                  | Altura `h-9` (36 px) < 44 px táctiles en móvil                            |
+| `components/ui/card.tsx`                                    | `shadow-sm glass` por defecto, contra la doctrina de reposo plano         |
+| `components/customer-segment-badge.tsx`                     | Usa utilidades Tailwind en vez de los tokens `--seg-*`                    |
+| `components/charts/*-chart.tsx` (payment, product, revenue) | `#333` fijo: fuera de paleta y no cambia con el tema                      |
+| `components/delivery-zone-select.tsx:84,140`                | `#9CA3AF` fijo: mismo problema                                            |
 
 Reinstalar o actualizar: `npx impeccable update`.
 
