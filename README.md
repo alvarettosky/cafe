@@ -75,6 +75,8 @@ uno, está en [`docs/BACKLOG.md`](docs/BACKLOG.md) §P0-VENTA, §P0-SEC-5 y
 | [`manual-de-usuario-no-tecnico.md`](manual-de-usuario-no-tecnico.md) | Cómo **usar** el sistema día a día — para quien vende, no para quien programa                      |
 | [`.claude/commands/validate.md`](.claude/commands/validate.md)       | Comando `/validate`: las **8 fases** de verificación, en orden, y §«El hueco que queda»            |
 | [`docs/testing/`](docs/testing/)                                     | Guías de testing y CI/CD                                                                           |
+| [`PRODUCT.md`](PRODUCT.md)                                           | Verdad de producto para agentes: usuarios, reglas de negocio y restricciones que el código no dice |
+| [`DESIGN.md`](DESIGN.md)                                             | Sistema visual: tokens normativos, siete reglas con nombre y la deuda de diseño conocida           |
 
 ## Funcionalidades
 
@@ -275,4 +277,4 @@ Antes de proponer un cambio, lee [`docs/BACKLOG.md` §D](docs/BACKLOG.md#d--cerr
 
 **Stack:** Next.js 16 · TypeScript · Supabase · TailwindCSS
 **Deploy:** Vercel
-**Última actualización:** 2026-07-27
+**Última actualización:** 2026-08-18
