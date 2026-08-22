@@ -58,12 +58,73 @@ Runs advanced tests that take longer to execute.
 **Jobs:**
 
 1. **Mutation Testing**: Stryker mutation tests (60 min timeout)
-2. **Load Testing**: k6 performance tests
+2. **Load Testing**: k6 performance tests against production (30 min timeout)
 
 **Triggers:**
 
 - Nightly schedule at 3 AM UTC
 - Manual workflow dispatch
+
+#### Load Testing gate
+
+`tests/load/api-stress-test.js` runs an 8-minute scenario (10 -> 50 VUs)
+against the production URL and produces ~3,700 iterations, 3 requests each.
+k6 is pinned to a fixed version via `grafana/setup-k6-action`, so the gate
+cannot change behaviour without a commit.
+
+**Thresholds** — calibrated against four real CI runs (#103-#106), not guessed:
+
+| Metric                | Threshold    | Rationale                                             |
+| --------------------- | ------------ | ----------------------------------------------------- |
+| `http_req_duration`   | `p(95)<300`  | 3.1x the worst p95 measured in CI (74-97 ms)          |
+| `http_req_duration`   | `p(99)<2000` | absorbs serverless cold starts                        |
+| `homepage_duration`   | `p(95)<300`  | per-endpoint Trend                                    |
+| `login_duration`      | `p(95)<300`  | per-endpoint Trend                                    |
+| `export_api_duration` | `p(95)<800`  | extra headroom for this endpoint's cold start         |
+| `errors`              | `rate<0.01`  | ~110 of a night's ~11,000 checks                      |
+| `checks`              | `rate>0.99`  | correctness only — status codes, never latency        |
+| `http_req_failed`     | `rate<0.01`  | the expected 401 is registered via `responseCallback` |
+
+**Two rules this file exists to preserve:**
+
+1. **Latency is watched by percentile, never by a per-request check.** A
+   `check(res, { 'responds in <1s': ... })` is a threshold on the _slowest_
+   request of the run (p100). This backend's tail measures 11-16x its p95
+   consistently — including on nights that pass — so with 11,000 requests the
+   p100 will always cross any fixed ceiling eventually. Checks assert status
+   codes; Trends and percentiles assert speed.
+2. **A `Rate` must record successes as well as failures.** `check(...) ||
+errorRate.add(1)` only ever records `1`, so the rate is 100% the moment a
+   single check fails and 0% otherwise — a declared `rate<0.1` is really "zero
+   failures tolerated". Always write `errorRate.add(!check(...))`.
+
+Both rules were learned the hard way: runs #104-#106 failed on the _same commit_
+that had passed five nights running, each time on a single failed check out of
+~22,000. See [`TESTING_GUIDE.md`](TESTING_GUIDE.md#load-tests-k6) for how to run
+it locally and [`../../CLAUDE.md`](../../CLAUDE.md) for the repository's gate
+inventory.
+
+#### Debugging exit code 99
+
+k6 exits `99` when a **threshold** is crossed — not when the script errors
+(that is `107`+) and not when a request fails. The log line naming the metric
+is the diagnosis:
+
+```
+level=error msg="thresholds on metrics 'errors' have been crossed"
+```
+
+Download the `load-test-results` artifact and read `summary.json`: every
+threshold carries its own `{"ok": true|false}`, and `root_group.checks` names
+the check that failed and how many times.
+
+```bash
+gh run download <run-id> --repo alvarettosky/cafe -n load-test-results
+```
+
+Before changing a threshold, confirm the metric actually regressed. A single
+failure out of thousands is a tail event, not a regression — raising the
+ceiling until it passes hides the next real one.
 
 ## Pre-commit Hooks
 
@@ -205,6 +266,30 @@ npx playwright test --debug
 # View trace
 npx playwright show-trace trace.zip
 ```
+
+## Action versions
+
+All actions run on the Node 24 runtime. GitHub deprecated Node 20 on the
+runners, and any action still targeting it emits a warning on every job.
+
+| Action                    | Version                    | Note                                     |
+| ------------------------- | -------------------------- | ---------------------------------------- |
+| `actions/checkout`        | `v7`                       | `v5`+ is Node 24                         |
+| `actions/setup-node`      | `v7`                       | `v5`+ is Node 24; auto-caches by default |
+| `actions/upload-artifact` | `v7`                       | **`v5` is still Node 20** — needs `v6`+  |
+| `codecov/codecov-action`  | pinned by SHA (`fb8b358…`) | third-party: pin, don't float            |
+| `grafana/setup-k6-action` | pinned by SHA (`db07bd9…`) | third-party: pin, don't float            |
+
+Check the runtime before bumping — `upload-artifact@v5` looks like a fix and
+is not:
+
+```bash
+gh api "repos/actions/upload-artifact/contents/action.yml?ref=v5" \
+  --jq '.content' | base64 -d | grep 'using:'
+```
+
+Run [`actionlint`](https://github.com/rhysd/actionlint) over the workflows
+before pushing any change to them.
 
 ## Performance Optimization
 

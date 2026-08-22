@@ -190,6 +190,11 @@ y en cada push que toque migraciones o el exportador. Detalle en
 - **On push**: pipeline completo (lint, tests, type-check, build)
 - **Nightly / E2E**: tests de mutación, carga y Playwright
 
+El nightly de carga corre **contra producción** a las 3 AM UTC con umbrales
+calibrados sobre corridas reales, no estimados. Cómo leer un fallo suyo —y por
+qué la velocidad se mide por percentil y nunca con un check por request— está en
+[`docs/testing/CI_CD.md`](docs/testing/CI_CD.md#load-testing-gate).
+
 ## Cómo desplegar (Vercel)
 
 1. Importa el repositorio en [Vercel](https://vercel.com).

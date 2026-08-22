@@ -87,6 +87,37 @@ test('should complete user flow', async ({ page }) => {
 });
 ```
 
+### Load tests (k6)
+
+Location: `tests/load/`. Only `api-stress-test.js` runs in CI (nightly, against
+production); `soak-test.js` and `spike-test.js` are manual.
+
+```bash
+npm run test:load           # api-stress-test.js
+npm run test:spike
+npm run test:soak
+
+# Against production, with a compressed scenario (the CI one takes 8 min)
+k6 run --quiet -e BASE_URL=https://cafe-pi-steel.vercel.app \
+  --stage 30s:10 --stage 60s:10 --stage 30s:50 --stage 45s:50 --stage 15s:0 \
+  tests/load/api-stress-test.js
+```
+
+**Two rules when writing them** — both come from a real failure, see
+[`CI_CD.md`](CI_CD.md#load-testing-gate):
+
+1. **Checks assert correctness; percentiles assert speed.** A check like
+   `r => r.timings.duration < 1000` is a threshold on the slowest request of
+   the whole run, and it will eventually fail on any backend with a long tail.
+   Record the duration in a `Trend` and set a `p(95)` threshold instead.
+2. **`Rate` needs both outcomes.** Write `errorRate.add(!check(res, {...}))`,
+   never `check(res, {...}) || errorRate.add(1)` — the latter records only
+   failures, so the rate is 100% as soon as one check fails.
+
+Local numbers are **not** the CI baseline: the GitHub runner is closer to
+Vercel than a developer machine. Calibrate thresholds from the `summary.json`
+artifacts of real nightly runs.
+
 ## Coverage Requirements
 
 - Minimum 80% coverage for lines, functions, branches, and statements
@@ -134,7 +165,9 @@ All tests run automatically on:
 - Every pull request
 - Nightly (mutation and load tests)
 
-See `.github/workflows/` for CI configuration.
+See `.github/workflows/` for CI configuration and
+[`CI_CD.md`](CI_CD.md) for the pipeline, the load-test thresholds and how to
+read a failed nightly run.
 
 ## Troubleshooting
 
@@ -148,6 +181,12 @@ See `.github/workflows/` for CI configuration.
 
 **Issue**: Coverage below threshold
 **Solution**: Add tests for uncovered branches
+
+**Issue**: Nightly load test fails with exit code 99
+**Solution**: That is a k6 _threshold_, not a crashed script. Read which metric
+crossed it in the log, then check `summary.json` in the `load-test-results`
+artifact before touching any number — see
+[`CI_CD.md`](CI_CD.md#debugging-exit-code-99)
 
 **Issue**: MSW handlers not working
 **Solution**: Verify server is started in `beforeAll` and reset in `afterEach`

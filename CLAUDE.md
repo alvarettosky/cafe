@@ -95,6 +95,36 @@ sabía cuántos más había.
   Ponerlo en pre-commit rompería cada commit hecho sin conexión o sin secretos, y
   un hook que falla por motivos ajenos al cambio acaba desactivado con
   `--no-verify`, que es peor que no tenerlo.
+- El **gate de carga** (`tests/load/api-stress-test.js`, nightly a las 3 AM UTC)
+  corre contra **producción**, no contra una copia. Sus umbrales están calibrados
+  sobre corridas reales de CI y documentados en
+  [`docs/testing/CI_CD.md`](docs/testing/CI_CD.md#load-testing-gate).
+
+### Un umbral que no puede fallar a medias no es un umbral
+
+El nightly estuvo tres noches en rojo (#104-#106) sobre **el mismo commit que
+había pasado verde las cinco anteriores**. No había regresión: el p95 seguía
+entre 74 y 97 ms contra un techo de 3.000, y cada noche falló exactamente **1
+check de ~22.000**, siempre el mismo.
+
+Eran dos defectos de construcción, y los dos se disfrazaban de umbral tolerante:
+
+1. `check(...) || errorRate.add(1)` registra el fallo pero nunca el acierto, así
+   que el `Rate` vale 1,0 en cuanto falla un solo check. El `rate<0.1` que el
+   comentario llamaba «menos del 10 % de errores» era, en realidad, **cero
+   fallos tolerados**. Se escribe `errorRate.add(!check(...))`.
+2. El check que reventaba era `'export API responds in <1s'`: un techo sobre el
+   **peor** request de la noche. La cola de este backend mide 11-16× su p95 de
+   forma estable —también las noches verdes: #103 cerró con un máximo de 989 ms,
+   a 11 ms de romperse—, así que con 11.000 requests el p100 acaba cruzando
+   cualquier techo fijo. Los checks afirman **corrección**; la velocidad se
+   afirma con percentiles sobre un `Trend`.
+
+La lección que sobrevive al caso concreto: **antes de subir un umbral que falla,
+comprobar que la métrica de verdad empeoró**. Un fallo entre miles es la cola de
+la distribución, no una regresión, y subir el techo hasta que pase esconde el
+siguiente que sí lo sea. La familia inversa —gates que dan verde sin mirar— está
+en `docs/BLUEPRINT.md`; esta es la misma enfermedad con el signo cambiado.
 
 ## Comandos Esenciales
 

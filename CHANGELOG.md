@@ -5,6 +5,50 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### 🐛 Corregido
+
+#### El gate de carga daba rojo sin que nada estuviera roto
+
+- El nightly falló tres noches seguidas (#104, #105, #106) sobre **el mismo
+  commit** que había pasado verde las cinco anteriores. No había regresión: el
+  p95 se mantuvo entre 74 y 97 ms contra un umbral de 3.000 ms.
+- Causa 1: `check(...) || errorRate.add(1)` en `tests/load/api-stress-test.js`
+  registraba solo los fallos, nunca los aciertos, así que el `Rate` valía 100 %
+  en cuanto fallaba **un** check. El `rate<0.1` declarado era, de hecho, «cero
+  fallos tolerados». Ahora se usa `errorRate.add(!check(...))`.
+- Causa 2: el check `'export API responds in <1s'` era un techo sobre el peor
+  request de la corrida. La cola de este backend mide 11-16× su p95 de forma
+  estable, también en las noches verdes. La latencia pasa a vigilarse con
+  `Trend` + percentiles por endpoint; los checks se quedan con la corrección.
+- Umbrales calibrados sobre las cuatro noches medidas en CI (`p(95)<300`,
+  `p(99)<2000`), no estimados.
+
+### ✨ Mejorado
+
+- Los 401 esperados de `/api/export` dejan de contarse como fallo de red
+  (`responseCallback`): `http_req_failed` pasa de 33 % a 0 % en corridas sanas y
+  admite umbral propio. El resumen ya no reporta «Failed Requests: 3674» cuando
+  todo está bien.
+- k6 se instala con `grafana/setup-k6-action` con versión fijada (2.2.0) en vez
+  de `apt-get install k6` sin fijar: el gate ya no puede cambiar de
+  comportamiento sin un commit, y desaparece la dependencia de un keyserver.
+- `k6 run --quiet`: la barra de progreso escribía ~480 líneas por corrida y
+  enterraba el motivo del fallo.
+- Documentados los umbrales, las dos reglas de escritura de tests de carga y el
+  diagnóstico del exit 99 en [`docs/testing/CI_CD.md`](docs/testing/CI_CD.md) y
+  [`docs/testing/TESTING_GUIDE.md`](docs/testing/TESTING_GUIDE.md).
+
+### 🔧 Mantenimiento
+
+- Las acciones de GitHub suben del runtime Node 20 (deprecado en los runners) al
+  vigente: `checkout@v7`, `setup-node@v7`, `upload-artifact@v7` — 29 ocurrencias
+  en 6 workflows. Ojo: `upload-artifact@v5` **sigue siendo Node 20**, el mínimo
+  válido es `v6`.
+- `codecov/codecov-action` y `grafana/setup-k6-action` quedan fijados por SHA por
+  ser de terceros.
+
 ## [1.3.0] - 2026-01-23
 
 ### 🎉 Agregado
