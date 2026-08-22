@@ -39,11 +39,11 @@ export const options = {
     // 300 ms = 3.1x el peor observado -> dispara ante una degradacion de 3x.
     http_req_duration: ['p(95)<300', 'p(99)<2000'],
 
-    // Bajo carga sostenida los tres endpoints son equivalentes: 3 corridas del
-    // escenario completo dieron homepage 126.9/126.9/126.9, login 126.5/126.7/124.6
-    // y export 143.3/138.3/141.4 ms. El margen extra de export absorbe su cold
-    // start (a 5 VUs, en frio, su p95 llega a 585 ms). Son una red laxa: el gate
-    // efectivo es el p(95) global, que sube tambien si un solo endpoint se degrada.
+    // Medidos en CI (run #107): homepage 26.8, login 26.9, export 117.3 ms. El
+    // export es ~4.4x los otros dos y concentra la cola (su max fue 950 ms, el
+    // maximo global de la corrida), de ahi el techo mas alto. Son una red laxa a
+    // proposito y con UNA sola noche de datos: cenirlos pide varias corridas, y
+    // el gate efectivo es el p(95) global, que sube igual si un endpoint se degrada.
     homepage_duration: ['p(95)<300'],
     login_duration: ['p(95)<300'],
     export_api_duration: ['p(95)<800'],

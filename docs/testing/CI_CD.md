@@ -72,6 +72,11 @@ against the production URL and produces ~3,700 iterations, 3 requests each.
 k6 is pinned to a fixed version via `grafana/setup-k6-action`, so the gate
 cannot change behaviour without a commit.
 
+**CI baseline** (run #107, the first green one after the fix): global p95 95.3 ms,
+p99 143.6 ms; per endpoint homepage 26.8 ms, login 26.9 ms, export 117.3 ms. The export
+endpoint is ~4.4x the other two and owns the tail — its 950 ms max was the run's global
+max. Local runs are **not** comparable: the GitHub runner sits closer to Vercel.
+
 **Thresholds** — calibrated against four real CI runs (#103-#106), not guessed:
 
 | Metric                | Threshold    | Rationale                                             |
