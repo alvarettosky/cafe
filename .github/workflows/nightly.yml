@@ -13,10 +13,10 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '20'
           cache: 'npm'
@@ -29,7 +29,7 @@ jobs:
 
       - name: Upload mutation report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mutation-report
           path: reports/mutation/
@@ -41,27 +41,29 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
+      # Antes se instalaba por apt desde dl.k6.io, sin fijar version: el gate podia
+      # cambiar de comportamiento de una noche a otra sin que nadie tocara el repo,
+      # y dependia de un keyserver externo como punto de fallo.
       - name: Install k6
-        run: |
-          sudo gpg -k
-          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
-          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-          sudo apt-get update
-          sudo apt-get install k6
+        uses: grafana/setup-k6-action@db07bd9765aac508ef18982e52ab937fe633a065 # v1.2.1
+        with:
+          k6-version: '2.2.0'
 
       - name: Create output directory
         run: mkdir -p test-results/load
 
+      # --quiet suprime la barra de progreso: generaba ~480 lineas de "running (Xm)"
+      # por corrida y enterraba el resumen y el motivo real del fallo.
       - name: Run load tests
-        run: k6 run tests/load/api-stress-test.js
+        run: k6 run --quiet tests/load/api-stress-test.js
         env:
           BASE_URL: https://cafe-pi-steel.vercel.app
 
       - name: Upload load test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: load-test-results
           path: test-results/load/
